@@ -13,6 +13,7 @@ class Attendee < ApplicationRecord
   validates :payment_status, inclusion: { in: %w[Pending Paid] }, allow_nil: true
   validates :document_status, inclusion: { in: %w[QT INV Receipt] }, allow_nil: true
   validates :attendance_status, inclusion: { in: %w[มาเรียน No-show] }, allow_nil: true
+  validates :status, inclusion: { in: %w[attendee potential] }, allow_nil: true
   validate :payment_slip_content_type, if: -> { payment_slip.attached? }
   validate :payment_slip_size, if: -> { payment_slip.attached? }
   
@@ -54,5 +55,7 @@ class Attendee < ApplicationRecord
   scope :indi, -> { where(participant_type: "Indi") }
   scope :paid, -> { where(payment_status: "Paid") }
   scope :attended, -> { where(attendance_status: "มาเรียน") }
+  scope :attendees, -> { where("status = ? OR status IS NULL OR status = ''", "attendee") }
+  scope :potential_customers, -> { where(status: "potential") }
 end
 

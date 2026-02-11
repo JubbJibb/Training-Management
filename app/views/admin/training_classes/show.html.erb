@@ -103,27 +103,32 @@
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" id="classTabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants" type="button" role="tab">
-              <i class="bi bi-people"></i> Tab 1: Participants
+            <button class="nav-link active" id="attendees-tab" data-bs-toggle="tab" data-bs-target="#attendees" type="button" role="tab">
+              <i class="bi bi-people-fill"></i> Tab 1: Class Attendees
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="potential-tab" data-bs-toggle="tab" data-bs-target="#potential" type="button" role="tab">
+              <i class="bi bi-person-plus"></i> Tab 2: Potential Customers
             </button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
-              <i class="bi bi-file-earmark-text"></i> Tab 2: Documents
+              <i class="bi bi-file-earmark-text"></i> Tab 3: Documents
             </button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">
-              <i class="bi bi-cash-coin"></i> Tab 3: Finance
+              <i class="bi bi-cash-coin"></i> Tab 4: Finance
             </button>
           </li>
         </ul>
 
         <!-- Tab content -->
         <div class="tab-content mt-4" id="classTabsContent">
-          <!-- Tab 1: Participants -->
-          <div class="tab-pane fade show active" id="participants" role="tabpanel">
-            <h6 class="mb-3">👥 Participant List (รายชื่อผู้เรียน)</h6>
+          <!-- Tab 1: Class Attendees -->
+          <div class="tab-pane fade show active" id="attendees" role="tabpanel">
+            <h6 class="mb-3">👥 Class Attendees (ผู้ลงทะเบียนแล้ว)</h6>
             <% if @attendees.any? %>
               <div class="table-responsive">
                 <table class="table table-hover table-striped">
@@ -183,6 +188,13 @@
                           <% end %>
                         </td>
                         <td>
+                          <%= button_to move_to_potential_admin_training_class_attendee_path(@training_class, attendee), 
+                              method: :patch,
+                              data: { confirm: "Move #{attendee.name} to Potential Customers? All information will be preserved." },
+                              class: "btn btn-sm btn-outline-warning", title: "Move to Potential Customers",
+                              form: { style: "display: inline-block; margin: 0;" } do %>
+                            <i class="bi bi-arrow-right-circle"></i>
+                          <% end %>
                           <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), 
                               class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
                             <i class="bi bi-pencil"></i>
@@ -207,7 +219,78 @@
             <% end %>
           </div>
 
-          <!-- Tab 2: Documents -->
+          <!-- Tab 2: Potential Customers -->
+          <div class="tab-pane fade" id="potential" role="tabpanel" data-tab-id="potential">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">🎯 Potential Customers (ลูกค้าที่มีศักยภาพ)</h6>
+              <div class="alert alert-info mb-0 py-2 px-3">
+                <i class="bi bi-info-circle"></i> Click "Move to Attendee" to convert potential customers to registered attendees
+              </div>
+            </div>
+            <% if @potential_customers.any? %>
+              <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 50px;">ลำดับ</th>
+                      <th>ชื่อ-นามสกุล</th>
+                      <th>บริษัท</th>
+                      <th>ประเภท</th>
+                      <th>ช่องทางที่มา</th>
+                      <th>เบอร์โทรศัพท์</th>
+                      <th>อีเมล</th>
+                      <th>หมายเหตุ</th>
+                      <th style="width: 120px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @potential_customers.each_with_index do |customer, index| %>
+                      <tr>
+                        <td class="text-center"><strong><%= index + 1 %></strong></td>
+                        <td><strong><%= customer.name %></strong></td>
+                        <td><%= customer.participant_type == "Corp" ? (customer.company || "—") : "—" %></td>
+                        <td>
+                          <span class="badge <%= customer.participant_type == "Corp" ? "bg-info" : "bg-secondary" %>">
+                            <%= customer.participant_type || "Indi" %>
+                          </span>
+                        </td>
+                        <td><%= customer.source_channel || "—" %></td>
+                        <td><%= customer.phone || "—" %></td>
+                        <td><%= customer.email %></td>
+                        <td><%= customer.notes || "—" %></td>
+                        <td>
+                          <%= button_to move_to_attendee_admin_training_class_attendee_path(@training_class, customer), 
+                              method: :patch,
+                              data: { confirm: "Move #{customer.name} to Class Attendees? All information will be preserved." },
+                              class: "btn btn-sm btn-outline-success", title: "Move to Class Attendees",
+                              form: { style: "display: inline-block; margin: 0;" } do %>
+                            <i class="bi bi-arrow-left-circle"></i>
+                          <% end %>
+                          <%= link_to edit_admin_training_class_attendee_path(@training_class, customer), 
+                              class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
+                            <i class="bi bi-pencil"></i>
+                          <% end %>
+                          <%= link_to admin_training_class_attendee_path(@training_class, customer), 
+                              data: { turbo_method: :delete, confirm: "Remove this potential customer?" },
+                              class: "btn btn-sm btn-outline-danger", title: "Remove" do %>
+                            <i class="bi bi-trash"></i>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="text-center py-4">
+                <i class="bi bi-person-plus display-4 text-muted"></i>
+                <p class="text-muted mt-3">No potential customers yet.</p>
+                <%= link_to "Add Potential Customer", new_admin_training_class_attendee_path(@training_class), class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Tab 3: Documents -->
           <div class="tab-pane fade" id="documents" role="tabpanel">
             <h6 class="mb-3">📄 Documents Summary (สรุปสถานะเอกสาร)</h6>
             <% 
@@ -288,7 +371,7 @@
             </div>
           </div>
 
-          <!-- Tab 3: Finance -->
+          <!-- Tab 4: Finance -->
           <div class="tab-pane fade" id="finance" role="tabpanel">
             <h6 class="mb-3">💰 Finance Summary (สรุปการเงิน)</h6>
             <% 
@@ -418,3 +501,35 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if we need to switch tabs based on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabToOpen = urlParams.get('tab');
+    
+    if (tabToOpen) {
+      const tabButton = document.querySelector(`button[data-bs-target="#${tabToOpen}"]`);
+      if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+      }
+    }
+    
+    // Also check flash messages that might indicate which tab to show
+    const notice = document.querySelector('.alert-success');
+    if (notice && notice.textContent.includes('Potential Customers')) {
+      const tabButton = document.querySelector('button[data-bs-target="#potential"]');
+      if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+      }
+    } else if (notice && notice.textContent.includes('Class Attendees')) {
+      const tabButton = document.querySelector('button[data-bs-target="#attendees"]');
+      if (tabButton) {
+        const tab = new bootstrap.Tab(tabButton);
+        tab.show();
+      }
+    }
+  });
+</script>

@@ -3,12 +3,13 @@ module Admin
     layout "admin"
     
     def index
-      @training_classes = TrainingClass.order(date: :desc)
+      @training_classes = TrainingClass.order(date: :asc)
     end
     
     def show
       @training_class = TrainingClass.find(params[:id])
-      @attendees = @training_class.attendees.order(:name)
+      @attendees = @training_class.attendees.attendees.order(:name)
+      @potential_customers = @training_class.attendees.potential_customers.order(:name)
     end
     
     def new

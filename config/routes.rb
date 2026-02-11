@@ -17,6 +17,10 @@ Rails.application.routes.draw do
         collection do
           get :export
         end
+        member do
+          patch :move_to_potential
+          patch :move_to_attendee
+        end
       end
     end
   end

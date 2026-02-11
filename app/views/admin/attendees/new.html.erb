@@ -34,6 +34,14 @@
           </div>
           
           <div class="mb-3">
+            <%= f.label :status, "สถานะ", class: "form-label" %>
+            <%= f.select :status, [["Class Attendee (ผู้ลงทะเบียน)", "attendee"], ["Potential Customer (ลูกค้าที่มีศักยภาพ)", "potential"]], 
+                { selected: @attendee.status || "attendee" }, 
+                { class: "form-select" } %>
+            <small class="form-text text-muted">เลือกว่าบุคคลนี้เป็นผู้ลงทะเบียนแล้วหรือเป็นลูกค้าที่มีศักยภาพ</small>
+          </div>
+          
+          <div class="mb-3">
             <%= f.label :participant_type, "ประเภท", class: "form-label" %>
             <%= f.select :participant_type, [["Individual", "Indi"], ["Corporate", "Corp"]], 
                 { selected: @attendee.participant_type || "Indi" }, 

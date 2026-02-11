@@ -1,7 +1,7 @@
 module Admin
   class AttendeesController < ApplicationController
     before_action :set_training_class
-    before_action :set_attendee, only: [:show, :edit, :update, :destroy]
+    before_action :set_attendee, only: [:show, :edit, :update, :destroy, :move_to_potential, :move_to_attendee]
     skip_before_action :set_attendee, only: [:index, :new, :create, :export]
     layout "admin"
     
@@ -44,6 +44,16 @@ module Admin
       redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee removed successfully."
     end
     
+    def move_to_potential
+      @attendee.update(status: "potential")
+      redirect_to admin_training_class_path(@training_class, tab: "potential"), notice: "#{@attendee.name} has been moved to Potential Customers. All information has been preserved."
+    end
+    
+    def move_to_attendee
+      @attendee.update(status: "attendee")
+      redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} has been moved to Class Attendees. All information has been preserved."
+    end
+    
     def export
       @attendees = @training_class.attendees.order(:name)
       
@@ -69,7 +79,7 @@ module Admin
       params.require(:attendee).permit(:name, :email, :phone, :company, :notes, 
                                         :participant_type, :source_channel, :payment_status, 
                                         :document_status, :attendance_status, :total_classes, :price,
-                                        :invoice_no, :due_date, :payment_slip, promotion_ids: [])
+                                        :invoice_no, :due_date, :payment_slip, :status, promotion_ids: [])
     end
   end
 end

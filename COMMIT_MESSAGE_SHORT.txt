@@ -1,0 +1,10 @@
+feat: Separate attendees and potential customers with promotion system
+
+- Add status field to attendees (attendee/potential)
+- Split class page into separate tabs for attendees and potential customers
+- Add move functionality between statuses with icon-only buttons
+- Implement promotion/discount system with Settings page
+- Support multiple discount types: percentage, fixed, buy-x-get-y
+- Add real-time price calculation with discount summary
+- Migrate existing attendees to potential customers
+- Update class sorting to show upcoming classes first
