@@ -1,0 +1,68 @@
+<% content_for :title, "Training Classes" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1><i class="bi bi-calendar-event"></i> Training Classes</h1>
+  <%= link_to new_admin_training_class_path, class: "btn btn-primary" do %>
+    <i class="bi bi-plus-circle"></i> New Training Class
+  <% end %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @training_classes.any? %>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Instructor</th>
+              <th>Attendees</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @training_classes.each do |training_class| %>
+              <tr>
+                <td>
+                  <strong><%= link_to training_class.title, admin_training_class_path(training_class), class: "text-decoration-none" %></strong>
+                </td>
+                <td><%= training_class.date.strftime("%b %d, %Y") %></td>
+                <td><i class="bi bi-geo-alt"></i> <%= training_class.location %></td>
+                <td><%= training_class.instructor || "—" %></td>
+                <td>
+                  <span class="badge bg-info">
+                    <i class="bi bi-people"></i> <%= training_class.attendees.count %>
+                    <% if training_class.max_attendees %>
+                      / <%= training_class.max_attendees %>
+                    <% end %>
+                  </span>
+                </td>
+                <td>
+                  <%= link_to admin_training_class_path(training_class), class: "btn btn-sm btn-outline-primary", title: "View" do %>
+                    <i class="bi bi-eye"></i>
+                  <% end %>
+                  <%= link_to edit_admin_training_class_path(training_class), class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
+                    <i class="bi bi-pencil"></i>
+                  <% end %>
+                  <%= link_to admin_training_class_path(training_class), 
+                      data: { turbo_method: :delete, confirm: "Are you sure?" },
+                      class: "btn btn-sm btn-outline-danger", title: "Delete" do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <p class="text-muted mt-3">No training classes yet.</p>
+        <%= link_to "Create your first training class", new_admin_training_class_path, class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

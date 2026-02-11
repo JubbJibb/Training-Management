@@ -1,0 +1,173 @@
+<% content_for :title, "Admin Dashboard" %>
+
+<div class="row mb-4">
+  <div class="col-12">
+    <h1><i class="bi bi-speedometer2"></i> 🧑‍💼 Admin Dashboard</h1>
+    <p class="text-muted">ฝั่ง Operation / Sales / Class Management</p>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-primary">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-calendar-event"></i> Total Upcoming Classes</h6>
+        <h2 class="card-text"><%= @total_upcoming_classes %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-success">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-people"></i> Total Attendees (เดือนนี้)</h6>
+        <h2 class="card-text"><%= @total_attendees_this_month %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-info">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-person-plus"></i> New Leads (สัปดาห์นี้)</h6>
+        <h2 class="card-text"><%= @new_leads_this_week %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-warning">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-arrow-repeat"></i> Repeat Learners</h6>
+        <h2 class="card-text"><%= @repeat_learners %></h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Required -->
+<% if @pending_qt > 0 || @inv_not_confirmed > 0 || @classes_near_full.any? %>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-warning">
+        <div class="card-header bg-warning">
+          <h5 class="mb-0"><i class="bi bi-bell"></i> Action Required</h5>
+        </div>
+        <div class="card-body">
+          <ul class="mb-0">
+            <% if @pending_qt > 0 %>
+              <li><span class="badge bg-warning">🔔</span> <%= @pending_qt %> คนรอส่ง QT</li>
+            <% end %>
+            <% if @inv_not_confirmed > 0 %>
+              <li><span class="badge bg-warning">🔔</span> <%= @inv_not_confirmed %> คนส่ง INV แล้วแต่ยังไม่ confirm</li>
+            <% end %>
+            <% if @classes_near_full.any? %>
+              <li><span class="badge bg-warning">🔔</span> <%= @classes_near_full.count %> คลาสใกล้เต็ม (90%+)</li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<div class="row">
+  <!-- Upcoming Classes -->
+  <div class="col-md-8 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-calendar-check"></i> Upcoming Classes</h5>
+      </div>
+      <div class="card-body">
+        <% if @upcoming_classes.any? %>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ชื่อคลาส</th>
+                  <th>วันที่</th>
+                  <th>Seats</th>
+                  <th>Paid / Pending</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @upcoming_classes.each do |training_class| %>
+                  <% 
+                    paid_count = training_class.attendees.where(payment_status: "Paid").count
+                    pending_count = training_class.attendees.where(payment_status: "Pending").count
+                    revenue = training_class.attendees.sum(:price)
+                  %>
+                  <tr>
+                    <td>
+                      <strong><%= link_to training_class.title, admin_training_class_path(training_class), class: "text-decoration-none" %></strong>
+                    </td>
+                    <td><%= training_class.date.strftime("%b %d, %Y") %></td>
+                    <td>
+                      <%= training_class.attendees.count %>
+                      <% if training_class.max_attendees %>
+                        / <%= training_class.max_attendees %>
+                      <% end %>
+                    </td>
+                    <td>
+                      <span class="badge bg-success"><%= paid_count %> Paid</span>
+                      <span class="badge bg-warning"><%= pending_count %> Pending</span>
+                    </td>
+                    <td><strong>฿<%= number_with_delimiter(revenue, delimiter: ",") %></strong></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-muted">No upcoming classes scheduled.</p>
+        <% end %>
+        <div class="mt-3">
+          <%= link_to "View All Classes", admin_training_classes_path, class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Leads by Channel & Recent Activity -->
+  <div class="col-md-4">
+    <!-- Leads by Channel -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="bi bi-funnel"></i> Leads by Channel</h5>
+      </div>
+      <div class="card-body">
+        <% if @leads_by_channel.any? %>
+          <% @leads_by_channel.each do |channel, count| %>
+            <div class="d-flex justify-content-between mb-2">
+              <span><%= channel || "Unknown" %></span>
+              <strong><%= count %></strong>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">No data available</p>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-clock-history"></i> Recent Activity</h5>
+      </div>
+      <div class="card-body">
+        <% if @recent_activity.any? %>
+          <div class="list-group list-group-flush">
+            <% @recent_activity.each do |attendee| %>
+              <div class="list-group-item px-0">
+                <small class="text-muted"><%= time_ago_in_words(attendee.created_at) %> ago</small><br>
+                <strong><%= attendee.name %></strong><br>
+                <small><%= attendee.training_class.title %></small>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-muted">No recent activity</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

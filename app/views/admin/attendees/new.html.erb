@@ -1,0 +1,141 @@
+<% content_for :title, "Add Attendee" %>
+
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <%= link_to admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary mb-3" do %>
+      <i class="bi bi-arrow-left"></i> Back to Attendees
+    <% end %>
+    
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="bi bi-person-plus"></i> Add Attendee to <%= @training_class.title %></h3>
+      </div>
+      <div class="card-body">
+        <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true do |f| %>
+          <% if @attendee.errors.any? %>
+            <div class="alert alert-danger">
+              <h5>Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @attendee.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          
+          <div class="mb-3">
+            <%= f.label :name, class: "form-label" %>
+            <%= f.text_field :name, class: "form-control", required: true, autofocus: true %>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :email, class: "form-label" %>
+            <%= f.email_field :email, class: "form-control", required: true %>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :participant_type, "ประเภท", class: "form-label" %>
+            <%= f.select :participant_type, [["Individual", "Indi"], ["Corporate", "Corp"]], 
+                { selected: @attendee.participant_type || "Indi" }, 
+                { class: "form-select", id: "participant_type_select" } %>
+          </div>
+          
+          <div class="mb-3" id="company-field" style="<%= 'display: none;' unless @attendee.participant_type == 'Corp' %>">
+            <%= f.label :company, "บริษัท", class: "form-label" %>
+            <%= f.text_field :company, class: "form-control" %>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :source_channel, "ช่องทางที่มา", class: "form-label" %>
+            <%= f.text_field :source_channel, class: "form-control", placeholder: "เช่น Website, Facebook, Email" %>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= f.label :payment_status, "สถานะชำระเงิน", class: "form-label" %>
+              <%= f.select :payment_status, [["Pending", "Pending"], ["Paid", "Paid"]], 
+                  { selected: @attendee.payment_status || "Pending" }, 
+                  { class: "form-select" } %>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <%= f.label :document_status, "สถานะเอกสาร", class: "form-label" %>
+              <%= f.select :document_status, [["", ""], ["QT", "QT"], ["INV", "INV"], ["Receipt", "Receipt"]], 
+                  { selected: @attendee.document_status }, 
+                  { class: "form-select" } %>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= f.label :attendance_status, "Attendance", class: "form-label" %>
+              <%= f.select :attendance_status, [["No-show", "No-show"], ["มาเรียน", "มาเรียน"]], 
+                  { selected: @attendee.attendance_status || "No-show" }, 
+                  { class: "form-select" } %>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <%= f.label :total_classes, "จำนวนคลาสที่เคยเรียนแล้ว", class: "form-label" %>
+              <%= f.number_field :total_classes, class: "form-control", min: 0, value: @attendee.total_classes || 0 %>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :price, "ราคา (บาท)", class: "form-label" %>
+            <%= f.number_field :price, class: "form-control", step: 0.01, min: 0, value: @attendee.price || 0 %>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= f.label :invoice_no, "Invoice No.", class: "form-label" %>
+              <%= f.text_field :invoice_no, class: "form-control" %>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <%= f.label :due_date, "Due Date", class: "form-label" %>
+              <%= f.date_field :due_date, class: "form-control" %>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :phone, "เบอร์โทรศัพท์", class: "form-label" %>
+            <%= f.telephone_field :phone, class: "form-control" %>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :payment_slip, "สลิปการโอนเงิน (Payment Slip)", class: "form-label" %>
+            <%= f.file_field :payment_slip, class: "form-control", accept: "image/*,.pdf" %>
+            <small class="form-text text-muted">รองรับไฟล์: JPG, PNG, GIF, PDF (ขนาดไม่เกิน 10MB)</small>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :notes, "หมายเหตุ", class: "form-label" %>
+            <%= f.text_area :notes, class: "form-control", rows: 3 %>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <%= link_to "Cancel", admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary" %>
+            <%= f.submit "Add Attendee", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const participantTypeSelect = document.getElementById('participant_type_select');
+    const companyField = document.getElementById('company-field');
+    
+    if (participantTypeSelect) {
+      participantTypeSelect.addEventListener('change', function() {
+        if (this.value === 'Corp') {
+          companyField.style.display = 'block';
+        } else {
+          companyField.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>

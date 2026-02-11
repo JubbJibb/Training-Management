@@ -1,0 +1,420 @@
+<% content_for :title, @training_class.title %>
+
+<div class="row mb-4">
+  <div class="col-12">
+    <%= link_to admin_training_classes_path, class: "btn btn-outline-secondary mb-3" do %>
+      <i class="bi bi-arrow-left"></i> Back to Classes
+    <% end %>
+    
+    <div class="d-flex justify-content-between align-items-center">
+      <h1><%= @training_class.title %></h1>
+      <div>
+        <%= link_to edit_admin_training_class_path(@training_class), class: "btn btn-secondary" do %>
+          <i class="bi bi-pencil"></i> Edit
+        <% end %>
+        <%= link_to admin_training_class_path(@training_class), data: { turbo_method: :delete, confirm: "Are you sure?" }, 
+            class: "btn btn-danger" do %>
+          <i class="bi bi-trash"></i> Delete
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="bi bi-info-circle"></i> Class Details</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-3">Date:</dt>
+          <dd class="col-sm-9"><%= @training_class.date.strftime("%B %d, %Y") %></dd>
+          
+          <% if @training_class.start_time || @training_class.end_time %>
+            <dt class="col-sm-3">Time:</dt>
+            <dd class="col-sm-9">
+              <% if @training_class.start_time && @training_class.end_time %>
+                <%= @training_class.start_time.strftime("%I:%M %p") %> - <%= @training_class.end_time.strftime("%I:%M %p") %>
+              <% elsif @training_class.start_time %>
+                <%= @training_class.start_time.strftime("%I:%M %p") %>
+              <% end %>
+            </dd>
+          <% end %>
+          
+          <dt class="col-sm-3">Location:</dt>
+          <dd class="col-sm-9"><i class="bi bi-geo-alt"></i> <%= @training_class.location %></dd>
+          
+          <% if @training_class.instructor %>
+            <dt class="col-sm-3">Instructor:</dt>
+            <dd class="col-sm-9"><%= @training_class.instructor %></dd>
+          <% end %>
+          
+          <% if @training_class.max_attendees %>
+            <dt class="col-sm-3">Max Attendees:</dt>
+            <dd class="col-sm-9"><%= @training_class.max_attendees %></dd>
+          <% end %>
+          
+          <% if @training_class.description.present? %>
+            <dt class="col-sm-3">Description:</dt>
+            <dd class="col-sm-9"><%= simple_format(@training_class.description) %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-people"></i> Attendance</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="text-center mb-3">
+          <span class="badge bg-primary" style="font-size: 2rem;">
+            <%= @training_class.attendees.count %>
+            <% if @training_class.max_attendees %>
+              / <%= @training_class.max_attendees %>
+            <% end %>
+          </span>
+        </h3>
+        <%= link_to admin_training_class_attendees_path(@training_class), class: "btn btn-primary w-100 mb-2" do %>
+          <i class="bi bi-list-ul"></i> Manage Attendees
+        <% end %>
+        <%= link_to export_admin_training_class_attendees_path(@training_class, format: :csv), class: "btn btn-outline-success w-100" do %>
+          <i class="bi bi-download"></i> Export to CSV
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📊 Class Information</h5>
+        <%= link_to new_admin_training_class_attendee_path(@training_class), class: "btn btn-sm btn-primary" do %>
+          <i class="bi bi-plus-circle"></i> Add Attendee
+        <% end %>
+      </div>
+      <div class="card-body">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" id="classTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="participants-tab" data-bs-toggle="tab" data-bs-target="#participants" type="button" role="tab">
+              <i class="bi bi-people"></i> Tab 1: Participants
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+              <i class="bi bi-file-earmark-text"></i> Tab 2: Documents
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">
+              <i class="bi bi-cash-coin"></i> Tab 3: Finance
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="tab-content mt-4" id="classTabsContent">
+          <!-- Tab 1: Participants -->
+          <div class="tab-pane fade show active" id="participants" role="tabpanel">
+            <h6 class="mb-3">👥 Participant List (รายชื่อผู้เรียน)</h6>
+            <% if @attendees.any? %>
+              <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 50px;">ลำดับ</th>
+                      <th>ชื่อ-นามสกุล</th>
+                      <th>บริษัท</th>
+                      <th>ประเภท</th>
+                      <th>ช่องทางที่มา</th>
+                      <th>สถานะชำระเงิน</th>
+                      <th>สถานะเอกสาร</th>
+                      <th>Attendance</th>
+                      <th>Total Classes</th>
+                      <th style="width: 80px;">Slip</th>
+                      <th style="width: 120px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @attendees.each_with_index do |attendee, index| %>
+                      <tr>
+                        <td class="text-center"><strong><%= index + 1 %></strong></td>
+                        <td><strong><%= attendee.name %></strong></td>
+                        <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
+                        <td>
+                          <span class="badge <%= attendee.participant_type == "Corp" ? "bg-info" : "bg-secondary" %>">
+                            <%= attendee.participant_type || "Indi" %>
+                          </span>
+                        </td>
+                        <td><%= attendee.source_channel || "—" %></td>
+                        <td>
+                          <span class="badge <%= attendee.payment_status == "Paid" ? "bg-success" : "bg-warning" %>">
+                            <%= attendee.payment_status || "Pending" %>
+                          </span>
+                        </td>
+                        <td>
+                          <% if attendee.document_status.present? %>
+                            <span class="badge bg-primary"><%= attendee.document_status %></span>
+                          <% else %>
+                            —
+                          <% end %>
+                        </td>
+                        <td>
+                          <span class="badge <%= attendee.attendance_status == "มาเรียน" ? "bg-success" : "bg-danger" %>">
+                            <%= attendee.attendance_status || "No-show" %>
+                          </span>
+                        </td>
+                        <td class="text-center"><%= attendee.total_classes || 0 %></td>
+                        <td class="text-center">
+                          <% if attendee.payment_slip.attached? %>
+                            <%= link_to rails_blob_path(attendee.payment_slip, disposition: "inline"), 
+                                target: "_blank", class: "btn btn-sm btn-outline-info", title: "View Slip" do %>
+                              <i class="bi bi-file-earmark-image"></i>
+                            <% end %>
+                          <% else %>
+                            <span class="text-muted">—</span>
+                          <% end %>
+                        </td>
+                        <td>
+                          <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), 
+                              class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
+                            <i class="bi bi-pencil"></i>
+                          <% end %>
+                          <%= link_to admin_training_class_attendee_path(@training_class, attendee), 
+                              data: { turbo_method: :delete, confirm: "Remove this attendee?" },
+                              class: "btn btn-sm btn-outline-danger", title: "Remove" do %>
+                            <i class="bi bi-trash"></i>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <div class="text-center py-4">
+                <i class="bi bi-people display-4 text-muted"></i>
+                <p class="text-muted mt-3">No attendees registered yet.</p>
+                <%= link_to "Add First Attendee", new_admin_training_class_attendee_path(@training_class), class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Tab 2: Documents -->
+          <div class="tab-pane fade" id="documents" role="tabpanel">
+            <h6 class="mb-3">📄 Documents Summary (สรุปสถานะเอกสาร)</h6>
+            <% 
+              qt_count = @attendees.where(document_status: "QT").count
+              inv_count = @attendees.where(document_status: "INV").count
+              receipt_count = @attendees.where(document_status: "Receipt").count
+              no_doc_count = @attendees.where(document_status: [nil, ""]).count
+            %>
+            <div class="row mb-4">
+              <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h3 class="text-primary"><%= qt_count %></h3>
+                    <p class="mb-0"><span class="badge bg-primary">QT</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h3 class="text-info"><%= inv_count %></h3>
+                    <p class="mb-0"><span class="badge bg-info">INV</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h3 class="text-success"><%= receipt_count %></h3>
+                    <p class="mb-0"><span class="badge bg-success">Receipt</span></p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h3 class="text-muted"><%= no_doc_count %></h3>
+                    <p class="mb-0"><span class="badge bg-secondary">No Document</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>ลำดับ</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>บริษัท</th>
+                    <th>สถานะเอกสาร</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @attendees.each_with_index do |attendee, index| %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><strong><%= attendee.name %></strong></td>
+                      <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
+                      <td>
+                        <% if attendee.document_status.present? %>
+                          <span class="badge bg-primary"><%= attendee.document_status %></span>
+                        <% else %>
+                          <span class="badge bg-secondary">No Document</span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), 
+                            class: "btn btn-sm btn-outline-secondary" do %>
+                          <i class="bi bi-pencil"></i> Edit
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 3: Finance -->
+          <div class="tab-pane fade" id="finance" role="tabpanel">
+            <h6 class="mb-3">💰 Finance Summary (สรุปการเงิน)</h6>
+            <% 
+              total_revenue = @attendees.sum { |a| a.price.to_f }
+              paid_revenue = @attendees.where(payment_status: "Paid").sum { |a| a.price.to_f }
+              pending_revenue = @attendees.where(payment_status: "Pending").sum { |a| a.price.to_f }
+              vat_amount = total_revenue * 0.07
+              total_with_vat = total_revenue + vat_amount
+              class_cost = @training_class.cost.to_f || 0.0
+              profit = total_revenue - class_cost
+            %>
+            <div class="row mb-4">
+              <div class="col-md-6 mb-3">
+                <div class="card border-primary">
+                  <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Revenue</h5>
+                  </div>
+                  <div class="card-body">
+                    <dl class="row mb-0">
+                      <dt class="col-sm-6">Total Revenue:</dt>
+                      <dd class="col-sm-6"><strong>฿<%= number_with_delimiter(total_revenue, delimiter: ",") %></strong></dd>
+                      
+                      <dt class="col-sm-6">Paid:</dt>
+                      <dd class="col-sm-6 text-success"><strong>฿<%= number_with_delimiter(paid_revenue, delimiter: ",") %></strong></dd>
+                      
+                      <dt class="col-sm-6">Pending:</dt>
+                      <dd class="col-sm-6 text-warning"><strong>฿<%= number_with_delimiter(pending_revenue, delimiter: ",") %></strong></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <div class="card border-info">
+                  <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> VAT Summary</h5>
+                  </div>
+                  <div class="card-body">
+                    <dl class="row mb-0">
+                      <dt class="col-sm-6">Subtotal:</dt>
+                      <dd class="col-sm-6">฿<%= number_with_delimiter(total_revenue, delimiter: ",") %></dd>
+                      
+                      <dt class="col-sm-6">VAT (7%):</dt>
+                      <dd class="col-sm-6">฿<%= number_with_delimiter(vat_amount, delimiter: ",") %></dd>
+                      
+                      <dt class="col-sm-6">Total (incl. VAT):</dt>
+                      <dd class="col-sm-6"><strong>฿<%= number_with_delimiter(total_with_vat, delimiter: ",") %></strong></dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6 mb-3">
+                <div class="card border-warning">
+                  <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Class Cost</h5>
+                  </div>
+                  <div class="card-body">
+                    <h3 class="mb-0">฿<%= number_with_delimiter(class_cost, delimiter: ",") %></h3>
+                    <small class="text-muted">ต้นทุนของ Class นี้</small>
+                    <%= link_to edit_admin_training_class_path(@training_class), class: "btn btn-sm btn-outline-secondary mt-2" do %>
+                      <i class="bi bi-pencil"></i> Edit Cost
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <div class="card border-<%= profit >= 0 ? 'success' : 'danger' %>">
+                  <div class="card-header bg-<%= profit >= 0 ? 'success' : 'danger' %> text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Profit/Loss</h5>
+                  </div>
+                  <div class="card-body">
+                    <h3 class="mb-0 text-<%= profit >= 0 ? 'success' : 'danger' %>">
+                      ฿<%= number_with_delimiter(profit, delimiter: ",") %>
+                    </h3>
+                    <small class="text-muted">รายได้ - ต้นทุน</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>ลำดับ</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>ประเภท</th>
+                    <th>ราคา</th>
+                    <th>สถานะชำระเงิน</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @attendees.each_with_index do |attendee, index| %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><strong><%= attendee.name %></strong></td>
+                      <td>
+                        <span class="badge <%= attendee.participant_type == "Corp" ? "bg-info" : "bg-secondary" %>">
+                          <%= attendee.participant_type || "Indi" %>
+                        </span>
+                      </td>
+                      <td>฿<%= number_with_delimiter(attendee.price.to_f, delimiter: ",") %></td>
+                      <td>
+                        <span class="badge <%= attendee.payment_status == "Paid" ? "bg-success" : "bg-warning" %>">
+                          <%= attendee.payment_status || "Pending" %>
+                        </span>
+                      </td>
+                      <td>
+                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), 
+                            class: "btn btn-sm btn-outline-secondary" do %>
+                          <i class="bi bi-pencil"></i> Edit
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
