@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     
     resources :dashboard, only: [:index]
     resources :finance, only: [:index]
+    resources :settings, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :training_classes do
       resources :attendees, except: [:show] do
         collection do

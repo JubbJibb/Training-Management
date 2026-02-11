@@ -1,9 +1,39 @@
-# Create default admin user
-admin = AdminUser.find_or_create_by(email: "admin@example.com") do |user|
-  user.password = "password123"
+# Create default promotions
+puts "Creating default promotions..."
+
+Promotion.find_or_create_by!(name: "มา 4 จ่าย 3") do |p|
+  p.discount_type = "buy_x_get_y"
+  p.discount_value = 3
+  p.description = "สมัคร 4 คน จ่ายแค่ 3 คน"
+  p.active = true
+  p.base_price = 0
 end
 
-puts "Created admin user: #{admin.email} (password: password123)"
+Promotion.find_or_create_by!(name: "Earlybird") do |p|
+  p.discount_type = "percentage"
+  p.discount_value = 10
+  p.description = "สมัครก่อนกำหนด ลด 10%"
+  p.active = true
+  p.base_price = 0
+end
+
+Promotion.find_or_create_by!(name: "Post and Share") do |p|
+  p.discount_type = "percentage"
+  p.discount_value = 5
+  p.description = "แชร์โพสต์ ลด 5%"
+  p.active = true
+  p.base_price = 0
+end
+
+Promotion.find_or_create_by!(name: "Friend get friends") do |p|
+  p.discount_type = "percentage"
+  p.discount_value = 5
+  p.description = "แนะนำเพื่อนมาสมัคร ลด 5%"
+  p.active = true
+  p.base_price = 0
+end
+
+puts "Default promotions created!"
 
 # Create sample training classes
 if TrainingClass.count == 0

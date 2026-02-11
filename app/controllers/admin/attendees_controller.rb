@@ -14,6 +14,7 @@ module Admin
     
     def new
       @attendee = @training_class.attendees.build
+      @promotions = Promotion.active.order(:name)
     end
     
     def create
@@ -27,6 +28,7 @@ module Admin
     end
     
     def edit
+      @promotions = Promotion.active.order(:name)
     end
     
     def update
@@ -67,7 +69,7 @@ module Admin
       params.require(:attendee).permit(:name, :email, :phone, :company, :notes, 
                                         :participant_type, :source_channel, :payment_status, 
                                         :document_status, :attendance_status, :total_classes, :price,
-                                        :invoice_no, :due_date, :payment_slip)
+                                        :invoice_no, :due_date, :payment_slip, promotion_ids: [])
     end
   end
 end

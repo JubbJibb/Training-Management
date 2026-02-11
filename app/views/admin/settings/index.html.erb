@@ -1,0 +1,91 @@
+<% content_for :title, "Settings - Promotions" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-gear"></i> Settings - Promotions & Pricing</h2>
+  <%= link_to new_admin_setting_path, class: "btn btn-primary" do %>
+    <i class="bi bi-plus-circle"></i> New Promotion
+  <% end %>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">Active Promotions</h5>
+  </div>
+  <div class="card-body">
+    <% if @promotions.any? %>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Discount</th>
+              <th>Base Price</th>
+              <th>Status</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @promotions.each do |promotion| %>
+              <tr>
+                <td><strong><%= promotion.name %></strong></td>
+                <td>
+                  <span class="badge bg-info">
+                    <%= promotion.discount_type.humanize %>
+                  </span>
+                </td>
+                <td><%= promotion.discount_description %></td>
+                <td>
+                  <% if promotion.base_price > 0 %>
+                    <%= number_with_delimiter(promotion.base_price) %> ฿
+                  <% else %>
+                    <span class="text-muted">-</span>
+                  <% end %>
+                </td>
+                <td>
+                  <% if promotion.active? %>
+                    <span class="badge bg-success">Active</span>
+                  <% else %>
+                    <span class="badge bg-secondary">Inactive</span>
+                  <% end %>
+                </td>
+                <td><%= promotion.description %></td>
+                <td>
+                  <%= link_to edit_admin_setting_path(promotion), class: "btn btn-sm btn-outline-primary" do %>
+                    <i class="bi bi-pencil"></i> Edit
+                  <% end %>
+                  <%= link_to admin_setting_path(promotion), method: :delete, 
+                      data: { confirm: "Are you sure?" }, 
+                      class: "btn btn-sm btn-outline-danger" do %>
+                    <i class="bi bi-trash"></i> Delete
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No promotions yet. 
+        <%= link_to "Create your first promotion", new_admin_setting_path %>.
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">Default Promotions</h5>
+  </div>
+  <div class="card-body">
+    <p class="text-muted">You can create the following promotion types:</p>
+    <ul>
+      <li><strong>มา 4 จ่าย 3</strong> - Use discount type "buy_x_get_y" with discount_value = 3</li>
+      <li><strong>Earlybird ลด 10%</strong> - Use discount type "percentage" with discount_value = 10</li>
+      <li><strong>Post and Share ลด 5%</strong> - Use discount type "percentage" with discount_value = 5</li>
+      <li><strong>Friend get friends ลด 5%</strong> - Use discount type "percentage" with discount_value = 5</li>
+    </ul>
+  </div>
+</div>

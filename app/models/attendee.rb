@@ -1,6 +1,9 @@
 class Attendee < ApplicationRecord
   belongs_to :training_class
   
+  has_many :attendee_promotions, dependent: :destroy
+  has_many :promotions, through: :attendee_promotions
+  
   has_one_attached :payment_slip
   
   validates :name, presence: true
@@ -12,6 +15,25 @@ class Attendee < ApplicationRecord
   validates :attendance_status, inclusion: { in: %w[มาเรียน No-show] }, allow_nil: true
   validate :payment_slip_content_type, if: -> { payment_slip.attached? }
   validate :payment_slip_size, if: -> { payment_slip.attached? }
+  
+  def calculate_final_price
+    base_price = self.price || training_class.price || 0
+    return base_price if promotions.where(active: true).empty?
+    
+    final_price = base_price
+    promotions.where(active: true).each do |promotion|
+      discount = promotion.calculate_discount(base_price)
+      final_price -= discount
+    end
+    [final_price, 0].max # ไม่ให้ราคาติดลบ
+  end
+  
+  def total_discount_amount
+    base_price = self.price || training_class.price || 0
+    return 0 if promotions.where(active: true).empty?
+    
+    promotions.where(active: true).sum { |promotion| promotion.calculate_discount(base_price) }
+  end
   
   private
   

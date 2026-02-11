@@ -81,8 +81,57 @@
           </div>
           
           <div class="mb-3">
-            <%= f.label :price, "ราคา (บาท)", class: "form-label" %>
-            <%= f.number_field :price, class: "form-control", step: 0.01, min: 0, value: @attendee.price || 0 %>
+            <%= f.label :price, "ราคาเริ่มต้น (บาท)", class: "form-label" %>
+            <%= f.number_field :price, class: "form-control", step: 0.01, min: 0, value: @attendee.price || @training_class.price || 0, id: "base_price_input" %>
+            <small class="form-text text-muted">ราคาก่อนหักส่วนลด (ถ้าไม่ระบุจะใช้ราคาจาก Training Class)</small>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">โปรโมชั่น / ส่วนลด</label>
+            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+              <% if @promotions.any? %>
+                <% @promotions.each do |promotion| %>
+                  <div class="form-check mb-2">
+                    <%= check_box_tag "attendee[promotion_ids][]", promotion.id, @attendee.promotions.include?(promotion), 
+                        class: "form-check-input promotion-checkbox", 
+                        id: "promotion_#{promotion.id}",
+                        data: { 
+                          discount_type: promotion.discount_type,
+                          discount_value: promotion.discount_value
+                        } %>
+                    <%= label_tag "promotion_#{promotion.id}", promotion.display_name, class: "form-check-label" %>
+                    <small class="text-muted d-block ms-4"><%= promotion.description %></small>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted mb-0">
+                  <i class="bi bi-info-circle"></i> ยังไม่มีโปรโมชั่น 
+                  <%= link_to "สร้างโปรโมชั่น", admin_settings_path, target: "_blank" %>.
+                </p>
+              <% end %>
+            </div>
+            <small class="form-text text-muted">สามารถเลือกได้มากกว่า 1 โปรโมชั่น</small>
+          </div>
+          
+          <div class="mb-3">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title">สรุปราคา</h6>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>ราคาเริ่มต้น:</span>
+                  <strong id="display_base_price">0</strong> ฿
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-success">
+                  <span>ส่วนลดรวม:</span>
+                  <strong id="display_discount">0</strong> ฿
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                  <strong>ราคาสุทธิ:</strong>
+                  <strong class="text-primary fs-5" id="display_final_price">0</strong> ฿
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="row">
@@ -146,7 +195,10 @@
   document.addEventListener('DOMContentLoaded', function() {
     const participantTypeSelect = document.getElementById('participant_type_select');
     const companyField = document.getElementById('company-field');
+    const basePriceInput = document.getElementById('base_price_input');
+    const promotionCheckboxes = document.querySelectorAll('.promotion-checkbox');
     
+    // Handle participant type change
     if (participantTypeSelect) {
       participantTypeSelect.addEventListener('change', function() {
         if (this.value === 'Corp') {
@@ -156,5 +208,53 @@
         }
       });
     }
+    
+    // Calculate price with discounts
+    function calculatePrice() {
+      const basePrice = parseFloat(basePriceInput.value) || 0;
+      let totalDiscount = 0;
+      
+      promotionCheckboxes.forEach(function(checkbox) {
+        if (checkbox.checked) {
+          const discountType = checkbox.dataset.discountType;
+          const discountValue = parseFloat(checkbox.dataset.discountValue) || 0;
+          
+          let discount = 0;
+          switch(discountType) {
+            case 'percentage':
+              discount = basePrice * (discountValue / 100.0);
+              break;
+            case 'fixed':
+              discount = discountValue;
+              break;
+            case 'buy_x_get_y':
+              // มา X+1 จ่าย X => ลด 1/(X+1) ของราคา
+              discount = basePrice / (discountValue + 1);
+              break;
+          }
+          totalDiscount += discount;
+        }
+      });
+      
+      const finalPrice = Math.max(0, basePrice - totalDiscount);
+      
+      // Update display
+      document.getElementById('display_base_price').textContent = basePrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('display_discount').textContent = totalDiscount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('display_final_price').textContent = finalPrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+    
+    // Add event listeners
+    if (basePriceInput) {
+      basePriceInput.addEventListener('input', calculatePrice);
+      basePriceInput.addEventListener('change', calculatePrice);
+    }
+    
+    promotionCheckboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', calculatePrice);
+    });
+    
+    // Initial calculation
+    calculatePrice();
   });
 </script>

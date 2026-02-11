@@ -1,0 +1,109 @@
+<% content_for :title, "New Promotion" %>
+
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <%= link_to admin_settings_path, class: "btn btn-outline-secondary mb-3" do %>
+      <i class="bi bi-arrow-left"></i> Back to Settings
+    <% end %>
+    
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="bi bi-plus-circle"></i> New Promotion</h3>
+      </div>
+      <div class="card-body">
+        <%= form_with model: [:admin, @promotion], local: true do |f| %>
+          <% if @promotion.errors.any? %>
+            <div class="alert alert-danger">
+              <h5>Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @promotion.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          
+          <div class="mb-3">
+            <%= f.label :name, "ชื่อโปรโมชั่น", class: "form-label" %>
+            <%= f.text_field :name, class: "form-control", required: true, autofocus: true, placeholder: "เช่น Earlybird, Post and Share" %>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :discount_type, "ประเภทส่วนลด", class: "form-label" %>
+            <%= f.select :discount_type, 
+                [["เปอร์เซ็นต์ (Percentage)", "percentage"], 
+                 ["จำนวนเงินคงที่ (Fixed)", "fixed"], 
+                 ["มา X จ่าย Y (Buy X Get Y)", "buy_x_get_y"]], 
+                {}, 
+                { class: "form-select", id: "discount_type_select", required: true } %>
+            <small class="form-text text-muted">
+              <strong>Percentage:</strong> ลดเป็นเปอร์เซ็นต์ (เช่น 10% = discount_value = 10)<br>
+              <strong>Fixed:</strong> ลดเป็นจำนวนเงินคงที่ (เช่น 500 บาท = discount_value = 500)<br>
+              <strong>Buy X Get Y:</strong> มา X+1 จ่าย X (เช่น มา 4 จ่าย 3 = discount_value = 3)
+            </small>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :discount_value, "ค่าส่วนลด", class: "form-label" %>
+            <%= f.number_field :discount_value, class: "form-control", step: 0.01, min: 0, required: true, placeholder: "เช่น 10 (สำหรับ 10%), 500 (สำหรับ 500 บาท), 3 (สำหรับ มา 4 จ่าย 3)" %>
+            <small class="form-text text-muted" id="discount_value_help"></small>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :base_price, "ราคาขายปกติ (บาท)", class: "form-label" %>
+            <%= f.number_field :base_price, class: "form-control", step: 0.01, min: 0, placeholder: "0 = ใช้ราคาจาก Training Class" %>
+            <small class="form-text text-muted">ถ้าไม่ระบุ (0) จะใช้ราคาจาก Training Class</small>
+          </div>
+          
+          <div class="mb-3">
+            <%= f.label :description, "คำอธิบาย", class: "form-label" %>
+            <%= f.text_area :description, class: "form-control", rows: 3, placeholder: "อธิบายรายละเอียดโปรโมชั่น" %>
+          </div>
+          
+          <div class="mb-3">
+            <div class="form-check">
+              <%= f.check_box :active, class: "form-check-input", checked: true %>
+              <%= f.label :active, "เปิดใช้งาน", class: "form-check-label" %>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <%= link_to "Cancel", admin_settings_path, class: "btn btn-outline-secondary" %>
+            <%= f.submit "Create Promotion", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const discountTypeSelect = document.getElementById('discount_type_select');
+    const discountValueHelp = document.getElementById('discount_value_help');
+    const discountValueInput = document.querySelector('input[name="promotion[discount_value]"]');
+    
+    function updateHelpText() {
+      const type = discountTypeSelect.value;
+      switch(type) {
+        case 'percentage':
+          discountValueHelp.textContent = 'กรอกเป็นเปอร์เซ็นต์ (เช่น 10 สำหรับ 10%, 5 สำหรับ 5%)';
+          discountValueInput.placeholder = 'เช่น 10 (สำหรับ 10%)';
+          break;
+        case 'fixed':
+          discountValueHelp.textContent = 'กรอกเป็นจำนวนเงิน (เช่น 500 สำหรับลด 500 บาท)';
+          discountValueInput.placeholder = 'เช่น 500 (สำหรับลด 500 บาท)';
+          break;
+        case 'buy_x_get_y':
+          discountValueHelp.textContent = 'กรอกจำนวนคนที่ต้องจ่าย (เช่น 3 สำหรับ "มา 4 จ่าย 3")';
+          discountValueInput.placeholder = 'เช่น 3 (สำหรับ มา 4 จ่าย 3)';
+          break;
+      }
+    }
+    
+    if (discountTypeSelect) {
+      discountTypeSelect.addEventListener('change', updateHelpText);
+      updateHelpText(); // Initialize on page load
+    }
+  });
+</script>

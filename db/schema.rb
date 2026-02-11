@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_11_042850) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_11_045737) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -47,6 +47,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_042850) do
     t.index ["email"], name: "index_admin_users_on_email", unique: true
   end
 
+  create_table "attendee_promotions", force: :cascade do |t|
+    t.integer "attendee_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "promotion_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendee_id"], name: "index_attendee_promotions_on_attendee_id"
+    t.index ["promotion_id"], name: "index_attendee_promotions_on_promotion_id"
+  end
+
   create_table "attendees", force: :cascade do |t|
     t.string "attendance_status", default: "No-show"
     t.string "company"
@@ -69,6 +78,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_042850) do
     t.index ["training_class_id"], name: "index_attendees_on_training_class_id"
   end
 
+  create_table "promotions", force: :cascade do |t|
+    t.boolean "active", default: true
+    t.decimal "base_price", precision: 10, scale: 2, default: "0.0"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "discount_type", null: false
+    t.decimal "discount_value", precision: 10, scale: 2, default: "0.0"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "training_classes", force: :cascade do |t|
     t.decimal "cost", precision: 10, scale: 2, default: "0.0"
     t.datetime "created_at", null: false
@@ -85,5 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_042850) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "attendee_promotions", "attendees"
+  add_foreign_key "attendee_promotions", "promotions"
   add_foreign_key "attendees", "training_classes"
 end
