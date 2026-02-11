@@ -1,0 +1,235 @@
+<% content_for :title, "Finance Dashboard" %>
+
+<div class="row mb-4">
+  <div class="col-12">
+    <h1><i class="bi bi-cash-coin"></i> 💰 Finance Dashboard</h1>
+    <p class="text-muted">ฝั่งเงินล้วน ๆ - ควบคุมรายรับ + เอกสาร + Cash Flow</p>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-success">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-cash-stack"></i> Revenue This Month</h6>
+        <h2 class="card-text">฿<%= number_with_delimiter(@revenue_this_month, delimiter: ",") %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-primary">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-check-circle"></i> Paid This Month</h6>
+        <h2 class="card-text">฿<%= number_with_delimiter(@paid_this_month, delimiter: ",") %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-warning">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-file-earmark-text"></i> Outstanding Invoice</h6>
+        <h2 class="card-text">฿<%= number_with_delimiter(@outstanding_invoice, delimiter: ",") %></h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card text-white bg-danger">
+      <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-exclamation-triangle"></i> Overdue Payments</h6>
+        <h2 class="card-text">฿<%= number_with_delimiter(@overdue_payments, delimiter: ",") %></h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <!-- Invoice Summary -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-file-earmark-text"></i> Invoice Summary</h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-6 mb-3">
+            <div class="border rounded p-3">
+              <h3 class="text-primary"><%= @inv_issued_this_month %></h3>
+              <small class="text-muted">INV issued (เดือนนี้)</small>
+            </div>
+          </div>
+          <div class="col-6 mb-3">
+            <div class="border rounded p-3">
+              <h3 class="text-warning"><%= @inv_unpaid %></h3>
+              <small class="text-muted">INV unpaid</small>
+            </div>
+          </div>
+          <div class="col-6 mb-3">
+            <div class="border rounded p-3">
+              <h3 class="text-danger"><%= @inv_overdue %></h3>
+              <small class="text-muted">INV overdue</small>
+            </div>
+          </div>
+          <div class="col-6 mb-3">
+            <div class="border rounded p-3">
+              <h3 class="text-info"><%= @receipt_not_issued %></h3>
+              <small class="text-muted">Receipt not issued</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Revenue Breakdown -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-pie-chart"></i> Revenue Breakdown</h5>
+      </div>
+      <div class="card-body">
+        <h6>By Course:</h6>
+        <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
+          <% @revenue_by_course.each do |course, amount| %>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-truncate" style="max-width: 60%;" title="<%= course %>"><%= course %></span>
+              <strong>฿<%= number_with_delimiter(amount, delimiter: ",") %></strong>
+            </div>
+          <% end %>
+        </div>
+        
+        <h6 class="mt-4">By Type:</h6>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Corporate:</span>
+            <strong>฿<%= number_with_delimiter(@revenue_by_type["Corp"] || 0, delimiter: ",") %></strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Individual:</span>
+            <strong>฿<%= number_with_delimiter(@revenue_by_type["Indi"] || 0, delimiter: ",") %></strong>
+          </div>
+        </div>
+        
+        <h6 class="mt-4">VAT Summary:</h6>
+        <dl class="row mb-0">
+          <dt class="col-sm-6">Subtotal:</dt>
+          <dd class="col-sm-6">฿<%= number_with_delimiter(@vat_summary[:subtotal], delimiter: ",") %></dd>
+          <dt class="col-sm-6">VAT (7%):</dt>
+          <dd class="col-sm-6">฿<%= number_with_delimiter(@vat_summary[:vat], delimiter: ",") %></dd>
+          <dt class="col-sm-6">Total (incl. VAT):</dt>
+          <dd class="col-sm-6"><strong>฿<%= number_with_delimiter(@vat_summary[:total], delimiter: ",") %></strong></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Status List -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-list-check"></i> Payment Status List</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>ชื่อ</th>
+                <th>คลาส</th>
+                <th>Invoice No.</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @payment_status_list.any? %>
+                <% @payment_status_list.each do |attendee| %>
+                  <tr class="<%= 'table-danger' if attendee.due_date && attendee.due_date < Date.today && attendee.payment_status == 'Pending' %>">
+                    <td><strong><%= attendee.name %></strong></td>
+                    <td><%= attendee.training_class.title %></td>
+                    <td><%= attendee.invoice_no || "—" %></td>
+                    <td>฿<%= number_with_delimiter(attendee.price.to_f, delimiter: ",") %></td>
+                    <td>
+                      <% if attendee.due_date %>
+                        <%= attendee.due_date.strftime("%b %d, %Y") %>
+                        <% if attendee.due_date < Date.today && attendee.payment_status == 'Pending' %>
+                          <span class="badge bg-danger">Overdue</span>
+                        <% end %>
+                      <% else %>
+                        —
+                      <% end %>
+                    </td>
+                    <td>
+                      <span class="badge <%= attendee.payment_status == "Paid" ? "bg-success" : "bg-warning" %>">
+                        <%= attendee.payment_status || "Pending" %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              <% else %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted">No invoices found</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Corporate Billing Overview -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="bi bi-building"></i> Corporate Billing Overview</h5>
+      </div>
+      <div class="card-body">
+        <% if @corporate_billing.any? %>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>บริษัท</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @corporate_billing.each do |billing| %>
+                  <% 
+                    company_attendees = Attendee.where(company: billing[:company])
+                    paid_amount = company_attendees.where(payment_status: "Paid").sum(:price)
+                    pending_amount = company_attendees.where(payment_status: "Pending").sum(:price)
+                  %>
+                  <tr>
+                    <td><strong><%= billing[:company] %></strong></td>
+                    <td>
+                      <strong>฿<%= number_with_delimiter(billing[:amount], delimiter: ",") %></strong><br>
+                      <small class="text-success">Paid: ฿<%= number_with_delimiter(paid_amount, delimiter: ",") %></small><br>
+                      <small class="text-warning">Pending: ฿<%= number_with_delimiter(pending_amount, delimiter: ",") %></small>
+                    </td>
+                    <td>
+                      <% if pending_amount > 0 %>
+                        <span class="badge bg-warning">ค้างชำระ</span>
+                      <% else %>
+                        <span class="badge bg-success">ชำระครบ</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-muted">No corporate billing data available</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
