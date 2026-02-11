@@ -1,0 +1,23 @@
+Reminder: <%= @training_class.title %>
+
+Dear <%= @attendee.name %>,
+
+This is a friendly reminder that you are registered for:
+
+<%= @training_class.title %>
+
+Date: <%= @training_class.date.strftime("%B %d, %Y") %>
+<% if @training_class.end_date && @training_class.end_date != @training_class.date %>
+  - <%= @training_class.end_date.strftime("%B %d, %Y") %>
+<% end %>
+
+<% if @training_class.start_time && @training_class.end_time %>
+Time: <%= @training_class.start_time.strftime("%I:%M %p") %> - <%= @training_class.end_time.strftime("%I:%M %p") %>
+<% end %>
+
+Location: <%= @training_class.location %>
+
+We look forward to seeing you there!
+
+Best regards,
+Training Management Team

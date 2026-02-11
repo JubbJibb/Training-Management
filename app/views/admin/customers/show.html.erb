@@ -1,0 +1,156 @@
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h3 class="mb-0"><i class="bi bi-person-badge"></i> <%= @customer.name %></h3>
+    <small class="text-muted"><%= @customer.email %></small>
+  </div>
+  <div>
+    <%= link_to edit_admin_customer_path(@customer), class: "btn btn-sm btn-outline-secondary" do %>
+      <i class="bi bi-pencil"></i> Edit
+    <% end %>
+    <%= link_to admin_customers_path, class: "btn btn-sm btn-outline-primary" do %>
+      <i class="bi bi-arrow-left"></i> Back
+    <% end %>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6 mb-3">
+    <div class="card">
+      <div class="card-header bg-light">
+        <strong>ข้อมูลทั่วไป</strong>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">ประเภท</dt>
+          <dd class="col-sm-8"><%= @customer.participant_type.presence || "—" %></dd>
+          <dt class="col-sm-4">บริษัท</dt>
+          <dd class="col-sm-8"><%= @customer.company.presence || "—" %></dd>
+          <dt class="col-sm-4">Phone</dt>
+          <dd class="col-sm-8"><%= @customer.phone.presence || "—" %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 mb-3">
+    <div class="card">
+      <div class="card-header bg-light">
+        <strong>ข้อมูลออกเอกสาร (QT/INV/Receipt)</strong>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Tax ID</dt>
+          <dd class="col-sm-8"><%= @customer.tax_id.presence || "—" %></dd>
+          <dt class="col-sm-4">Billing Name</dt>
+          <dd class="col-sm-8"><%= @customer.billing_name.presence || "—" %></dd>
+          <dt class="col-sm-4">Billing Address</dt>
+          <dd class="col-sm-8"><%= simple_format(@customer.billing_address.presence || "—") %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-primary">
+      <div class="card-body text-center">
+        <div class="text-muted">Classes (Registered)</div>
+        <div class="display-6"><%= @registered_classes_count %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-success">
+      <div class="card-body text-center">
+        <div class="text-muted">Registrations</div>
+        <div class="display-6"><%= @total_registrations %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-info">
+      <div class="card-body text-center">
+        <div class="text-muted">Potential</div>
+        <div class="display-6"><%= @total_potential %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-secondary">
+      <div class="card-body">
+        <div class="text-muted mb-1">Documents</div>
+        <div class="small">
+          QT: <strong><%= @doc_summary["QT"] || 0 %></strong>,
+          INV: <strong><%= @doc_summary["INV"] || 0 %></strong>,
+          Receipt: <strong><%= @doc_summary["Receipt"] || 0 %></strong>
+        </div>
+        <div class="text-muted mt-2 mb-1">Payment</div>
+        <div class="small">
+          Paid: <strong><%= @payment_summary["Paid"] || 0 %></strong>,
+          Pending: <strong><%= @payment_summary["Pending"] || 0 %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <strong>ประวัติการลงทะเบียนทั้งหมด</strong>
+    <span class="text-muted small">รวมทั้ง Attendee และ Potential</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover table-striped mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Class</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Document</th>
+            <th>Invoice No.</th>
+            <th>Due Date</th>
+            <th class="text-end">Net Price (incl. VAT)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @attendees.each do |a| %>
+            <tr>
+              <td>
+                <% if a.training_class %>
+                  <%= link_to a.training_class.title, admin_training_class_path(a.training_class) %>
+                <% else %>
+                  <span class="text-muted">—</span>
+                <% end %>
+              </td>
+              <td>
+                <% if a.training_class %>
+                  <%= a.training_class.date.strftime("%d %b %Y") %>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+              <td>
+                <span class="badge <%= (a.status == "potential") ? "bg-info" : "bg-success" %>">
+                  <%= a.status.presence || "attendee" %>
+                </span>
+              </td>
+              <td><%= a.payment_status.presence || "—" %></td>
+              <td><%= a.document_status.presence || "—" %></td>
+              <td><%= a.invoice_no.presence || "—" %></td>
+              <td><%= a.due_date&.strftime("%d %b %Y") || "—" %></td>
+              <td class="text-end">฿<%= number_with_delimiter(a.calculate_final_price, delimiter: ",") %></td>
+            </tr>
+          <% end %>
+          <% if @attendees.empty? %>
+            <tr>
+              <td colspan="8" class="text-center text-muted py-4">ยังไม่มีประวัติ</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

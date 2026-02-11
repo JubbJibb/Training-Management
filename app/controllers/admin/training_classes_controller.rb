@@ -3,7 +3,11 @@ module Admin
     layout "admin"
     
     def index
-      @training_classes = TrainingClass.order(date: :asc)
+      # Show upcoming classes first, then past classes
+      # This matches the dashboard logic - using the same scope
+      @upcoming_classes = TrainingClass.upcoming
+      @past_classes = TrainingClass.past
+      @training_classes = @upcoming_classes + @past_classes
     end
     
     def show
@@ -42,14 +46,46 @@ module Admin
     
     def destroy
       @training_class = TrainingClass.find(params[:id])
-      @training_class.destroy
-      redirect_to admin_training_classes_path, notice: "Training class deleted successfully."
+      
+      if @training_class.destroy
+        redirect_to admin_training_classes_path, notice: "Training class deleted successfully."
+      else
+        redirect_to admin_training_classes_path, alert: "Failed to delete training class: #{@training_class.errors.full_messages.join(', ')}"
+      end
+    rescue => e
+      redirect_to admin_training_classes_path, alert: "Error deleting training class: #{e.message}"
+    end
+    
+    def send_email_to_all
+      @training_class = TrainingClass.find(params[:id])
+      subject = params[:subject]
+      message = params[:message]
+      
+      if subject.blank? || message.blank?
+        redirect_to admin_training_class_path(@training_class), alert: "Subject and message are required."
+        return
+      end
+      
+      attendee_count = @training_class.attendees.attendees.count
+      
+      if attendee_count == 0
+        redirect_to admin_training_class_path(@training_class), alert: "No attendees to send email to."
+        return
+      end
+      
+      @training_class.attendees.attendees.each do |attendee|
+        AttendeeMailer.send_custom(attendee, subject, message).deliver_now
+      end
+      
+      redirect_to admin_training_class_path(@training_class), notice: "Email sent to #{attendee_count} attendee(s)."
+    rescue => e
+      redirect_to admin_training_class_path(@training_class), alert: "Error sending emails: #{e.message}"
     end
     
     private
     
     def training_class_params
-      params.require(:training_class).permit(:title, :description, :date, :start_time, :end_time, :location, :max_attendees, :instructor, :cost)
+      params.require(:training_class).permit(:title, :description, :date, :end_date, :start_time, :end_time, :location, :max_attendees, :instructor, :cost, :price)
     end
   end
 end

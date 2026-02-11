@@ -1,0 +1,62 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="bi bi-plus-circle"></i> เพิ่มรายการค่าใช้จ่าย</h4>
+        </div>
+        <div class="card-body">
+          <%= form_with model: [@training_class, @class_expense], 
+              url: admin_training_class_class_expenses_path(@training_class),
+              local: true do |f| %>
+            
+            <% if @class_expense.errors.any? %>
+              <div class="alert alert-danger">
+                <h5>พบข้อผิดพลาด:</h5>
+                <ul class="mb-0">
+                  <% @class_expense.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+            
+            <div class="mb-3">
+              <%= f.label :description, "รายการ *", class: "form-label" %>
+              <%= f.text_field :description, class: "form-control", required: true, 
+                  placeholder: "เช่น ค่าขนม, ค่าอาหาร, เครื่องดื่ม, อุปกรณ์" %>
+            </div>
+            
+            <div class="mb-3">
+              <%= f.label :category, "หมวดหมู่", class: "form-label" %>
+              <%= f.select :category, 
+                  options_for_select([["เลือกหมวดหมู่", ""]] + ClassExpense::CATEGORIES.map { |c| [c, c] }, 
+                  @class_expense.category),
+                  {}, 
+                  { class: "form-select" } %>
+            </div>
+            
+            <div class="mb-3">
+              <%= f.label :amount, "จำนวนเงิน (บาท) *", class: "form-label" %>
+              <div class="input-group">
+                <span class="input-group-text">฿</span>
+                <%= f.number_field :amount, 
+                    class: "form-control", 
+                    step: 0.01, 
+                    min: 0.01, 
+                    required: true,
+                    placeholder: "0.00" %>
+              </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+              <%= link_to "ยกเลิก", admin_training_class_path(@training_class, tab: "finance"), 
+                  class: "btn btn-secondary" %>
+              <%= f.submit "บันทึก", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

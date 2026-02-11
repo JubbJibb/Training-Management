@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h2>Training Class Information</h2>
+    
+    <p>Dear <%= @attendee.name %>,</p>
+    
+    <p>Thank you for registering for our training class. Here are the details:</p>
+    
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+      <h3><%= @training_class.title %></h3>
+      
+      <p><strong>Date:</strong> <%= @training_class.date.strftime("%B %d, %Y") %>
+        <% if @training_class.end_date && @training_class.end_date != @training_class.date %>
+          - <%= @training_class.end_date.strftime("%B %d, %Y") %>
+        <% end %>
+      </p>
+      
+      <% if @training_class.start_time && @training_class.end_time %>
+        <p><strong>Time:</strong> <%= @training_class.start_time.strftime("%I:%M %p") %> - <%= @training_class.end_time.strftime("%I:%M %p") %></p>
+      <% end %>
+      
+      <p><strong>Duration:</strong> <%= @training_class.duration %></p>
+      
+      <p><strong>Location:</strong> <%= @training_class.location %></p>
+      
+      <% if @training_class.instructor %>
+        <p><strong>Instructor:</strong> <%= @training_class.instructor %></p>
+      <% end %>
+      
+      <% if @training_class.description.present? %>
+        <p><strong>Description:</strong><br>
+        <%= simple_format(@training_class.description) %></p>
+      <% end %>
+    </div>
+    
+    <p>We look forward to seeing you at the training!</p>
+    
+    <p>Best regards,<br>
+    Training Management Team</p>
+  </body>
+</html>

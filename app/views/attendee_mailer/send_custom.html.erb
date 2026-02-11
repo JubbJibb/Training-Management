@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h2>Message regarding <%= @training_class.title %></h2>
+    
+    <p>Dear <%= @attendee.name %>,</p>
+    
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+      <%= simple_format(@message) %>
+    </div>
+    
+    <p>Best regards,<br>
+    Training Management Team</p>
+  </body>
+</html>

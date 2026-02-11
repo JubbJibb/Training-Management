@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h2>Reminder: <%= @training_class.title %></h2>
+    
+    <p>Dear <%= @attendee.name %>,</p>
+    
+    <p>This is a friendly reminder that you are registered for:</p>
+    
+    <div style="background-color: #fff3cd; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+      <h3><%= @training_class.title %></h3>
+      
+      <p><strong>Date:</strong> <%= @training_class.date.strftime("%B %d, %Y") %>
+        <% if @training_class.end_date && @training_class.end_date != @training_class.date %>
+          - <%= @training_class.end_date.strftime("%B %d, %Y") %>
+        <% end %>
+      </p>
+      
+      <% if @training_class.start_time && @training_class.end_time %>
+        <p><strong>Time:</strong> <%= @training_class.start_time.strftime("%I:%M %p") %> - <%= @training_class.end_time.strftime("%I:%M %p") %></p>
+      <% end %>
+      
+      <p><strong>Location:</strong> <%= @training_class.location %></p>
+    </div>
+    
+    <p>We look forward to seeing you there!</p>
+    
+    <p>Best regards,<br>
+    Training Management Team</p>
+  </body>
+</html>

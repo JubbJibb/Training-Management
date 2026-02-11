@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_11_050655) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -60,6 +60,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_050655) do
     t.string "attendance_status", default: "No-show"
     t.string "company"
     t.datetime "created_at", null: false
+    t.integer "customer_id"
     t.string "document_status"
     t.date "due_date"
     t.string "email", null: false
@@ -75,8 +76,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_050655) do
     t.integer "total_classes", default: 0
     t.integer "training_class_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_attendees_on_customer_id"
     t.index ["email", "training_class_id"], name: "index_attendees_on_email_and_training_class_id", unique: true
     t.index ["training_class_id"], name: "index_attendees_on_training_class_id"
+  end
+
+  create_table "class_expenses", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.string "description", null: false
+    t.integer "training_class_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["training_class_id"], name: "index_class_expenses_on_training_class_id"
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.text "billing_address"
+    t.string "billing_name"
+    t.string "company"
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "name", null: false
+    t.string "participant_type"
+    t.string "phone"
+    t.string "tax_id"
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_customers_on_email", unique: true
+    t.index ["tax_id"], name: "index_customers_on_tax_id"
   end
 
   create_table "promotions", force: :cascade do |t|
@@ -95,10 +122,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_050655) do
     t.datetime "created_at", null: false
     t.date "date", null: false
     t.text "description"
+    t.date "end_date"
     t.time "end_time"
     t.string "instructor"
     t.string "location", null: false
     t.integer "max_attendees"
+    t.decimal "price", precision: 10, scale: 2, default: "0.0"
     t.time "start_time"
     t.string "title", null: false
     t.datetime "updated_at", null: false
@@ -108,5 +137,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_050655) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attendee_promotions", "attendees"
   add_foreign_key "attendee_promotions", "promotions"
+  add_foreign_key "attendees", "customers"
   add_foreign_key "attendees", "training_classes"
+  add_foreign_key "class_expenses", "training_classes"
 end

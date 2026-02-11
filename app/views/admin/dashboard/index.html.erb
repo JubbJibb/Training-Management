@@ -84,6 +84,7 @@
                 <tr>
                   <th>ชื่อคลาส</th>
                   <th>วันที่</th>
+                  <th>Duration</th>
                   <th>Seats</th>
                   <th>Paid / Pending</th>
                   <th>Revenue</th>
@@ -92,9 +93,9 @@
               <tbody>
                 <% @upcoming_classes.each do |training_class| %>
                   <% 
-                    paid_count = training_class.attendees.where(payment_status: "Paid").count
-                    pending_count = training_class.attendees.where(payment_status: "Pending").count
-                    revenue = training_class.attendees.sum(:price)
+                    paid_count = training_class.attendees.attendees.where(payment_status: "Paid").count
+                    pending_count = training_class.attendees.attendees.where(payment_status: "Pending").count
+                    revenue = training_class.attendees.attendees.sum { |a| a.calculate_final_price }
                   %>
                   <tr>
                     <td>
@@ -102,7 +103,14 @@
                     </td>
                     <td><%= training_class.date.strftime("%b %d, %Y") %></td>
                     <td>
-                      <%= training_class.attendees.count %>
+                      <% if training_class.duration %>
+                        <i class="bi bi-clock"></i> <%= training_class.duration %>
+                      <% else %>
+                        —
+                      <% end %>
+                    </td>
+                    <td>
+                      <%= training_class.attendees.attendees.count %>
                       <% if training_class.max_attendees %>
                         / <%= training_class.max_attendees %>
                       <% end %>
@@ -157,6 +165,7 @@
         <% if @recent_activity.any? %>
           <div class="list-group list-group-flush">
             <% @recent_activity.each do |attendee| %>
+              <% next unless attendee.training_class.present? %>
               <div class="list-group-item px-0">
                 <small class="text-muted"><%= time_ago_in_words(attendee.created_at) %> ago</small><br>
                 <strong><%= attendee.name %></strong><br>

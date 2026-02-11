@@ -1,0 +1,64 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0"><i class="bi bi-people"></i> Customers Directory</h3>
+    <small class="text-muted">รวมข้อมูลผู้เรียน/ลูกค้าทั้งหมด เพื่อใช้ทำ QT/INV/Receipt และดูสถิติ</small>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <%= form_with url: admin_customers_path, method: :get, local: true do |f| %>
+      <div class="row g-2 align-items-center">
+        <div class="col-md-10">
+          <%= f.text_field :q, value: @q, class: "form-control", placeholder: "ค้นหา: ชื่อ, อีเมล, เบอร์โทร, บริษัท, Tax ID" %>
+        </div>
+        <div class="col-md-2 d-grid">
+          <%= f.submit "Search", class: "btn btn-primary" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-hover table-striped align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Company Name</th>
+        <th>Tax ID</th>
+        <th>Company Address</th>
+        <th>Contact Person</th>
+        <th>Phone</th>
+        <th>Mail</th>
+        <th class="text-center">Classes (Registered)</th>
+        <th style="width: 140px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @customers.each do |customer| %>
+        <tr>
+          <td><strong><%= customer.company_name %></strong></td>
+          <td><%= customer.tax_id.presence || "—" %></td>
+          <td style="min-width: 220px;"><%= customer.company_address.presence || "—" %></td>
+          <td><%= customer.contact_person %></td>
+          <td><%= customer.phone.presence || "—" %></td>
+          <td><%= customer.email %></td>
+          <td class="text-center"><span class="badge bg-primary"><%= customer.classes_attended_count %></span></td>
+          <td>
+            <%= link_to admin_customer_path(customer), class: "btn btn-sm btn-outline-primary", title: "View" do %>
+              <i class="bi bi-eye"></i>
+            <% end %>
+            <%= link_to edit_admin_customer_path(customer), class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
+              <i class="bi bi-pencil"></i>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @customers.empty? %>
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">ไม่พบข้อมูล</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

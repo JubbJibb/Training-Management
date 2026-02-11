@@ -1,0 +1,80 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3 class="mb-0"><i class="bi bi-pencil"></i> Edit Customer</h3>
+    <small class="text-muted"><%= @customer.email %></small>
+  </div>
+  <div>
+    <%= link_to admin_customer_path(@customer), class: "btn btn-sm btn-outline-primary" do %>
+      <i class="bi bi-arrow-left"></i> Back
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with model: [:admin, @customer], local: true do |f| %>
+      <% if @customer.errors.any? %>
+        <div class="alert alert-danger">
+          <strong>พบข้อผิดพลาด:</strong>
+          <ul class="mb-0">
+            <% @customer.errors.full_messages.each do |m| %>
+              <li><%= m %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <%= f.label :name, "Name *", class: "form-label" %>
+          <%= f.text_field :name, class: "form-control", required: true %>
+        </div>
+        <div class="col-md-6 mb-3">
+          <%= f.label :email, "Email *", class: "form-label" %>
+          <%= f.email_field :email, class: "form-control", required: true %>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <%= f.label :participant_type, "Type", class: "form-label" %>
+          <%= f.select :participant_type, [["", ""], ["Indi", "Indi"], ["Corp", "Corp"]], {}, class: "form-select" %>
+        </div>
+        <div class="col-md-4 mb-3">
+          <%= f.label :company, "Company", class: "form-label" %>
+          <%= f.text_field :company, class: "form-control" %>
+        </div>
+        <div class="col-md-4 mb-3">
+          <%= f.label :phone, "Phone", class: "form-label" %>
+          <%= f.text_field :phone, class: "form-control" %>
+        </div>
+      </div>
+
+      <hr>
+      <h5 class="mb-3">ข้อมูลออกเอกสาร (QT/INV/Receipt)</h5>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <%= f.label :tax_id, "Tax ID", class: "form-label" %>
+          <%= f.text_field :tax_id, class: "form-control" %>
+        </div>
+        <div class="col-md-8 mb-3">
+          <%= f.label :billing_name, "Billing Name", class: "form-label" %>
+          <%= f.text_field :billing_name,
+              value: (@customer.billing_name.presence || (@customer.participant_type == "Corp" ? (@customer.company.presence || @customer.name) : @customer.name)),
+              class: "form-control" %>
+          <small class="text-muted">แนะนำ: ถ้าเป็น Corp ให้ใส่ชื่อบริษัทสำหรับออก QT/INV/Receipt</small>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :billing_address, "Billing Address", class: "form-label" %>
+        <%= f.text_area :billing_address, class: "form-control", rows: 4 %>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <%= f.submit "Save", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

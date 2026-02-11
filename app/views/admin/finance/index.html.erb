@@ -136,10 +136,17 @@
           <table class="table table-hover">
             <thead class="table-light">
               <tr>
-                <th>ชื่อ</th>
-                <th>คลาส</th>
+                <th>Company Name</th>
+                <th>Tax ID</th>
+                <th>Company Address</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Mail</th>
+                <th>Class</th>
                 <th>Invoice No.</th>
-                <th>Amount</th>
+                <th class="text-end">Amount ex.VAT</th>
+                <th class="text-end">VAT 7%</th>
+                <th class="text-end">Amount inc.VAT</th>
                 <th>Due Date</th>
                 <th>Status</th>
               </tr>
@@ -147,11 +154,19 @@
             <tbody>
               <% if @payment_status_list.any? %>
                 <% @payment_status_list.each do |attendee| %>
+                  <% c = attendee.customer %>
                   <tr class="<%= 'table-danger' if attendee.due_date && attendee.due_date < Date.today && attendee.payment_status == 'Pending' %>">
-                    <td><strong><%= attendee.name %></strong></td>
+                    <td><strong><%= c&.company_name || attendee.company || "—" %></strong></td>
+                    <td><%= c&.tax_id.presence || "—" %></td>
+                    <td style="min-width: 220px;"><%= c&.company_address.presence || "—" %></td>
+                    <td><%= c&.contact_person || attendee.name %></td>
+                    <td><%= c&.phone.presence || attendee.phone.presence || "—" %></td>
+                    <td><%= c&.email.presence || attendee.email %></td>
                     <td><%= attendee.training_class.title %></td>
                     <td><%= attendee.invoice_no || "—" %></td>
-                    <td>฿<%= number_with_delimiter(attendee.price.to_f, delimiter: ",") %></td>
+                    <td class="text-end">฿<%= number_with_delimiter(attendee.calculate_price_before_vat, delimiter: ",") %></td>
+                    <td class="text-end">฿<%= number_with_delimiter(attendee.calculate_vat_amount, delimiter: ",") %></td>
+                    <td class="text-end"><strong>฿<%= number_with_delimiter(attendee.calculate_final_price, delimiter: ",") %></strong></td>
                     <td>
                       <% if attendee.due_date %>
                         <%= attendee.due_date.strftime("%b %d, %Y") %>
@@ -171,7 +186,7 @@
                 <% end %>
               <% else %>
                 <tr>
-                  <td colspan="6" class="text-center text-muted">No invoices found</td>
+                  <td colspan="13" class="text-center text-muted">No invoices found</td>
                 </tr>
               <% end %>
             </tbody>
@@ -202,20 +217,15 @@
               </thead>
               <tbody>
                 <% @corporate_billing.each do |billing| %>
-                  <% 
-                    company_attendees = Attendee.where(company: billing[:company])
-                    paid_amount = company_attendees.where(payment_status: "Paid").sum(:price)
-                    pending_amount = company_attendees.where(payment_status: "Pending").sum(:price)
-                  %>
                   <tr>
                     <td><strong><%= billing[:company] %></strong></td>
                     <td>
                       <strong>฿<%= number_with_delimiter(billing[:amount], delimiter: ",") %></strong><br>
-                      <small class="text-success">Paid: ฿<%= number_with_delimiter(paid_amount, delimiter: ",") %></small><br>
-                      <small class="text-warning">Pending: ฿<%= number_with_delimiter(pending_amount, delimiter: ",") %></small>
+                      <small class="text-success">Paid: ฿<%= number_with_delimiter(billing[:paid_amount] || 0, delimiter: ",") %></small><br>
+                      <small class="text-warning">Pending: ฿<%= number_with_delimiter(billing[:pending_amount] || 0, delimiter: ",") %></small>
                     </td>
                     <td>
-                      <% if pending_amount > 0 %>
+                      <% if (billing[:pending_amount] || 0) > 0 %>
                         <span class="badge bg-warning">ค้างชำระ</span>
                       <% else %>
                         <span class="badge bg-success">ชำระครบ</span>

@@ -76,21 +76,18 @@
           
           <div class="row">
             <div class="col-md-6 mb-3">
-              <%= f.label :attendance_status, "Attendance", class: "form-label" %>
-              <%= f.select :attendance_status, [["No-show", "No-show"], ["มาเรียน", "มาเรียน"]], 
-                  { selected: @attendee.attendance_status || "No-show" }, 
-                  { class: "form-select" } %>
-            </div>
-            
-            <div class="col-md-6 mb-3">
               <%= f.label :total_classes, "จำนวนคลาสที่เคยเรียนแล้ว", class: "form-label" %>
               <%= f.number_field :total_classes, class: "form-control", min: 0, value: @attendee.total_classes || 0 %>
             </div>
           </div>
           
           <div class="mb-3">
-            <%= f.label :price, "ราคาเริ่มต้น (บาท)", class: "form-label" %>
-            <%= f.number_field :price, class: "form-control", step: 0.01, min: 0, value: @attendee.price || @training_class.price || 0, id: "base_price_input" %>
+            <div class="mb-3">
+              <label class="form-label">ราคาเริ่มต้น (บาท)</label>
+              <input type="number" class="form-control" step="0.01" min="0" value="<%= @training_class.price || 0 %>" id="base_price_input" readonly style="background-color: #e9ecef;">
+              <small class="form-text text-muted">ใช้ราคาจาก Training Class: ฿<%= number_with_delimiter(@training_class.price.to_f || 0) %></small>
+              <%= f.hidden_field :price, value: 0 %>
+            </div>
             <small class="form-text text-muted">ราคาก่อนหักส่วนลด (ถ้าไม่ระบุจะใช้ราคาจาก Training Class)</small>
           </div>
           
@@ -105,7 +102,8 @@
                         id: "promotion_#{promotion.id}",
                         data: { 
                           discount_type: promotion.discount_type,
-                          discount_value: promotion.discount_value
+                          discount_value: promotion.discount_value,
+                          promotion_name: promotion.name
                         } %>
                     <%= label_tag "promotion_#{promotion.id}", promotion.display_name, class: "form-check-label" %>
                     <small class="text-muted d-block ms-4"><%= promotion.description %></small>
@@ -127,16 +125,29 @@
                 <h6 class="card-title">สรุปราคา</h6>
                 <div class="d-flex justify-content-between mb-2">
                   <span>ราคาเริ่มต้น:</span>
-                  <strong id="display_base_price">0</strong> ฿
+                  <span class="text-end"><strong id="display_base_price">0.00</strong> ฿</span>
                 </div>
-                <div class="d-flex justify-content-between mb-2 text-success">
-                  <span>ส่วนลดรวม:</span>
-                  <strong id="display_discount">0</strong> ฿
+                <div class="mb-2">
+                  <div class="d-flex justify-content-between mb-1 text-success">
+                    <span>ส่วนลดรวม:</span>
+                    <span class="text-end"><strong id="display_discount">0.00</strong> ฿</span>
+                  </div>
+                  <div id="discount_details" class="ms-3 small text-muted text-end">
+                    <!-- รายละเอียดส่วนลดจะแสดงที่นี่ -->
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>ราคาก่อน VAT:</span>
+                  <span class="text-end"><strong id="display_price_before_vat">0.00</strong> ฿</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-info">
+                  <span>VAT (7%):</span>
+                  <span class="text-end"><strong id="display_vat">0.00</strong> ฿</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between">
-                  <strong>ราคาสุทธิ:</strong>
-                  <strong class="text-primary fs-5" id="display_final_price">0</strong> ฿
+                  <strong>ราคาสุทธิ (รวม VAT):</strong>
+                  <span class="text-end"><strong class="text-primary fs-5" id="display_final_price">0.00</strong> ฿</span>
                 </div>
               </div>
             </div>
@@ -219,37 +230,65 @@
     
     // Calculate price with discounts
     function calculatePrice() {
-      const basePrice = parseFloat(basePriceInput.value) || 0;
+      // ใช้ราคาจาก Training Class เสมอ
+      const basePrice = parseFloat(basePriceInput.value) || <%= @training_class.price.to_f || 0 %>;
       let totalDiscount = 0;
+      const discountDetails = [];
       
       promotionCheckboxes.forEach(function(checkbox) {
         if (checkbox.checked) {
           const discountType = checkbox.dataset.discountType;
           const discountValue = parseFloat(checkbox.dataset.discountValue) || 0;
+          const promotionName = checkbox.dataset.promotionName || '';
           
           let discount = 0;
+          let discountDesc = '';
           switch(discountType) {
             case 'percentage':
-              discount = basePrice * (discountValue / 100.0);
+              discount = parseFloat((basePrice * (discountValue / 100.0)).toFixed(2));
+              discountDesc = `${promotionName} (${discountValue}%)`;
               break;
             case 'fixed':
-              discount = discountValue;
+              discount = parseFloat(discountValue.toFixed(2));
+              discountDesc = `${promotionName} (${discountValue.toFixed(2)} บาท)`;
               break;
             case 'buy_x_get_y':
               // มา X+1 จ่าย X => ลด 1/(X+1) ของราคา
-              discount = basePrice / (discountValue + 1);
+              discount = parseFloat((basePrice / (discountValue + 1)).toFixed(2));
+              discountDesc = `${promotionName} (มา ${discountValue + 1} จ่าย ${discountValue})`;
               break;
           }
-          totalDiscount += discount;
+          if (discount > 0) {
+            totalDiscount = parseFloat((totalDiscount + discount).toFixed(2));
+            discountDetails.push({
+              name: discountDesc,
+              amount: discount
+            });
+          }
         }
       });
       
-      const finalPrice = Math.max(0, basePrice - totalDiscount);
+      const priceBeforeVat = Math.max(0, parseFloat((basePrice - totalDiscount).toFixed(2)));
+      const vatAmount = parseFloat((priceBeforeVat * 0.07).toFixed(2));
+      const finalPrice = parseFloat((priceBeforeVat + vatAmount).toFixed(2));
       
       // Update display
-      document.getElementById('display_base_price').textContent = basePrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('display_base_price').textContent = parseFloat(basePrice.toFixed(2)).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_discount').textContent = totalDiscount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('display_price_before_vat').textContent = priceBeforeVat.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      document.getElementById('display_vat').textContent = vatAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_final_price').textContent = finalPrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      
+      // Update discount details
+      const discountDetailsEl = document.getElementById('discount_details');
+      if (discountDetails.length > 0) {
+        discountDetailsEl.innerHTML = discountDetails.map(d => {
+          const formattedAmount = d.amount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          return `<div class="text-end">• ${d.name}: -${formattedAmount} ฿</div>`;
+        }).join('');
+      } else {
+        discountDetailsEl.innerHTML = '';
+      }
     }
     
     // Add event listeners

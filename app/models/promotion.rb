@@ -10,19 +10,20 @@ class Promotion < ApplicationRecord
   scope :active, -> { where(active: true) }
   
   def calculate_discount(original_price)
-    case discount_type
+    discount = case discount_type
     when 'percentage'
       original_price * (discount_value / 100.0)
     when 'fixed'
       discount_value
     when 'buy_x_get_y'
       # สำหรับ "มา 4 จ่าย 3" discount_value = 3 (จ่าย 3 คน)
-      # คำนวณราคาต่อคน = (original_price * discount_value) / (discount_value + 1)
-      # เช่น ราคา 1000, discount_value = 3 => (1000 * 3) / 4 = 750
-      original_price - (original_price / (discount_value + 1))
+      # ส่วนลด "ต่อหัว" = original_price / (discount_value + 1)
+      # เช่น ราคา 1000, discount_value = 3 => ส่วนลด = 1000 / 4 = 250 (จ่ายสุทธิ 750)
+      original_price / (discount_value + 1)
     else
       0
     end
+    discount.round(2) # ปัดเป็นทศนิยม 2 ตำแหน่ง
   end
   
   def display_name

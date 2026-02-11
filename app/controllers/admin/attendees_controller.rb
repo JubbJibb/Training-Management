@@ -33,9 +33,17 @@ module Admin
     
     def update
       if @attendee.update(attendee_params)
-        redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee updated successfully."
+        if params[:quick_edit]
+          redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} updated successfully."
+        else
+          redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee updated successfully."
+        end
       else
-        render :edit, status: :unprocessable_entity
+        if params[:quick_edit]
+          redirect_to admin_training_class_path(@training_class, tab: "attendees"), alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
+        else
+          render :edit, status: :unprocessable_entity
+        end
       end
     end
     
@@ -52,6 +60,30 @@ module Admin
     def move_to_attendee
       @attendee.update(status: "attendee")
       redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} has been moved to Class Attendees. All information has been preserved."
+    end
+    
+    def send_email
+      email_type = params[:email_type] || "class_info"
+      
+      case email_type
+      when "class_info"
+        AttendeeMailer.send_class_info(@attendee).deliver_now
+        message = "Class information email sent to #{@attendee.email}"
+      when "reminder"
+        AttendeeMailer.send_reminder(@attendee).deliver_now
+        message = "Reminder email sent to #{@attendee.email}"
+      when "custom"
+        subject = params[:subject]
+        body = params[:message]
+        AttendeeMailer.send_custom(@attendee, subject, body).deliver_now
+        message = "Custom email sent to #{@attendee.email}"
+      else
+        message = "Invalid email type"
+      end
+      
+      redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: message
+    rescue => e
+      redirect_to admin_training_class_path(@training_class, tab: "attendees"), alert: "Error sending email: #{e.message}"
     end
     
     def export

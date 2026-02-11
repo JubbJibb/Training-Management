@@ -1,4 +1,4 @@
-ลำดับ,ชื่อ-นามสกุล,Email,Phone,บริษัท,ประเภท,ช่องทางที่มา,สถานะชำระเงิน,สถานะเอกสาร,Attendance,จำนวนคลาสที่เคยเรียนแล้ว,Notes
+ลำดับ,ชื่อ-นามสกุล,Email,Phone,บริษัท,ประเภท,ช่องทางที่มา,สถานะชำระเงิน,สถานะเอกสาร,จำนวนคลาสที่เคยเรียนแล้ว,Notes
 <% @attendees.each_with_index do |attendee, index| %>
-<%= index + 1 %>,<%= attendee.name %>,<%= attendee.email %>,<%= attendee.phone || "" %>,<%= (attendee.participant_type == "Corp" ? (attendee.company || "") : "") %>,<%= attendee.participant_type || "Indi" %>,<%= attendee.source_channel || "" %>,<%= attendee.payment_status || "Pending" %>,<%= attendee.document_status || "" %>,<%= attendee.attendance_status || "No-show" %>,<%= attendee.total_classes || 0 %>,"<%= attendee.notes || "" %>"
+<%= index + 1 %>,<%= attendee.name %>,<%= attendee.email %>,<%= attendee.phone || "" %>,<%= (attendee.participant_type == "Corp" ? (attendee.company || "") : "") %>,<%= attendee.participant_type || "Indi" %>,<%= attendee.source_channel || "" %>,<%= attendee.payment_status || "Pending" %>,<%= attendee.document_status || "" %>,<%= attendee.total_classes || 0 %>,"<%= attendee.notes || "" %>"
 <% end %>
