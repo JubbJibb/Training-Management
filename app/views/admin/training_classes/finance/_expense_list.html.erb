@@ -1,0 +1,47 @@
+<div class="class-finance-expense-list odt-section">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0"><i class="bi bi-list-ul"></i> Expense list</h6>
+    <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm" data-bs-toggle="collapse" data-bs-target="#class-finance-expense-table" aria-expanded="false">
+      <i class="bi bi-chevron-down"></i> Toggle list
+    </button>
+  </div>
+  <div class="collapse" id="class-finance-expense-table">
+    <%= odt_card(extra_class: "mb-0") do %>
+      <% if expense_list.any? %>
+        <%= odt_table(extra_class: "odt-table--sm") do %>
+          <thead>
+            <tr>
+              <th style="width: 40px;">#</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th class="odt-table-numeric">Amount</th>
+              <th class="text-end" style="width: 90px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expense_list.each_with_index do |expense, index| %>
+              <tr>
+                <td class="text-center"><%= index + 1 %></td>
+                <td><%= expense.description %></td>
+                <td><%= expense.category.presence || "—" %></td>
+                <td class="odt-table-numeric"><%= number_to_thb(expense.amount) %></td>
+                <td class="text-end">
+                  <%= link_to edit_admin_training_class_class_expense_path(training_class, expense), class: "odt-icon-btn odt-icon-btn--ghost", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
+                  <%= link_to admin_training_class_class_expense_path(training_class, expense), data: { turbo_method: :delete, turbo_confirm: "Delete this expense?" }, class: "odt-icon-btn odt-icon-btn--danger", title: "Delete" do %><i class="bi bi-trash"></i><% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        <% end %>
+      <% else %>
+        <p class="text-muted small mb-0">No expenses yet.</p>
+      <% end %>
+      <div class="mt-2">
+        <%= link_to new_admin_training_class_class_expense_path(training_class), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+          <i class="bi bi-plus-lg odt-btn__icon odt-btn__icon--left"></i>
+          <span class="odt-btn__label">Add expense</span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

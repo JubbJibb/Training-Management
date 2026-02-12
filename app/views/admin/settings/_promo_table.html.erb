@@ -1,0 +1,51 @@
+<div class="promo-mgmt-section">
+  <%= render "components/odt/section_header", title: "Active Promotions", subtitle: "Edit, duplicate or deactivate" %>
+
+  <div class="promo-mgmt-section__body">
+    <% if @promotions.any? %>
+      <div class="promo-mgmt-table-wrap">
+        <table class="promo-mgmt-table promo-mgmt-table--zebra" aria-label="Promotions">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Discount logic</th>
+              <th class="promo-mgmt-table-num">Usage</th>
+              <th class="promo-mgmt-table-num">Revenue impact</th>
+              <th class="promo-mgmt-table-num">Discount cost</th>
+              <th>Segment</th>
+              <th>Status</th>
+              <th class="promo-mgmt-table-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @promotions.each do |p| %>
+              <% perf = (@promo_performance || []).find { |r| r[:id] == p.id } %>
+              <% usage = (@promo_usage || {}).fetch(p.id, 0) %>
+              <tr class="promo-mgmt-table__row">
+                <td><strong><%= p.name %></strong></td>
+                <td><%= p.discount_type.humanize %></td>
+                <td><%= p.discount_description %></td>
+                <td class="promo-mgmt-table-num"><%= usage %></td>
+                <td class="promo-mgmt-table-num"><%= perf ? number_to_thb(perf[:revenue_generated].to_f) : "—" %></td>
+                <td class="promo-mgmt-table-num"><%= perf ? number_to_thb(perf[:total_discount_cost].to_f) : "—" %></td>
+                <td>All</td>
+                <td>
+                  <%= p.active? ? odt_badge("Active", variant: :success, size: :sm) : odt_badge("Inactive", variant: :neutral, size: :sm) %>
+                </td>
+                <td class="promo-mgmt-table-actions">
+                  <%= link_to edit_admin_setting_path(p), class: "promo-mgmt-action-btn", title: "Edit" do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                  <%= link_to new_admin_setting_path(clone_from: p.id), class: "promo-mgmt-action-btn", title: "Duplicate" do %><i class="bi bi-copy" aria-hidden="true"></i><% end %>
+                  <%= link_to admin_setting_path(p), data: { turbo_method: :delete, turbo_confirm: "Delete this promotion?" }, class: "promo-mgmt-action-btn promo-mgmt-action-btn--danger", title: "Delete" do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <%= render "shared/empty_state", message: "No promotions yet. Create your first promotion to get started.", icon: "tag" %>
+      <p class="mt-3"><%= link_to "New Promotion", new_admin_setting_path, class: "odt-btn odt-btn--primary odt-btn--sm" %></p>
+    <% end %>
+  </div>
+</div>

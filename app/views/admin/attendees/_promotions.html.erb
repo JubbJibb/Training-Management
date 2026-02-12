@@ -1,0 +1,28 @@
+<%# Section 3: Pricing & Discounts %>
+<%= odt_card(title: "Pricing & Discounts", icon: "tag", extra_class: "attendee-edit-card mb-4") do %>
+  <label class="form-label">โปรโมชั่น / ส่วนลด</label>
+    <div class="attendee-edit-promotions">
+      <% if @promotions.any? %>
+        <% @promotions.each do |promotion| %>
+          <div class="form-check attendee-edit-promo-item">
+            <%= check_box_tag "attendee[promotion_ids][]", promotion.id, @attendee.promotions.include?(promotion), 
+                class: "form-check-input promotion-checkbox", 
+                id: "promotion_#{promotion.id}",
+                data: { 
+                  discount_type: promotion.discount_type,
+                  discount_value: promotion.discount_value,
+                  promotion_name: promotion.name
+                } %>
+            <%= label_tag "promotion_#{promotion.id}", promotion.display_name, class: "form-check-label" %>
+            <small class="text-muted d-block ms-4"><%= promotion.description %></small>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted mb-0">
+          <i class="bi bi-info-circle"></i> ยังไม่มีโปรโมชั่น
+          <%= link_to "สร้างโปรโมชั่น", admin_settings_path, target: "_blank" %>.
+        </p>
+      <% end %>
+  </div>
+  <small class="form-text text-muted">สามารถเลือกได้มากกว่า 1 โปรโมชั่น</small>
+<% end %>

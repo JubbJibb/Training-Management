@@ -1,307 +1,146 @@
 <% content_for :title, "Edit Attendee" %>
 
-<div class="row">
-  <div class="col-md-6 offset-md-3">
-    <%= link_to admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary mb-3" do %>
-      <i class="bi bi-arrow-left"></i> Back to Attendees
+<div class="attendee-edit-page">
+  <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true, class: "attendee-edit-form" do |f| %>
+    <%= render "components/odt/page_header", title: "Edit Attendee", subtitle: @attendee.name, icon: "pencil" do %>
+      <%= link_to admin_training_class_attendees_path(@training_class), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Attendees
+      <% end %>
     <% end %>
-    
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-pencil"></i> Edit Attendee</h3>
-      </div>
-      <div class="card-body">
-        <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true do |f| %>
-          <% if @attendee.errors.any? %>
-            <div class="alert alert-danger">
-              <h5>Please fix the following errors:</h5>
-              <ul class="mb-0">
-                <% @attendee.errors.full_messages.each do |message| %>
-                  <li><%= message %></li>
-                <% end %>
-              </ul>
-            </div>
+
+    <% if @attendee.errors.any? %>
+      <div class="alert alert-danger mb-4">
+        <h5>Please fix the following errors:</h5>
+        <ul class="mb-0">
+          <% @attendee.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
           <% end %>
-          
-          <div class="mb-3">
-            <%= f.label :name, class: "form-label" %>
-            <%= f.text_field :name, class: "form-control", required: true, autofocus: true %>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :email, class: "form-label" %>
-            <%= f.email_field :email, class: "form-control", required: true %>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :status, "สถานะ", class: "form-label" %>
-            <%= f.select :status, [["Class Attendee (ผู้ลงทะเบียน)", "attendee"], ["Potential Customer (ลูกค้าที่มีศักยภาพ)", "potential"]], 
-                { selected: @attendee.status || "attendee" }, 
-                { class: "form-select" } %>
-            <small class="form-text text-muted">เลือกว่าบุคคลนี้เป็นผู้ลงทะเบียนแล้วหรือเป็นลูกค้าที่มีศักยภาพ</small>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :participant_type, "ประเภท", class: "form-label" %>
-            <%= f.select :participant_type, [["Individual", "Indi"], ["Corporate", "Corp"]], 
-                { selected: @attendee.participant_type || "Indi" }, 
-                { class: "form-select", id: "participant_type_select" } %>
-          </div>
-          
-          <div class="mb-3" id="company-field" style="<%= 'display: none;' unless @attendee.participant_type == 'Corp' %>">
-            <%= f.label :company, "บริษัท", class: "form-label" %>
-            <%= f.text_field :company, class: "form-control" %>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :source_channel, "ช่องทางที่มา", class: "form-label" %>
-            <%= f.text_field :source_channel, class: "form-control", placeholder: "เช่น Website, Facebook, Email" %>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <%= f.label :payment_status, "สถานะชำระเงิน", class: "form-label" %>
-              <%= f.select :payment_status, [["Pending", "Pending"], ["Paid", "Paid"]], 
-                  { selected: @attendee.payment_status || "Pending" }, 
-                  { class: "form-select" } %>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <%= f.label :document_status, "สถานะเอกสาร", class: "form-label" %>
-              <%= f.select :document_status, [["", ""], ["QT", "QT"], ["INV", "INV"], ["Receipt", "Receipt"]], 
-                  { selected: @attendee.document_status }, 
-                  { class: "form-select" } %>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <%= f.label :total_classes, "จำนวนคลาสที่เคยเรียนแล้ว", class: "form-label" %>
-              <%= f.number_field :total_classes, class: "form-control", min: 0, value: @attendee.total_classes || 0 %>
-            </div>
-          </div>
-          
-          <div class="mb-3">
-            <div class="mb-3">
-              <label class="form-label">ราคาเริ่มต้น (บาท)</label>
-              <input type="number" class="form-control" step="0.01" min="0" value="<%= @training_class.price || 0 %>" id="base_price_input" readonly style="background-color: #e9ecef;">
-              <small class="form-text text-muted">ใช้ราคาจาก Training Class: ฿<%= number_with_delimiter(@training_class.price.to_f || 0) %></small>
-              <%= f.hidden_field :price, value: 0 %>
-            </div>
-            <small class="form-text text-muted">ราคาก่อนหักส่วนลด (ถ้าไม่ระบุจะใช้ราคาจาก Training Class)</small>
-          </div>
-          
-          <div class="mb-3">
-            <label class="form-label">โปรโมชั่น / ส่วนลด</label>
-            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-              <% if @promotions.any? %>
-                <% @promotions.each do |promotion| %>
-                  <div class="form-check mb-2">
-                    <%= check_box_tag "attendee[promotion_ids][]", promotion.id, @attendee.promotions.include?(promotion), 
-                        class: "form-check-input promotion-checkbox", 
-                        id: "promotion_#{promotion.id}",
-                        data: { 
-                          discount_type: promotion.discount_type,
-                          discount_value: promotion.discount_value,
-                          promotion_name: promotion.name
-                        } %>
-                    <%= label_tag "promotion_#{promotion.id}", promotion.display_name, class: "form-check-label" %>
-                    <small class="text-muted d-block ms-4"><%= promotion.description %></small>
-                  </div>
-                <% end %>
-              <% else %>
-                <p class="text-muted mb-0">
-                  <i class="bi bi-info-circle"></i> ยังไม่มีโปรโมชั่น 
-                  <%= link_to "สร้างโปรโมชั่น", admin_settings_path, target: "_blank" %>.
-                </p>
-              <% end %>
-            </div>
-            <small class="form-text text-muted">สามารถเลือกได้มากกว่า 1 โปรโมชั่น</small>
-          </div>
-          
-          <div class="mb-3">
-            <div class="card bg-light">
-              <div class="card-body">
-                <h6 class="card-title">สรุปราคา</h6>
-                <div class="d-flex justify-content-between mb-2">
-                  <span>ราคาเริ่มต้น:</span>
-                  <span class="text-end"><strong id="display_base_price">0.00</strong> ฿</span>
-                </div>
-                <div class="mb-2">
-                  <div class="d-flex justify-content-between mb-1 text-success">
-                    <span>ส่วนลดรวม:</span>
-                    <span class="text-end"><strong id="display_discount">0.00</strong> ฿</span>
-                  </div>
-                  <div id="discount_details" class="ms-3 small text-muted text-end">
-                    <!-- รายละเอียดส่วนลดจะแสดงที่นี่ -->
-                  </div>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                  <span>ราคาก่อน VAT:</span>
-                  <span class="text-end"><strong id="display_price_before_vat">0.00</strong> ฿</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2 text-info">
-                  <span>VAT (7%):</span>
-                  <span class="text-end"><strong id="display_vat">0.00</strong> ฿</span>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between">
-                  <strong>ราคาสุทธิ (รวม VAT):</strong>
-                  <span class="text-end"><strong class="text-primary fs-5" id="display_final_price">0.00</strong> ฿</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <%= f.label :invoice_no, "Invoice No.", class: "form-label" %>
-              <%= f.text_field :invoice_no, class: "form-control" %>
-            </div>
-            
-            <div class="col-md-6 mb-3">
-              <%= f.label :due_date, "Due Date", class: "form-label" %>
-              <%= f.date_field :due_date, class: "form-control" %>
-            </div>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :phone, "เบอร์โทรศัพท์", class: "form-label" %>
-            <%= f.telephone_field :phone, class: "form-control" %>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :payment_slip, "สลิปการโอนเงิน (Payment Slip)", class: "form-label" %>
-            <%= f.file_field :payment_slip, class: "form-control", accept: "image/*,.pdf" %>
-            <small class="form-text text-muted">รองรับไฟล์: JPG, PNG, GIF, PDF (ขนาดไม่เกิน 10MB)</small>
-            <% if @attendee.payment_slip.attached? %>
-              <div class="mt-2">
-                <div class="d-flex align-items-center gap-2">
-                  <% if @attendee.payment_slip.image? %>
-                    <%= image_tag @attendee.payment_slip, class: "img-thumbnail", style: "max-width: 200px; max-height: 200px;" %>
-                  <% else %>
-                    <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
-                  <% end %>
-                  <div>
-                    <p class="mb-1">
-                      <strong><%= @attendee.payment_slip.filename %></strong>
-                      <small class="text-muted">(<%= number_to_human_size(@attendee.payment_slip.byte_size) %>)</small>
-                    </p>
-                    <%= link_to "ดูไฟล์", rails_blob_path(@attendee.payment_slip, disposition: "inline"), target: "_blank", class: "btn btn-sm btn-outline-primary" %>
-                    <%= link_to "ดาวน์โหลด", rails_blob_path(@attendee.payment_slip, disposition: "attachment"), class: "btn btn-sm btn-outline-secondary" %>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-          
-          <div class="mb-3">
-            <%= f.label :notes, "หมายเหตุ", class: "form-label" %>
-            <%= f.text_area :notes, class: "form-control", rows: 3 %>
-          </div>
-          
-          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <%= link_to "Cancel", admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary" %>
-            <%= f.submit "Update Attendee", class: "btn btn-primary" %>
-          </div>
-        <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="attendee-edit-columns">
+      <div class="attendee-edit-column attendee-edit-column--form">
+        <%= render "admin/attendees/attendee_info", f: f %>
+        <%= render "admin/attendees/registration_details", f: f %>
+        <%= render "admin/attendees/promotions", f: f %>
+        <%= render "admin/attendees/finance_documents", f: f %>
+      </div>
+      <div class="attendee-edit-column attendee-edit-column--summary">
+        <div class="attendee-edit-summary-sticky">
+          <%= render "admin/attendees/summary_sidebar", f: f %>
+        </div>
       </div>
     </div>
-  </div>
+
+    <div class="attendee-edit-footer odt-section">
+      <%= odt_button("Cancel", variant: :secondary, size: :md, href: admin_training_class_attendees_path(@training_class)) %>
+      <%= odt_button("Save Changes", variant: :primary, size: :md, icon_left: "check-lg", type: "submit") %>
+    </div>
+  <% end %>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const participantTypeSelect = document.getElementById('participant_type_select');
     const companyField = document.getElementById('company-field');
+    const seatsField = document.getElementById('seats-field');
+    const seatsIndiHint = document.getElementById('seats-indi-hint');
+    const seatsInput = document.querySelector('input[name="attendee[seats]"]');
     const basePriceInput = document.getElementById('base_price_input');
     const promotionCheckboxes = document.querySelectorAll('.promotion-checkbox');
-    
-    // Handle participant type change
+
     if (participantTypeSelect) {
       participantTypeSelect.addEventListener('change', function() {
         if (this.value === 'Corp') {
-          companyField.style.display = 'block';
+          if (companyField) companyField.style.display = 'block';
+          if (seatsField) seatsField.style.display = 'block';
+          if (seatsIndiHint) seatsIndiHint.style.display = 'none';
+          if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
         } else {
-          companyField.style.display = 'none';
+          if (companyField) companyField.style.display = 'none';
+          if (seatsField) seatsField.style.display = 'none';
+          if (seatsIndiHint) seatsIndiHint.style.display = 'block';
+          if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }
         }
       });
     }
-    
-    // Calculate price with discounts
+
     function calculatePrice() {
-      // ใช้ราคาจาก Training Class เสมอ
-      const basePrice = parseFloat(basePriceInput.value) || <%= @training_class.price.to_f || 0 %>;
-      let totalDiscount = 0;
+      const seats = Math.max(1, parseInt(seatsInput && seatsInput.value ? seatsInput.value : 1, 10) || 1);
+      const basePricePerSeat = parseFloat(basePriceInput && basePriceInput.value ? basePriceInput.value : 0) || <%= @training_class.price.to_f || 0 %>;
+      let totalDiscountPerSeat = 0;
       const discountDetails = [];
-      
+
       promotionCheckboxes.forEach(function(checkbox) {
         if (checkbox.checked) {
           const discountType = checkbox.dataset.discountType;
           const discountValue = parseFloat(checkbox.dataset.discountValue) || 0;
           const promotionName = checkbox.dataset.promotionName || '';
-          
           let discount = 0;
           let discountDesc = '';
           switch(discountType) {
             case 'percentage':
-              discount = parseFloat((basePrice * (discountValue / 100.0)).toFixed(2));
-              discountDesc = `${promotionName} (${discountValue}%)`;
+              discount = parseFloat((basePricePerSeat * (discountValue / 100.0)).toFixed(2));
+              discountDesc = promotionName + ' (' + discountValue + '%)';
               break;
             case 'fixed':
               discount = parseFloat(discountValue.toFixed(2));
-              discountDesc = `${promotionName} (${discountValue.toFixed(2)} บาท)`;
+              discountDesc = promotionName + ' (' + discountValue.toFixed(2) + ' บาท)';
               break;
             case 'buy_x_get_y':
-              // มา X+1 จ่าย X => ลด 1/(X+1) ของราคา
-              discount = parseFloat((basePrice / (discountValue + 1)).toFixed(2));
-              discountDesc = `${promotionName} (มา ${discountValue + 1} จ่าย ${discountValue})`;
+              discount = parseFloat((basePricePerSeat / (discountValue + 1)).toFixed(2));
+              discountDesc = promotionName + ' (มา ' + (discountValue + 1) + ' จ่าย ' + discountValue + ')';
               break;
           }
           if (discount > 0) {
-            totalDiscount = parseFloat((totalDiscount + discount).toFixed(2));
-            discountDetails.push({
-              name: discountDesc,
-              amount: discount
-            });
+            totalDiscountPerSeat = parseFloat((totalDiscountPerSeat + discount).toFixed(2));
+            discountDetails.push({ name: discountDesc, amount: discount });
           }
         }
       });
-      
-      const priceBeforeVat = Math.max(0, parseFloat((basePrice - totalDiscount).toFixed(2)));
-      const vatAmount = parseFloat((priceBeforeVat * 0.07).toFixed(2));
-      const finalPrice = parseFloat((priceBeforeVat + vatAmount).toFixed(2));
-      
-      // Update display
-      document.getElementById('display_base_price').textContent = parseFloat(basePrice.toFixed(2)).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById('display_discount').textContent = totalDiscount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById('display_price_before_vat').textContent = priceBeforeVat.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById('display_vat').textContent = vatAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById('display_final_price').textContent = finalPrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      
-      // Update discount details
-      const discountDetailsEl = document.getElementById('discount_details');
-      if (discountDetails.length > 0) {
-        discountDetailsEl.innerHTML = discountDetails.map(d => {
-          const formattedAmount = d.amount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-          return `<div class="text-end">• ${d.name}: -${formattedAmount} ฿</div>`;
-        }).join('');
-      } else {
-        discountDetailsEl.innerHTML = '';
+
+      const priceBeforeVatPerSeat = Math.max(0, parseFloat((basePricePerSeat - totalDiscountPerSeat).toFixed(2)));
+      const vatPerSeat = parseFloat((priceBeforeVatPerSeat * 0.07).toFixed(2));
+      const finalPerSeat = parseFloat((priceBeforeVatPerSeat + vatPerSeat).toFixed(2));
+      const basePrice = parseFloat((basePricePerSeat * seats).toFixed(2));
+      const totalDiscount = parseFloat((totalDiscountPerSeat * seats).toFixed(2));
+      const priceBeforeVat = parseFloat((priceBeforeVatPerSeat * seats).toFixed(2));
+      const vatAmount = parseFloat((vatPerSeat * seats).toFixed(2));
+      const finalPrice = parseFloat((finalPerSeat * seats).toFixed(2));
+
+      const fmt = function(n) { return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+      const el = function(id) { return document.getElementById(id); };
+      if (el('display_base_price')) el('display_base_price').textContent = fmt(basePrice);
+      if (el('display_discount')) el('display_discount').textContent = fmt(totalDiscount);
+      if (el('display_price_before_vat')) el('display_price_before_vat').textContent = fmt(priceBeforeVat);
+      if (el('display_vat')) el('display_vat').textContent = fmt(vatAmount);
+      if (el('display_final_price')) el('display_final_price').textContent = fmt(finalPrice);
+
+      const discountDetailsEl = el('discount_details');
+      if (discountDetailsEl) {
+        if (discountDetails.length > 0) {
+          discountDetailsEl.innerHTML = discountDetails.map(function(d) {
+            const totalAmount = parseFloat((d.amount * seats).toFixed(2));
+            return '<div class="text-start">• ' + d.name + ': -' + fmt(totalAmount) + ' ฿</div>';
+          }).join('');
+        } else {
+          discountDetailsEl.innerHTML = '';
+        }
       }
     }
-    
-    // Add event listeners
+
     if (basePriceInput) {
       basePriceInput.addEventListener('input', calculatePrice);
       basePriceInput.addEventListener('change', calculatePrice);
     }
-    
+    if (seatsInput) {
+      seatsInput.addEventListener('input', calculatePrice);
+      seatsInput.addEventListener('change', calculatePrice);
+    }
     promotionCheckboxes.forEach(function(checkbox) {
       checkbox.addEventListener('change', calculatePrice);
     });
-    
-    // Initial calculation
     calculatePrice();
   });
 </script>

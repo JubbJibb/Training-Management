@@ -1,0 +1,39 @@
+<%= form_with url: finance_admin_training_class_path(training_class), method: :get, local: false, data: { turbo_frame: "class_finance_tab" }, class: "cfo-finance-header-form" do %>
+  <div class="cfo-finance-header">
+    <div>
+      <div class="cfo-finance-header__breadcrumb">
+        <%= link_to "Training Classes", admin_training_classes_path %> → <%= link_to training_class.title, admin_training_class_path(training_class) %> → Finance
+      </div>
+      <h1 class="cfo-finance-header__title">Finance Dashboard · <%= training_class.title %></h1>
+      <div class="cfo-finance-filters">
+        <div>
+          <label>Type</label>
+          <select name="type" class="form-select form-select-sm">
+            <option value="">All</option>
+            <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
+            <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
+          </select>
+        </div>
+        <div>
+          <label>Payment status</label>
+          <select name="status" class="form-select form-select-sm">
+            <option value="">All</option>
+            <option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option>
+            <option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option>
+            <option value="Overdue" <%= "selected" if params[:status] == "Overdue" %>>Overdue</option>
+          </select>
+        </div>
+        <%= odt_button("Apply", variant: :primary, size: :sm, type: "submit") %>
+        <%= link_to "Clear", finance_admin_training_class_path(training_class), class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "class_finance_tab" } %>
+      </div>
+    </div>
+    <div class="cfo-finance-header__actions">
+      <%= link_to export_admin_training_class_attendees_path(training_class, format: :csv), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+        <i class="bi bi-download odt-btn__icon odt-btn__icon--left"></i><span class="odt-btn__label">Export CSV</span>
+      <% end %>
+      <%= link_to new_admin_training_class_class_expense_path(training_class), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+        <i class="bi bi-plus-lg odt-btn__icon odt-btn__icon--left"></i><span class="odt-btn__label">Add Expense</span>
+      <% end %>
+    </div>
+  </div>
+<% end %>

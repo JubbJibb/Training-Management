@@ -1,0 +1,23 @@
+<%
+  segment = local_assigns[:segment] || "all"
+  q = local_assigns[:q].to_s
+  top_n = local_assigns[:top_n]
+  base_params = { q: q.presence }.compact
+  base_params[:top_n] = top_n if top_n.present?
+%>
+<nav class="customer-tabs odt-section" aria-label="Customer segments">
+  <div class="customer-tabs__inner">
+    <%= link_to admin_customers_path(base_params.merge(segment: "all")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'all'}", data: { turbo_frame: "customers_table" } do %>
+      All
+    <% end %>
+    <%= link_to admin_customers_path(base_params.merge(segment: "indi")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'indi'}", data: { turbo_frame: "customers_table" } do %>
+      Individual
+    <% end %>
+    <%= link_to admin_customers_path(base_params.merge(segment: "corp")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'corp'}", data: { turbo_frame: "customers_table" } do %>
+      Corporate
+    <% end %>
+    <%= link_to admin_customers_path(base_params.merge(segment: "top_spenders")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'top_spenders'}", data: { turbo_frame: "customers_table" } do %>
+      Top Spenders
+    <% end %>
+  </div>
+</nav>

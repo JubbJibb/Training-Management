@@ -1,0 +1,33 @@
+<% attendees = Attendee.where(id: row[:attendee_ids]).includes(:training_class, :customer).order("training_classes.date") %>
+<div class="cfo-dash-ledger-detail">
+  <h4 class="cfo-dash-ledger-detail__heading">Invoices / Receipts</h4>
+  <table class="cfo-dash-table cfo-dash-table--sm">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th class="cfo-dash-table-num">Amount (incl VAT)</th>
+        <th>Doc</th>
+        <th>Due</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% attendees.each do |a| %>
+        <tr>
+          <td><%= a.training_class.title %> (<%= a.training_class.date.strftime("%d/%m/%y") %>)</td>
+          <td class="cfo-dash-table-num"><%= number_to_thb(a.total_final_price) %></td>
+          <td><%= a.document_status || "—" %></td>
+          <td><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="cfo-dash-ledger-detail__meta">Paid: <%= number_to_thb(row[:cash_received]) %> · Outstanding: <%= number_to_thb(row[:outstanding]) %></p>
+  <% if attendees.any? { |a| a.notes.present? } %>
+    <h4 class="cfo-dash-ledger-detail__heading">Notes</h4>
+    <ul class="cfo-dash-ledger-detail__list">
+      <% attendees.select { |a| a.notes.present? }.each do |a| %>
+        <li><%= a.notes %></li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

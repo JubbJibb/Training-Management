@@ -1,0 +1,94 @@
+<%
+  rows = @promo_performance || []
+  max_revenue = rows.map { |r| r[:revenue_generated].to_f }.max.to_f
+  max_seats = rows.map { |r| r[:used_seats].to_i }.max.to_i
+%>
+<div class="promo-mgmt-section promo-mgmt-section--performance">
+  <%= render "components/odt/section_header", title: "Promotion Performance Overview", subtitle: "This month" %>
+
+  <div class="promo-mgmt-performance__body">
+    <% if rows.any? %>
+      <div class="promo-mgmt-bars">
+        <h4 class="promo-mgmt-bars__title">Revenue by promotion</h4>
+        <div class="promo-mgmt-bars__list" role="list">
+          <% rows.each do |r| %>
+            <% pct = max_revenue.positive? ? (r[:revenue_generated].to_f / max_revenue * 100).round(0) : 0 %>
+            <div class="promo-mgmt-bar" role="listitem">
+              <span class="promo-mgmt-bar__label"><%= r[:name] %></span>
+              <span class="promo-mgmt-bar__track"><span class="promo-mgmt-bar__fill" style="width: <%= [pct, 100].min %>%;"></span></span>
+              <span class="promo-mgmt-bar__value"><%= number_to_thb(r[:revenue_generated].to_f) %></span>
+            </div>
+          <% end %>
+        </div>
+        <h4 class="promo-mgmt-bars__title">Seats by promotion</h4>
+        <div class="promo-mgmt-bars__list" role="list">
+          <% rows.each do |r| %>
+            <% pct = max_seats.positive? ? (r[:used_seats].to_i.to_f / max_seats * 100).round(0) : 0 %>
+            <div class="promo-mgmt-bar" role="listitem">
+              <span class="promo-mgmt-bar__label"><%= r[:name] %></span>
+              <span class="promo-mgmt-bar__track"><span class="promo-mgmt-bar__fill promo-mgmt-bar__fill--accent" style="width: <%= [pct, 100].min %>%;"></span></span>
+              <span class="promo-mgmt-bar__value"><%= r[:used_seats] %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="promo-mgmt-conversion-table-wrap">
+        <table class="promo-mgmt-table" aria-label="Promotion conversion">
+          <thead>
+            <tr>
+              <th>Promotion</th>
+              <th>Type</th>
+              <th class="promo-mgmt-table-num">Used seats</th>
+              <th class="promo-mgmt-table-num">Revenue</th>
+              <th class="promo-mgmt-table-num">Discount cost</th>
+              <th class="promo-mgmt-table-num">Avg / seat</th>
+              <th class="promo-mgmt-table-num">Conv. %</th>
+              <th class="promo-mgmt-table-num">Margin impact %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.each do |r| %>
+              <tr>
+                <td><strong><%= r[:name] %></strong></td>
+                <td><%= r[:type_label] %></td>
+                <td class="promo-mgmt-table-num"><%= r[:used_seats] %></td>
+                <td class="promo-mgmt-table-num"><%= number_to_thb(r[:revenue_generated].to_f) %></td>
+                <td class="promo-mgmt-table-num"><%= number_to_thb(r[:total_discount_cost].to_f) %></td>
+                <td class="promo-mgmt-table-num"><%= number_to_thb(r[:avg_price_per_seat].to_f) %></td>
+                <td class="promo-mgmt-table-num"><%= r[:conversion_rate] %>%</td>
+                <td class="promo-mgmt-table-num"><%= r[:margin_impact_pct] %>%</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <% highlights = @promo_highlights || {} %>
+      <% if highlights.any? %>
+        <div class="promo-mgmt-highlights">
+          <% if highlights[:most_revenue_promo].present? %>
+            <div class="promo-mgmt-highlight promo-mgmt-highlight--success">
+              <span class="promo-mgmt-highlight__label">Most revenue</span>
+              <span class="promo-mgmt-highlight__value"><%= highlights[:most_revenue_promo] %></span>
+            </div>
+          <% end %>
+          <% if highlights[:highest_conversion_promo].present? %>
+            <div class="promo-mgmt-highlight promo-mgmt-highlight--info">
+              <span class="promo-mgmt-highlight__label">Highest conversion</span>
+              <span class="promo-mgmt-highlight__value"><%= highlights[:highest_conversion_promo] %></span>
+            </div>
+          <% end %>
+          <% if highlights[:worst_margin_promo].present? %>
+            <div class="promo-mgmt-highlight promo-mgmt-highlight--warning">
+              <span class="promo-mgmt-highlight__label">Lowest margin impact</span>
+              <span class="promo-mgmt-highlight__value"><%= highlights[:worst_margin_promo] %></span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <%= render "shared/empty_state", message: "No promotion usage this month.", icon: "graph-up" %>
+    <% end %>
+  </div>
+</div>

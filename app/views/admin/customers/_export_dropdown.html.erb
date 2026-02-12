@@ -1,0 +1,13 @@
+<div class="dropdown d-inline-block">
+  <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm dropdown-toggle" id="customerExportMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Export options">
+    <i class="bi bi-download odt-btn__icon" aria-hidden="true"></i>
+    <span class="odt-btn__label">Export</span>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="customerExportMenu">
+    <li><%= link_to export_customer_info_admin_customer_path(customer), class: "dropdown-item" do %><i class="bi bi-file-earmark-text me-2"></i> Customer Info (CSV)<% end %></li>
+    <li><%= link_to export_billing_accounting_admin_customer_path(customer), class: "dropdown-item" do %><i class="bi bi-calculator me-2"></i> Billing Info for Accounting (CSV)<% end %></li>
+    <% if CustomField.for_entity("customer").exists? %>
+      <li><%= link_to export_customer_template_admin_customer_path(customer), class: "dropdown-item" do %><i class="bi bi-list-columns me-2"></i> Customer + Custom Fields template (CSV)<% end %></li>
+    <% end %>
+  </ul>
+</div>

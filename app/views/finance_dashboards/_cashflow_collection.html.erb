@@ -1,0 +1,43 @@
+<div class="cfo-dash-section-container">
+  <%= odt_section_header title: "AR & Cash" %>
+  <div class="cfo-dash-section-container__body">
+  <div class="cfo-dash-ar-cash__grid">
+    <div class="cfo-dash-ar-cash__block">
+      <h3 class="cfo-dash-block-title">Revenue vs Cash over time</h3>
+      <% if summary[:cash_trend_rows].present? %>
+        <%= render "finance_dashboards/revenue_cash_chart", rows: summary[:cash_trend_rows] %>
+      <% else %>
+        <p class="cfo-dash-empty">Select a date range to see trend.</p>
+      <% end %>
+    </div>
+    <div class="cfo-dash-ar-cash__block">
+      <h3 class="cfo-dash-block-title">AR aging</h3>
+      <% if summary[:ar_aging_buckets].any? { |b| b[:amount].positive? } %>
+        <% total_ar = summary[:ar_aging_buckets].sum { |b| b[:amount] } %>
+        <div class="cfo-dash-ar-aging">
+          <% summary[:ar_aging_buckets].each do |b| %>
+            <% pct = total_ar.positive? ? (b[:amount] / total_ar * 100).round(0) : 0 %>
+            <div class="cfo-dash-ar-aging__row">
+              <span class="cfo-dash-ar-aging__range"><%= b[:range] %> days</span>
+              <span class="cfo-dash-ar-aging__bar-wrap">
+                <span class="cfo-dash-ar-aging__bar" style="width: <%= pct %>%"></span>
+              </span>
+              <span class="cfo-dash-ar-aging__amount"><%= number_to_thb(b[:amount]) %></span>
+              <span class="cfo-dash-ar-aging__count"><%= b[:count] %> inv</span>
+            </div>
+          <% end %>
+        </div>
+        <div class="cfo-dash-ar-aging__top">
+          <% summary[:ar_aging_buckets].each do |b| %>
+            <% b[:top_customers].first(2).each do |c| %>
+              <div class="cfo-dash-ar-top"><%= c[:name] %> <%= number_to_thb(c[:amount]) %></div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="cfo-dash-empty">No AR aging in range.</p>
+      <% end %>
+    </div>
+  </div>
+  </div>
+</div>

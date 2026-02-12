@@ -1,0 +1,20 @@
+<section class="customer-360-section" aria-labelledby="timeline-heading">
+  <h2 class="customer-360-section__title" id="timeline-heading"><i class="bi bi-activity" aria-hidden="true"></i> Activity Timeline</h2>
+  <div class="customer-360-section__body">
+    <% if timeline_events.any? %>
+      <ul class="customer-360-timeline" role="list">
+        <% timeline_events.each do |ev| %>
+          <li class="customer-360-timeline__item">
+            <span class="customer-360-timeline__dot" aria-hidden="true"></span>
+            <div class="customer-360-timeline__content">
+              <span class="customer-360-timeline__label"><%= ev[:label] %></span>
+              <span class="customer-360-timeline__date"><%= ev[:date] %></span>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="customer-360-empty">No activity yet.</p>
+    <% end %>
+  </div>
+</section>

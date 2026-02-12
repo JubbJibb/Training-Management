@@ -1,0 +1,19 @@
+<header class="customer-edit-header" aria-label="Edit customer header">
+  <div class="customer-edit-header__main">
+    <div class="customer-edit-header__info">
+      <h1 class="customer-edit-header__title">Edit Customer</h1>
+      <p class="customer-edit-header__sub"><%= customer.email %></p>
+      <% if customer.updated_at.present? %>
+        <p class="customer-edit-header__meta">Last updated: <%= customer.updated_at.strftime("%d %b %Y %H:%M") %></p>
+      <% end %>
+    </div>
+    <div class="customer-edit-header__actions">
+      <%= link_to admin_customer_path(customer), class: "odt-btn odt-btn--ghost odt-btn--sm" do %>
+        <i class="bi bi-arrow-left odt-btn__icon" aria-hidden="true"></i><span class="odt-btn__label">Back</span>
+      <% end %>
+      <button type="submit" form="customer_edit_form" class="odt-btn odt-btn--primary odt-btn--sm">
+        <i class="bi bi-check-lg odt-btn__icon" aria-hidden="true"></i><span class="odt-btn__label">Save</span>
+      </button>
+    </div>
+  </div>
+</header>

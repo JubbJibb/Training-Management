@@ -1,123 +1,159 @@
+# frozen_string_literal: true
+
 module Admin
   class FinanceController < ApplicationController
     layout "admin"
-    
-    def index
-      # KPI
-      @revenue_this_month = calculate_revenue_this_month
-      @paid_this_month = calculate_paid_this_month
-      @outstanding_invoice = calculate_outstanding_invoice
-      @overdue_payments = calculate_overdue_payments
-      
-      # Invoice Summary
-      @inv_issued_this_month = Attendee.attendees.where(document_status: "INV")
-                                       .where("created_at >= ?", Date.today.beginning_of_month)
-                                       .count
-      @inv_unpaid = Attendee.attendees.where(document_status: "INV", payment_status: "Pending").count
-      @inv_overdue = Attendee.attendees.where(document_status: "INV", payment_status: "Pending")
-                             .where("due_date < ?", Date.today)
-                             .count
-      @receipt_not_issued = Attendee.attendees.where(payment_status: "Paid")
-                                    .where.not(document_status: "Receipt")
-                                    .count
-      
-      # Revenue Breakdown
-      @revenue_by_course = calculate_revenue_by_course
-      @revenue_by_type = calculate_revenue_by_type
-      @vat_summary = calculate_vat_summary
-      
-      # Payment Status List
-      @payment_status_list = Attendee.attendees.joins(:training_class)
-                                     .where(document_status: "INV")
-                                     .order(:due_date)
-                                     .includes(:training_class, :customer)
-      
-      # Corporate Billing Overview
-      @corporate_billing = calculate_corporate_billing
-    end
-    
-    private
-    
-    def calculate_revenue_this_month
-      # Revenue นับตามวันที่ลงทะเบียน (created_at) ในเดือนนี้
-      Attendee.attendees
-              .where("created_at >= ? AND created_at <= ?", 
-                     Date.today.beginning_of_month.beginning_of_day, 
-                     Date.today.end_of_month.end_of_day)
-              .sum { |a| a.calculate_final_price }
-    end
-    
-    def calculate_paid_this_month
-      # Paid revenue นับตามวันที่อัปเดต payment_status เป็น Paid ในเดือนนี้
-      # หรือใช้ updated_at ถ้าไม่มี payment_date field
-      Attendee.attendees
-              .where(payment_status: "Paid")
-              .where("updated_at >= ? AND updated_at <= ?", 
-                     Date.today.beginning_of_month.beginning_of_day, 
-                     Date.today.end_of_month.end_of_day)
-              .sum { |a| a.calculate_final_price }
-    end
-    
-    def calculate_outstanding_invoice
-      Attendee.attendees.where(document_status: "INV", payment_status: "Pending").sum { |a| a.calculate_final_price }
-    end
-    
-    def calculate_overdue_payments
-      Attendee.attendees.where(document_status: "INV", payment_status: "Pending")
-              .where("due_date < ?", Date.today)
-              .sum { |a| a.calculate_final_price }
-    end
-    
-    def calculate_revenue_by_course
-      result = {}
-      Attendee.attendees.joins(:training_class).includes(:training_class).each do |attendee|
-        course_title = attendee.training_class.title
-        result[course_title] ||= 0
-        result[course_title] += attendee.calculate_final_price
-      end
-      result
-    end
-    
-    def calculate_revenue_by_type
-      {
-        "Corp" => Attendee.attendees.where(participant_type: "Corp").sum { |a| a.calculate_final_price },
-        "Indi" => Attendee.attendees.where(participant_type: "Indi").sum { |a| a.calculate_final_price }
-      }
-    end
-    
-    def calculate_vat_summary
-      total_revenue = Attendee.attendees.sum { |a| a.calculate_final_price }
-      total_revenue_before_vat = Attendee.attendees.sum { |a| a.calculate_price_before_vat }
-      total_vat_amount = Attendee.attendees.sum { |a| a.calculate_vat_amount }
-      {
-        subtotal: total_revenue_before_vat,
-        vat: total_vat_amount,
-        total: total_revenue
-      }
-    end
-    
-    def calculate_corporate_billing
-      result = {}
-      Attendee.attendees.where(participant_type: "Corp").includes(:customer).find_each do |attendee|
-        customer = attendee.customer
-        company_key = customer&.company_name || attendee.company || "Unknown"
-        result[company_key] ||= {
-          company: company_key,
-          amount: 0.0,
-          paid_amount: 0.0,
-          pending_amount: 0.0,
-          customer: customer
-        }
 
-        final_price = attendee.calculate_final_price.to_f
-        result[company_key][:amount] += final_price
-        if attendee.payment_status == "Paid"
-          result[company_key][:paid_amount] += final_price
-        else
-          result[company_key][:pending_amount] += final_price
+    def index
+      @attendees = filtered_attendees
+      @training_classes = TrainingClass.order(date: :desc).limit(100)
+
+      # SECTION 1: Revenue Overview
+      @gross_sales = @attendees.sum(&:gross_sales_amount)
+      @total_discounts = @attendees.sum { |a| a.total_discount_amount * (a.seats || 1) }
+      @net_before_vat = @attendees.sum(&:total_price_before_vat)
+      @vat_amount = @attendees.sum(&:total_vat_amount)
+      @total_incl_vat = @attendees.sum(&:total_final_price)
+
+      # SECTION 2: Cash Flow
+      @cash_received = @attendees.where(payment_status: "Paid").sum(&:total_final_price)
+      @outstanding = @attendees.where(payment_status: "Pending").sum(&:total_final_price)
+      @overdue_amount = @attendees.where(payment_status: "Pending").where("due_date < ?", Date.current).sum(&:total_final_price)
+      @collection_rate_pct = @total_incl_vat.positive? ? ((@cash_received / @total_incl_vat) * 100).round(1) : 0
+
+      # SECTION 3: Revenue Breakdown
+      @revenue_by_course = revenue_by_course
+      @revenue_by_type = { "Corporate" => @attendees.where(participant_type: "Corp").sum(&:total_final_price), "Individual" => @attendees.where(participant_type: "Indi").sum(&:total_final_price) }
+      @revenue_by_channel = @attendees.group_by { |a| a.source_channel.presence || "—" }.transform_values { |list| list.sum(&:total_final_price) }.sort_by { |_k, v| -v }.to_h
+      @revenue_by_status = {
+        paid: @attendees.where(payment_status: "Paid").sum(&:total_final_price),
+        pending: @attendees.where(payment_status: "Pending").sum(&:total_final_price),
+        receipt_issued: @attendees.where(document_status: "Receipt").sum(&:total_final_price),
+        receipt_not_issued: @attendees.where(payment_status: "Paid").where.not(document_status: "Receipt").sum(&:total_final_price)
+      }
+
+      # SECTION 4: Revenue Structure (Pricing Funnel) & KPIs
+      @total_seats = @attendees.sum(:seats) || 0
+      @discount_rate_pct = @gross_sales.positive? ? ((@total_discounts / @gross_sales) * 100).round(1) : 0
+      @avg_discount_per_seat = @total_seats.positive? ? (@total_discounts / @total_seats).round(2) : 0
+      # Avg revenue per seat = Net (before VAT) per seat (finance-logical)
+      @avg_revenue_per_seat = @total_seats.positive? ? (@net_before_vat / @total_seats).round(2) : 0
+      corp_revenue = @revenue_by_type["Corporate"]
+      indi_revenue = @revenue_by_type["Individual"]
+      @corp_vs_indi_pct = @total_incl_vat.positive? ? ((corp_revenue / @total_incl_vat) * 100).round(1) : 0
+      @payment_cycle_avg_days = payment_cycle_avg_days
+
+      # SECTION 5: Action Required (counts + links)
+      @pending_qt_count = @attendees.where("document_status IS NULL OR document_status = ''").where(payment_status: "Pending").count
+      @inv_unpaid_count = @attendees.where(document_status: "INV", payment_status: "Pending").count
+      @overdue_count = @attendees.where(payment_status: "Pending").where("due_date < ?", Date.current).count
+      @paid_no_receipt_count = @attendees.where(payment_status: "Paid").where.not(document_status: "Receipt").count
+      @due_this_week = @attendees.where(payment_status: "Pending").where(due_date: Date.current.beginning_of_week..Date.current.end_of_week).count
+
+      # SECTION 3 (Cost & Profit): total cost of classes in scope, profit = net before VAT - cost
+      class_ids_in_scope = @attendees.pluck(:training_class_id).uniq
+      @total_cost = TrainingClass.where(id: class_ids_in_scope).sum { |tc| tc.total_cost }
+      @profit = @net_before_vat - @total_cost
+
+      # SECTION 6: Corporate Billing Overview (Gross, Discount, Net, Paid, Outstanding, Status)
+      @corporate_billing = calculate_corporate_billing
+
+      # Action list (when user clicks an action card, show matching attendees)
+      @action_list = params[:action_list]
+      @action_list_attendees = action_list_attendees if @action_list.present?
+
+      # Export
+      respond_to do |format|
+        format.html
+        format.csv do
+          send_data finance_export_csv, filename: "finance-overview-#{Date.current}.csv", type: "text/csv"
         end
       end
-      result.values.sort_by { |item| -item[:amount].to_f }
+    end
+
+    private
+
+    def filtered_attendees
+      scope = Attendee.attendees.joins(:training_class).includes(:training_class, :customer)
+      scope = scope.where(training_class_id: params[:training_class_id]) if params[:training_class_id].present?
+      scope = scope.where(participant_type: params[:type]) if params[:type].present? && %w[Corp Indi].include?(params[:type])
+      if params[:date_from].present?
+        from = Date.parse(params[:date_from]) rescue nil
+        scope = scope.where("training_classes.date >= ?", from) if from
+      end
+      if params[:date_to].present?
+        to = Date.parse(params[:date_to]) rescue nil
+        scope = scope.where("training_classes.date <= ?", to) if to
+      end
+      scope
+    end
+
+    def revenue_by_course
+      @attendees.group_by(&:training_class).transform_values { |list| list.sum(&:total_final_price) }.sort_by { |_k, v| -v }
+    end
+
+    def payment_cycle_avg_days
+      paid = @attendees.where(payment_status: "Paid").where.not(due_date: nil)
+      return nil if paid.empty?
+      # Approximate: use (due_date - created_at) as proxy for "days to pay" if we had paid_at
+      days = paid.select { |a| a.created_at && a.due_date }.map { |a| (a.due_date - a.created_at.to_date).to_i }
+      days.any? ? (days.sum.to_f / days.size).round(0) : nil
+    end
+
+    def calculate_corporate_billing
+      corp = @attendees.where(participant_type: "Corp")
+      by_company = corp.group_by { |a| a.customer&.company_name.presence || a.company.presence || "—" }
+      by_company.map do |company, list|
+        gross = list.sum(&:gross_sales_amount)
+        discount = list.sum { |a| a.total_discount_amount * (a.seats || 1) }
+        net = list.sum(&:total_price_before_vat)
+        total = list.sum(&:total_final_price)
+        paid = list.select { |a| a.payment_status == "Paid" }.sum(&:total_final_price)
+        outstanding = total - paid
+        {
+          company: company,
+          gross: gross,
+          discount: discount,
+          net: net,
+          paid: paid,
+          outstanding: outstanding,
+          status: outstanding > 0 ? "Pending" : "Paid"
+        }
+      end.sort_by { |h| -h[:outstanding] }
+    end
+
+    def action_list_attendees
+      scope = @attendees
+      case @action_list
+      when "pending_qt"
+        scope.where("document_status IS NULL OR document_status = ''").where(payment_status: "Pending")
+      when "inv_unpaid"
+        scope.where(document_status: "INV", payment_status: "Pending")
+      when "overdue"
+        scope.where(payment_status: "Pending").where("due_date < ?", Date.current)
+      when "paid_no_receipt"
+        scope.where(payment_status: "Paid").where.not(document_status: "Receipt")
+      when "due_this_week"
+        scope.where(payment_status: "Pending").where(due_date: Date.current.beginning_of_week..Date.current.end_of_week)
+      else
+        scope.none
+      end
+    end
+
+    def finance_export_csv
+      require "csv"
+      CSV.generate(headers: true) do |csv|
+        csv << ["Metric", "Value"]
+        csv << ["Gross Sales", @gross_sales]
+        csv << ["Total Discounts", @total_discounts]
+        csv << ["Net (Before VAT)", @net_before_vat]
+        csv << ["VAT 7%", @vat_amount]
+        csv << ["Total (Incl. VAT)", @total_incl_vat]
+        csv << ["Cash Received", @cash_received]
+        csv << ["Outstanding", @outstanding]
+        csv << ["Overdue", @overdue_amount]
+        csv << ["Collection Rate %", @collection_rate_pct]
+      end
     end
   end
 end

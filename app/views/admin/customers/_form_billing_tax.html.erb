@@ -1,0 +1,38 @@
+<section class="customer-edit-section" aria-labelledby="billing-edit-heading" id="customer_edit_billing_section">
+  <div class="customer-edit-section__head">
+    <div>
+      <h2 class="customer-edit-section__title" id="billing-edit-heading">
+        <i class="bi bi-receipt" aria-hidden="true"></i> Billing &amp; Tax (QT/INV/Receipt)
+        <span class="customer-edit-badge">For documents</span>
+      </h2>
+      <% missing = customer_360_missing_billing_fields(customer) %>
+      <p class="customer-edit-readiness <%= missing.any? ? 'customer-edit-readiness--missing' : 'customer-edit-readiness--ready' %>" aria-live="polite">
+        <% if missing.any? %>
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Missing: <%= missing.join(", ") %>
+        <% else %>
+          <i class="bi bi-check-circle" aria-hidden="true"></i> Ready for invoice
+        <% end %>
+      </p>
+    </div>
+    <%= link_to "Sync from latest registration", sync_document_info_admin_customer_path(customer), data: { turbo_method: :post }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+  </div>
+  <div class="customer-edit-section__body">
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :tax_id, "Tax ID", class: "customer-edit-label" %>
+        <%= f.text_field :tax_id, class: "customer-edit-input" %>
+        <%= inline_error_for(customer, :tax_id) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :billing_name, "Billing Name", class: "customer-edit-label" %>
+        <%= f.text_field :billing_name, class: "customer-edit-input" %>
+        <%= inline_error_for(customer, :billing_name) %>
+      </div>
+    </div>
+    <div class="customer-edit-field">
+      <%= f.label :billing_address, "Billing Address", class: "customer-edit-label" %>
+      <%= f.text_area :billing_address, class: "customer-edit-input customer-edit-textarea", rows: 3 %>
+      <%= inline_error_for(customer, :billing_address) %>
+    </div>
+  </div>
+</section>

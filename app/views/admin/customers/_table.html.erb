@@ -1,0 +1,54 @@
+<%
+  customers = local_assigns[:customers] || []
+  colspan_empty = 9
+%>
+<div class="table-responsive table-modern-wrap customer-table-wrap">
+  <table class="table table-hover customer-table">
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>Type</th>
+        <th class="text-center">Times attended</th>
+        <th>Last attended</th>
+        <th class="text-end">Total spent (Net)</th>
+        <th class="text-end">Outstanding</th>
+        <th class="text-center">Seats total</th>
+        <th class="text-center">Docs status</th>
+        <th class="text-end" style="width: 100px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% customers.each do |c| %>
+        <tr>
+          <td>
+            <strong><%= c.company_name %></strong>
+            <% if c.email.present? %>
+              <div class="customer-table__meta"><%= c.email %></div>
+            <% end %>
+          </td>
+          <td>
+            <span class="badge <%= c.participant_type == 'Corp' ? 'badge-type-corp' : 'badge-type-indi' %> badge-modern"><%= c.participant_type.presence || "—" %></span>
+          </td>
+          <td class="text-center"><%= c.respond_to?(:times_attended) ? c.times_attended.to_i : 0 %></td>
+          <td>
+            <% la = c.respond_to?(:last_attended_at) ? c.last_attended_at : nil %>
+            <%= la.present? ? (la.is_a?(Date) ? la.strftime("%d/%m/%y") : (la.respond_to?(:strftime) ? la.strftime("%d/%m/%y") : la.to_s)) : "—" %>
+          </td>
+          <td class="text-end"><%= number_to_thb(c.respond_to?(:total_spent_net_raw) ? c.total_spent_net_raw.to_f : 0) %></td>
+          <td class="text-end"><%= number_to_thb(c.respond_to?(:outstanding_raw) ? c.outstanding_raw.to_f : 0) %></td>
+          <td class="text-center"><%= c.respond_to?(:seats_total_raw) ? c.seats_total_raw.to_i : 0 %></td>
+          <td class="text-center">—</td>
+          <td class="text-end action-cell">
+            <%= link_to admin_customer_path(c), class: "btn btn-action", title: "View" do %><i class="bi bi-eye"></i><% end %>
+            <%= link_to edit_admin_customer_path(c), class: "btn btn-action", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if customers.empty? %>
+        <tr>
+          <td colspan="<%= colspan_empty %>" class="text-center text-muted py-4">ไม่พบข้อมูล</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

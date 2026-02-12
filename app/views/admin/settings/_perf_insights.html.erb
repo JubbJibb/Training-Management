@@ -1,0 +1,15 @@
+<%
+  insights = @perf_insights || []
+%>
+<aside class="perf-insights" aria-labelledby="perf-insights-title">
+  <h3 id="perf-insights-title" class="perf-section-title"><i class="bi bi-lightbulb" aria-hidden="true"></i> Insights</h3>
+  <% if insights.any? %>
+    <ul class="perf-insights__list" role="list">
+      <% insights.each do |text| %>
+        <li class="perf-insights__item"><%= text %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="perf-insights__empty">Apply filters and run promotions to see insights.</p>
+  <% end %>
+</aside>

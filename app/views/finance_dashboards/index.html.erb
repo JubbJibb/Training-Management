@@ -1,0 +1,52 @@
+<% content_for :title, "Financial Dashboard" %>
+
+<div class="cfo-dash-page">
+  <%= render "components/odt/page_header", title: "Financial Dashboard", subtitle: "Revenue · Cashflow · AR · Documents · Corporate Ledger", icon: "cash-coin" %>
+
+  <%= turbo_frame_tag "finance_dashboard", data: { turbo_action: "advance" } do %>
+    <%= form_with url: finance_dashboard_path, method: :get, local: false, class: "cfo-dash-form", data: { turbo_frame: "finance_dashboard" } do %>
+      <%= render "finance_dashboards/filter_bar" %>
+    <% end %>
+
+    <%= render "finance_dashboards/kpi_row", summary: @summary %>
+
+    <nav class="customer-tabs cfo-dash-tabs" aria-label="Dashboard sections">
+      <div class="customer-tabs__inner" id="financeDashboardTabs" role="tablist">
+        <button class="customer-tabs__tab active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab">
+          <i class="bi bi-graph-up"></i> Overview
+        </button>
+        <button class="customer-tabs__tab" id="tab-documents" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button" role="tab">
+          <i class="bi bi-file-earmark-check"></i> Documents & Action
+        </button>
+        <button class="customer-tabs__tab" id="tab-revenue" data-bs-toggle="tab" data-bs-target="#pane-revenue" type="button" role="tab">
+          <i class="bi bi-pie-chart"></i> Revenue
+        </button>
+        <button class="customer-tabs__tab" id="tab-ledger" data-bs-toggle="tab" data-bs-target="#pane-ledger" type="button" role="tab">
+          <i class="bi bi-building"></i> Corporate Ledger
+        </button>
+      </div>
+    </nav>
+
+    <div class="tab-content cfo-dash-tab-content" id="financeDashboardTabsContent">
+      <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
+        <div class="cfo-dash-main">
+          <div class="cfo-dash-main__left">
+            <%= render "finance_dashboards/pricing_funnel", summary: @summary %>
+          </div>
+          <div class="cfo-dash-main__right">
+            <%= render "finance_dashboards/cashflow_collection", summary: @summary %>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="pane-documents" role="tabpanel">
+        <%= render "finance_dashboards/documents_compliance", summary: @summary %>
+      </div>
+      <div class="tab-pane fade" id="pane-revenue" role="tabpanel">
+        <%= render "finance_dashboards/revenue_breakdown", summary: @summary %>
+      </div>
+      <div class="tab-pane fade" id="pane-ledger" role="tabpanel">
+        <%= render "finance_dashboards/corporate_ledger", summary: @summary %>
+      </div>
+    </div>
+  <% end %>
+</div>

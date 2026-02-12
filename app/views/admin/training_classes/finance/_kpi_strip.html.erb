@@ -1,0 +1,63 @@
+<%
+  k = kpis
+  w = local_assigns[:waterfall] || {}
+  ar = local_assigns[:ar_aging] || {}
+  prof = local_assigns[:profitability] || {}
+  pending_count = local_assigns[:pending_count] || 0
+  overdue_amount = ar[:overdue_amount].to_f.round(2)
+  overdue_count = ar[:overdue_count].to_i
+  total_cost = prof[:total_cost].to_f.round(2)
+
+  metrics = [
+    {
+      key: :total_revenue,
+      label: "Total Revenue (incl VAT)",
+      value: number_to_thb(k[:total_revenue_incl_vat]),
+      subtext: "Net: #{number_to_thb(k[:net_revenue_before_vat])} • VAT: #{number_to_thb(w[:vat_amount] || 0)}",
+      tone: "primary"
+    },
+    {
+      key: :net_revenue,
+      label: "Net Revenue (before VAT)",
+      value: number_to_thb(k[:net_revenue_before_vat]),
+      subtext: "Discount #{number_to_thb(w[:discount_total] || 0)} (#{number_to_percent(w[:discount_rate_pct] || 0)})",
+      tone: "default"
+    },
+    {
+      key: :cash_received,
+      label: "Cash Received",
+      value: number_to_thb(k[:cash_received]),
+      subtext: "Collection rate #{number_to_percent(k[:collection_rate_pct])}",
+      tone: "default"
+    },
+    {
+      key: :outstanding,
+      label: "Outstanding (AR)",
+      value: number_to_thb(k[:outstanding]),
+      subtext: "#{pending_count} #{pending_count == 1 ? 'invoice' : 'invoices'} pending",
+      tone: "warning"
+    },
+    {
+      key: :overdue,
+      label: "Overdue Amount",
+      value: number_to_thb(overdue_amount),
+      subtext: "#{overdue_count} #{overdue_count == 1 ? 'invoice' : 'invoices'}",
+      tone: overdue_amount > 0 ? "danger" : "default"
+    },
+    {
+      key: :cost,
+      label: "Cost",
+      value: number_to_thb(total_cost),
+      subtext: "Base + expenses",
+      tone: "default"
+    },
+    {
+      key: :net_profit,
+      label: "Net Profit",
+      value: number_to_thb(k[:net_profit]),
+      subtext: k[:profit_margin_pct].nil? ? "—" : "Margin #{number_to_percent(k[:profit_margin_pct])}",
+      tone: k[:net_profit].to_f >= 0 ? "success" : "danger"
+    }
+  ]
+%>
+<%= render "admin/training_classes/finance/metric_strip", metrics: metrics %>

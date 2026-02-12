@@ -1,0 +1,22 @@
+<% content_for :title, "Exports" %>
+
+<%= render "components/odt/page_header", title: "Exports", subtitle: "Generate and download reports", icon: "download" do %>
+  <%= link_to new_admin_export_path, class: "odt-btn odt-btn--primary odt-btn--sm", data: { turbo_frame: "export_modal" } do %>
+    <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i> New Export
+  <% end %>
+<% end %>
+
+<% stuck_running = @export_jobs.any? { |j| j.running? && j.started_at && j.started_at < 2.minutes.ago } %>
+<% if stuck_running %>
+  <p class="export-list__hint mb-3"><i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Some exports are still processing. <strong>Refresh the page</strong> to update status.</p>
+<% end %>
+
+<ul id="export_list" class="export-list" aria-label="Export jobs">
+  <% @export_jobs.each do |export_job| %>
+    <%= render "admin/exports/export_row", export_job: export_job %>
+  <% end %>
+</ul>
+
+<% if @export_jobs.empty? %>
+  <p class="export-list__empty">No exports yet. Use the Export menu or the button above to generate a report.</p>
+<% end %>

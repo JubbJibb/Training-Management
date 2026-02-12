@@ -1,0 +1,63 @@
+<div class="dashboard-filter-bar" id="dashboard-filter-bar">
+  <%= form_with url: admin_dashboard_index_path, method: :get, data: { turbo_frame: "dashboard_main" }, class: "dashboard-filter-bar__form" do |f| %>
+    <div class="dashboard-filter-bar__row">
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_period_preset" class="dashboard-filter-bar__label">Period</label>
+        <select name="preset" id="dashboard_period_preset" class="dashboard-filter-bar__input">
+          <option value="">Custom</option>
+          <option value="this_week" <%= "selected" if @filters[:preset] == "this_week" %>>This week</option>
+          <option value="this_month" <%= "selected" if @filters[:preset] == "this_month" %>>This month</option>
+          <option value="last_month" <%= "selected" if @filters[:preset] == "last_month" %>>Last month</option>
+          <option value="next_30" <%= "selected" if @filters[:preset] == "next_30" %>>Next 30 days</option>
+        </select>
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_period_start" class="dashboard-filter-bar__label">Start</label>
+        <input type="date" name="period_start" id="dashboard_period_start" class="dashboard-filter-bar__input" value="<%= @filters[:period_start] %>">
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_period_end" class="dashboard-filter-bar__label">End</label>
+        <input type="date" name="period_end" id="dashboard_period_end" class="dashboard-filter-bar__input" value="<%= @filters[:period_end] %>">
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_course_id" class="dashboard-filter-bar__label">Course</label>
+        <select name="course_id" id="dashboard_course_id" class="dashboard-filter-bar__input">
+          <option value="">All</option>
+          <% (@filter_courses || []).each do |id, title, date| %>
+            <option value="<%= id %>" <%= "selected" if @filters[:course_id].to_s == id.to_s %>><%= title %> (<%= date.strftime("%d/%m/%Y") %>)</option>
+          <% end %>
+        </select>
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_instructor" class="dashboard-filter-bar__label">Instructor</label>
+        <select name="instructor" id="dashboard_instructor" class="dashboard-filter-bar__input">
+          <option value="">All</option>
+          <% (@filter_instructors || []).each do |inst| %>
+            <option value="<%= inst %>" <%= "selected" if @filters[:instructor] == inst %>><%= inst %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_channel" class="dashboard-filter-bar__label">Channel</label>
+        <select name="channel" id="dashboard_channel" class="dashboard-filter-bar__input">
+          <option value="">All</option>
+          <% (@filter_channels || []).each do |ch| %>
+            <option value="<%= ch %>" <%= "selected" if @filters[:channel] == ch %>><%= ch %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="dashboard-filter-bar__field">
+        <label for="dashboard_status" class="dashboard-filter-bar__label">Status</label>
+        <select name="status" id="dashboard_status" class="dashboard-filter-bar__input">
+          <option value="">All</option>
+          <option value="Paid" <%= "selected" if @filters[:status] == "Paid" %>>Paid</option>
+          <option value="Pending" <%= "selected" if @filters[:status] == "Pending" %>>Pending</option>
+        </select>
+      </div>
+      <div class="dashboard-filter-bar__actions">
+        <button type="submit" class="dashboard-filter-bar__btn dashboard-filter-bar__btn--primary">Apply</button>
+        <%= link_to "Clear", admin_dashboard_index_path, class: "dashboard-filter-bar__btn dashboard-filter-bar__btn--secondary", data: { turbo_frame: "dashboard_main" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

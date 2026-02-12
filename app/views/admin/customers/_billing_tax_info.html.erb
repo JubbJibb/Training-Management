@@ -1,0 +1,21 @@
+<section class="customer-360-section" aria-labelledby="billing-heading">
+  <h2 class="customer-360-section__title" id="billing-heading"><i class="bi bi-receipt" aria-hidden="true"></i> Billing &amp; Tax Info (QT/INV/Receipt)</h2>
+  <div class="customer-360-section__body">
+    <% missing = customer_360_missing_billing_fields(customer) %>
+    <% if missing.any? %>
+      <div class="customer-360-callout customer-360-callout--warning" role="alert">
+        Missing: <%= missing.join(", ") %>
+      </div>
+    <% end %>
+    <dl class="customer-360-dl">
+      <dt>Tax ID</dt>
+      <dd><%= customer.tax_id.presence || "—" %></dd>
+      <dt>Billing Name</dt>
+      <dd><%= customer.billing_name.presence || "—" %></dd>
+      <dt>Billing Address</dt>
+      <dd><%= simple_format(customer.billing_address.presence || "—") %></dd>
+    </dl>
+    <p class="customer-360-section__note">Last updated from registration when applicable. Sync from latest registration to pull Tax ID, Billing Name, and Address from the most recent class registration.</p>
+    <%= button_to "Sync from latest registration", sync_document_info_admin_customer_path(customer), method: :post, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  </div>
+</section>

@@ -1,0 +1,66 @@
+<div class="cfo-dash-filters">
+  <details class="cfo-dash-filters__details" <%= "open" if params[:start_date].present? || params[:end_date].present? || params[:preset].present? %>>
+    <summary class="cfo-dash-filters__summary">
+      <i class="bi bi-funnel"></i> Filters
+    </summary>
+    <div class="cfo-dash-filters__row">
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Period</label>
+        <select name="preset" class="cfo-dash-filters__input">
+          <option value="">Custom</option>
+          <option value="this_month" <%= "selected" if params[:preset] == "this_month" %>>This month</option>
+          <option value="last_month" <%= "selected" if params[:preset] == "last_month" %>>Last month</option>
+        </select>
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Start</label>
+        <input type="date" name="start_date" class="cfo-dash-filters__input" value="<%= params[:start_date] %>">
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">End</label>
+        <input type="date" name="end_date" class="cfo-dash-filters__input" value="<%= params[:end_date] %>">
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Course</label>
+        <select name="training_class_id" class="cfo-dash-filters__input">
+          <option value="">All</option>
+          <% @training_classes.each do |tc| %>
+            <option value="<%= tc.id %>" <%= "selected" if params[:training_class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+          <% end %>
+        </select>
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Segment</label>
+        <select name="segment" class="cfo-dash-filters__input">
+          <option value="">All</option>
+          <option value="corporate" <%= "selected" if params[:segment] == "corporate" %>>Corporate</option>
+          <option value="individual" <%= "selected" if params[:segment] == "individual" %>>Individual</option>
+        </select>
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Status</label>
+        <select name="status" class="cfo-dash-filters__input">
+          <option value="">All</option>
+          <option value="paid" <%= "selected" if params[:status] == "paid" %>>Paid</option>
+          <option value="pending" <%= "selected" if params[:status] == "pending" %>>Pending</option>
+          <option value="overdue" <%= "selected" if params[:status] == "overdue" %>>Overdue</option>
+          <option value="no_document" <%= "selected" if params[:status] == "no_document" %>>No document</option>
+        </select>
+      </div>
+      <div class="cfo-dash-filters__field">
+        <label class="cfo-dash-filters__label">Channel</label>
+        <select name="channel" class="cfo-dash-filters__input">
+          <option value="">All</option>
+          <% @channels.each do |ch| %>
+            <option value="<%= ch %>" <%= "selected" if params[:channel] == ch %>><%= ch %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="cfo-dash-filters__actions">
+        <button type="submit" class="cfo-dash-btn cfo-dash-btn--primary">Apply</button>
+        <a href="<%= finance_dashboard_path %>" class="cfo-dash-btn cfo-dash-btn--secondary" data-turbo-frame="finance_dashboard">Clear</a>
+        <a href="#" class="cfo-dash-btn cfo-dash-btn--ghost"><i class="bi bi-download"></i> Export</a>
+      </div>
+    </div>
+  </details>
+</div>

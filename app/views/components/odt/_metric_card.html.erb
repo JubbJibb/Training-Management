@@ -1,0 +1,11 @@
+<%
+  css = ["odt-metric-card", "odt-metric-card--#{accent}"]
+%>
+<div class="<%= css.join(' ') %>">
+  <span class="odt-metric-card__icon-wrap"><i class="bi bi-<%= icon %>"></i></span>
+  <span class="odt-metric-card__title"><%= title %></span>
+  <span class="odt-metric-card__value"><%= value %></span>
+  <% if subtext.present? %>
+    <span class="odt-metric-card__subtext"><%= subtext %></span>
+  <% end %>
+</div>

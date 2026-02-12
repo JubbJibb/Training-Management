@@ -1,0 +1,16 @@
+<%
+  text = local_assigns[:text]
+  variant = (local_assigns[:variant] || "default").to_s
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-doc-chip", "odt-doc-chip--#{variant}"]
+  css << extra_class if extra_class.present?
+  url = local_assigns[:url]
+  turbo_frame = local_assigns[:turbo_frame]
+%>
+<% if url.present? %>
+  <%= link_to url, class: css.join(" "), data: (turbo_frame ? { turbo_frame: turbo_frame } : {}) do %>
+    <span class="odt-doc-chip__text"><%= text %></span>
+  <% end %>
+<% else %>
+  <span class="<%= css.join(' ') %>"><span class="odt-doc-chip__text"><%= text %></span></span>
+<% end %>

@@ -1,0 +1,37 @@
+<% w = waterfall %>
+<div class="cfo-funnel">
+  <div class="cfo-funnel__row">
+    <span class="cfo-funnel__label">Gross Sales</span>
+    <span class="cfo-funnel__value"><%= number_to_thb(w[:gross_sales]) %></span>
+  </div>
+  <div class="cfo-funnel__row">
+    <span class="cfo-funnel__label">(−) Discounts</span>
+    <span class="cfo-funnel__value">−<%= number_to_thb(w[:discount_total]) %></span>
+  </div>
+  <div class="cfo-funnel__row">
+    <span class="cfo-funnel__label">= Net (before VAT)</span>
+    <span class="cfo-funnel__value"><%= number_to_thb(w[:net_before_vat]) %></span>
+  </div>
+  <div class="cfo-funnel__row">
+    <span class="cfo-funnel__label">(+) VAT (7%)</span>
+    <span class="cfo-funnel__value">+<%= number_to_thb(w[:vat_amount]) %></span>
+  </div>
+  <div class="cfo-funnel__row">
+    <span class="cfo-funnel__label">= Total (incl. VAT)</span>
+    <span class="cfo-funnel__value cfo-funnel__value--total"><%= number_to_thb(w[:total_incl_vat]) %></span>
+  </div>
+  <div class="cfo-funnel__side">
+    <div class="cfo-funnel__side-item">
+      <span class="cfo-funnel__side-label">Discount rate </span>
+      <span class="cfo-funnel__side-value"><%= number_to_percent(w[:discount_rate_pct]) %></span>
+    </div>
+    <div class="cfo-funnel__side-item">
+      <span class="cfo-funnel__side-label">Avg/seat revenue </span>
+      <span class="cfo-funnel__side-value"><%= number_to_thb(w[:avg_revenue_per_seat]) %></span>
+    </div>
+    <div class="cfo-funnel__side-item">
+      <span class="cfo-funnel__side-label">Avg/seat discount </span>
+      <span class="cfo-funnel__side-value"><%= number_to_thb(w[:avg_discount_per_seat]) %></span>
+    </div>
+  </div>
+</div>

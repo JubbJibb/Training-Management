@@ -1,0 +1,59 @@
+<section class="class-finance-charts odt-section">
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <%= odt_card(title: "Revenue vs Cash over time", icon: "graph-up-arrow", extra_class: "class-finance-chart-card") do %>
+        <% ts = dashboard[:revenue_timeseries] %>
+        <% if ts.any? %>
+          <%= odt_table(extra_class: "odt-table--sm mb-0") do %>
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th class="odt-table-numeric">Net Revenue (before VAT)</th>
+                <th class="odt-table-numeric">Cash received</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% ts.each do |r| %>
+                <tr>
+                  <td><%= r[:label] %></td>
+                  <td class="odt-table-numeric"><%= number_to_thb(r[:net_revenue]) %></td>
+                  <td class="odt-table-numeric"><%= number_to_thb(r[:cash_received]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          <% end %>
+        <% else %>
+          <p class="text-muted small mb-0">No time series data.</p>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-12 col-lg-6">
+      <%= odt_card(title: "AR Aging", icon: "clock-history", extra_class: "class-finance-chart-card") do %>
+        <% buckets = dashboard[:ar_aging][:buckets] %>
+        <% if buckets.any? { |b| b[:amount].positive? } %>
+          <%= odt_table(extra_class: "odt-table--sm mb-0") do %>
+            <thead>
+              <tr>
+                <th>Days overdue</th>
+                <th class="odt-table-numeric">Amount</th>
+                <th class="odt-table-numeric">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% buckets.each do |b| %>
+                <tr>
+                  <td><%= odt_badge(b[:range], variant: b[:amount].positive? ? :warning : :neutral, size: :sm) %></td>
+                  <td class="odt-table-numeric"><%= number_to_thb(b[:amount]) %></td>
+                  <td class="odt-table-numeric"><%= b[:count] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          <% end %>
+          <p class="small text-muted mt-2 mb-0">Total AR: <%= number_to_thb(dashboard[:ar_aging][:total_ar]) %></p>
+        <% else %>
+          <p class="text-muted small mb-0">No AR aging data in this view.</p>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</section>

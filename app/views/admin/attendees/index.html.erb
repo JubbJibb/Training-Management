@@ -1,72 +1,90 @@
 <% content_for :title, "Attendees - #{@training_class.title}" %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <%= link_to admin_training_class_path(@training_class), class: "btn btn-outline-secondary mb-2" do %>
-      <i class="bi bi-arrow-left"></i> Back to Class
-    <% end %>
-    <h1><i class="bi bi-people"></i> Attendees - <%= @training_class.title %></h1>
-  </div>
-  <div>
-    <%= link_to new_admin_training_class_attendee_path(@training_class), class: "btn btn-primary" do %>
-      <i class="bi bi-plus-circle"></i> Add Attendee
-    <% end %>
-    <%= link_to export_admin_training_class_attendees_path(@training_class, format: :csv), class: "btn btn-success" do %>
-      <i class="bi bi-download"></i> Export CSV
-    <% end %>
-  </div>
-</div>
+<%= render "components/odt/page_header", title: "Attendees – #{@training_class.title}", subtitle: "Manage registrations and exports", icon: "people" do %>
+  <%= link_to admin_training_class_path(@training_class), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Class
+  <% end %>
+  <%= link_to new_admin_training_class_attendee_path(@training_class), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+    <i class="bi bi-plus-circle" aria-hidden="true"></i> Add Attendee
+  <% end %>
+  <%= link_to export_admin_training_class_attendees_path(@training_class, format: :csv), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <i class="bi bi-download" aria-hidden="true"></i> Export CSV
+  <% end %>
+<% end %>
 
 <div class="card">
   <div class="card-body">
     <% if @attendees.any? %>
-      <div class="table-responsive">
-        <table class="table table-hover">
+      <div class="table-responsive attendees-table-wrap">
+        <table class="table table-hover table-sortable-filterable">
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
               <th>Company</th>
-              <th>Payment Status</th>
-              <th>Slip</th>
-              <th>Notes</th>
-              <th>Actions</th>
+              <th>Type</th>
+              <th class="text-center">Seats</th>
+              <th>Channel</th>
+              <th>Payment</th>
+              <th>Document</th>
+              <th class="text-end">Amount</th>
+              <th class="text-end" style="width: 140px;">Actions</th>
             </tr>
           </thead>
           <tbody>
             <% @attendees.each do |attendee| %>
               <tr>
                 <td><strong><%= attendee.name %></strong></td>
-                <td><%= attendee.email %></td>
-                <td><%= attendee.phone || "—" %></td>
-                <td><%= attendee.company || "—" %></td>
+                <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
                 <td>
-                  <span class="badge <%= attendee.payment_status == "Paid" ? "bg-success" : "bg-warning" %>">
+                  <span class="badge badge-attendees <%= attendee.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi" %>">
+                    <%= attendee.participant_type || "Indi" %>
+                  </span>
+                </td>
+                <td class="text-center"><%= attendee.seats || 1 %></td>
+                <td><%= attendee.source_channel || "—" %></td>
+                <td>
+                  <span class="badge badge-attendees <%= attendee.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending" %>">
                     <%= attendee.payment_status || "Pending" %>
                   </span>
                 </td>
-                <td class="text-center">
-                  <% if attendee.payment_slip.attached? %>
-                    <%= link_to rails_blob_path(attendee.payment_slip, disposition: "inline"), 
-                        target: "_blank", class: "btn btn-sm btn-outline-info", title: "View Slip" do %>
-                      <i class="bi bi-file-earmark-image"></i>
-                    <% end %>
+                <td>
+                  <% if attendee.document_status.present? %>
+                    <span class="badge badge-attendees badge-doc-<%= attendee.document_status.downcase %>"><%= attendee.document_status %></span>
                   <% else %>
-                    <span class="text-muted">—</span>
+                    <span class="badge badge-attendees badge-doc-empty">—</span>
                   <% end %>
                 </td>
-                <td><%= attendee.notes.present? ? truncate(attendee.notes, length: 50) : "—" %></td>
-                <td>
-                  <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), 
-                      class: "btn btn-sm btn-outline-secondary", title: "Edit" do %>
+                <td class="text-end amount-cell" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
+                  ฿<%= number_with_delimiter(attendee.total_final_price, delimiter: ",") %>
+                  <span class="amount-incl">incl. VAT</span>
+                </td>
+                <td class="text-end action-cell">
+                  <%= link_to mailto_class_info_link(attendee), class: "btn btn-action", title: "Email", target: "_blank" do %>
+                    <i class="bi bi-envelope"></i>
+                  <% end %>
+                  <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "btn btn-action", title: "Edit" do %>
                     <i class="bi bi-pencil"></i>
                   <% end %>
-                  <%= link_to admin_training_class_attendee_path(@training_class, attendee), 
-                      data: { turbo_method: :delete, confirm: "Remove this attendee?" },
-                      class: "btn btn-sm btn-outline-danger", title: "Remove" do %>
+                  <%= link_to admin_training_class_attendee_path(@training_class, attendee), data: { turbo_method: :delete, turbo_confirm: "Remove #{attendee.name}?" }, class: "btn btn-action btn-action-danger", title: "Delete" do %>
                     <i class="bi bi-trash"></i>
                   <% end %>
+                  <div class="dropdown d-inline-block">
+                    <button class="btn btn-action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <% if attendee.payment_slips.attached? %>
+                        <% attendee.payment_slips.each do |slip| %>
+                          <%= link_to rails_blob_path(slip, disposition: "inline"), target: "_blank", class: "dropdown-item" do %>
+                            <i class="bi bi-file-earmark-image"></i> View: <%= slip.filename %>
+                          <% end %>
+                        <% end %>
+                      <% end %>
+                      <% if attendee.notes.present? %>
+                        <li><span class="dropdown-item-text text-muted small" title="<%= attendee.notes %>"><%= truncate(attendee.notes, length: 40) %></span></li>
+                      <% end %>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             <% end %>

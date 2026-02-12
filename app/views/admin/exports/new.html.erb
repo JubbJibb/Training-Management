@@ -1,0 +1,12 @@
+<%= turbo_frame_tag "export_modal" do %>
+  <div class="export-modal" role="dialog" aria-labelledby="export_modal_title" aria-modal="true">
+    <div class="export-modal__backdrop" data-action="click->export-modal#close"></div>
+    <div class="export-modal__content">
+      <header class="export-modal__header">
+        <h2 id="export_modal_title" class="export-modal__title">Generate Export</h2>
+        <%= link_to "×", admin_exports_path, class: "export-modal__close", data: { turbo_frame: "_top" }, aria: { label: "Close" } %>
+      </header>
+      <%= render "admin/exports/form", export_job: @export_job %>
+    </div>
+  </div>
+<% end %>

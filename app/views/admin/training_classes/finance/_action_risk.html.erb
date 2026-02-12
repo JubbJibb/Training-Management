@@ -1,0 +1,52 @@
+<%= odt_card(title: "Action & Risk", icon: "exclamation-triangle", extra_class: "class-finance-action-risk odt-section") do %>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="class-finance-risk-card class-finance-risk-card--overdue">
+        <span class="class-finance-risk-card__label">Overdue invoices</span>
+        <span class="class-finance-risk-card__count"><%= action_required[:overdue_count] %></span>
+        <span class="class-finance-risk-card__amount"><%= number_to_thb(action_required[:overdue_amount]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="class-finance-risk-card class-finance-risk-card--receipt">
+        <span class="class-finance-risk-card__label">Invoices pending receipt</span>
+        <span class="class-finance-risk-card__count"><%= action_required[:pending_receipt_count] %></span>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 d-flex flex-wrap gap-2 align-items-end">
+      <%= link_to admin_training_class_path(training_class, tab: "finance"), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+        <i class="bi bi-list-ul odt-btn__icon odt-btn__icon--left"></i>
+        <span class="odt-btn__label">View AR list</span>
+      <% end %>
+      <%= odt_button("Export CSV", variant: :ghost, size: :sm, href: admin_training_class_attendees_path(training_class, format: :csv), icon_left: "download") %>
+      <%= link_to new_admin_training_class_class_expense_path(training_class), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+        <i class="bi bi-plus-lg odt-btn__icon odt-btn__icon--left"></i>
+        <span class="odt-btn__label">Add Expense</span>
+      <% end %>
+    </div>
+  </div>
+
+  <% if action_required[:top_outstanding].any? %>
+    <h6 class="mb-2">Top 5 outstanding</h6>
+    <%= odt_table(extra_class: "odt-table--sm") do %>
+      <thead>
+        <tr>
+          <th>Customer / Contact</th>
+          <th class="odt-table-numeric">Amount</th>
+          <th class="odt-table-numeric">Days outstanding</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% action_required[:top_outstanding].each do |row| %>
+          <tr>
+            <td><%= row[:name] %></td>
+            <td class="odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
+            <td class="odt-table-numeric"><%= row[:days_outstanding].nil? ? "—" : row[:days_outstanding] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    <% end %>
+  <% else %>
+    <p class="text-muted small mb-0">No outstanding items in this view.</p>
+  <% end %>
+<% end %>

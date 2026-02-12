@@ -1,0 +1,73 @@
+<%
+  export_type = export_job.export_type.presence || "financial_report"
+  format = export_job.format.presence || "pdf"
+  export_types_pdf = [["Financial Report", "financial_report"], ["Class Report", "class_report"], ["Customer Summary", "customer_summary"]]
+  export_types_xlsx = [["Financial Data", "financial_data"], ["Class Attendees", "class_attendees"], ["Customer Master (Editable)", "customer_master"], ["Customer for Accounting", "customer_for_accounting"]]
+%>
+<%= form_with model: export_job, url: admin_exports_path, method: :post, local: false, class: "export-form", data: { turbo_frame: "_top" } do |f| %>
+  <%= f.hidden_field :export_type, value: export_type %>
+  <%= f.hidden_field :format, value: format %>
+
+  <div class="export-form__row">
+    <label class="export-form__label">Period</label>
+    <%= f.select :period, [["This month", "this_month"], ["Last month", "last_month"], ["YTD", "ytd"], ["Custom", "custom"]], {}, name: "export_job[filters][period]", class: "export-form__select" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Start date</label>
+    <%= f.date_field :start_date, name: "export_job[filters][start_date]", class: "export-form__input", value: Date.current.beginning_of_month %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">End date</label>
+    <%= f.date_field :end_date, name: "export_job[filters][end_date]", class: "export-form__input", value: Date.current.end_of_month %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Course</label>
+    <select name="export_job[filters][course_id]" class="export-form__select">
+      <option value="">All</option>
+      <% TrainingClass.order(date: :desc).limit(30).each do |tc| %>
+        <option value="<%= tc.id %>"><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+      <% end %>
+    </select>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Segment</label>
+    <%= f.select :segment, [["All", ""], ["Corporate", "Corp"], ["Individual", "Indi"]], {}, name: "export_job[filters][segment]", class: "export-form__select" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Payment status</label>
+    <%= f.select :status, [["All", ""], ["Paid", "Paid"], ["Pending", "Pending"]], {}, name: "export_job[filters][status]", class: "export-form__select" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Channel</label>
+    <%= f.text_field :channel, name: "export_job[filters][channel]", class: "export-form__input", placeholder: "All" %>
+  </div>
+
+  <div class="export-form__row export-form__row--check">
+    <%= f.check_box :include_custom_fields, name: "export_job[include_custom_fields]", class: "export-form__checkbox" %>
+    <label>Include custom fields</label>
+  </div>
+  <% if format == "pdf" && %w[financial_report class_report].include?(export_type) %>
+    <div class="export-form__row export-form__row--check">
+      <input type="hidden" name="export_job[include_sections][promotion_breakdown]" value="0">
+      <input type="checkbox" name="export_job[include_sections][promotion_breakdown]" value="1" id="inc_promo" class="export-form__checkbox">
+      <label for="inc_promo">Include promotion breakdown</label>
+    </div>
+    <div class="export-form__row export-form__row--check">
+      <input type="hidden" name="export_job[include_sections][ar_aging]" value="0">
+      <input type="checkbox" name="export_job[include_sections][ar_aging]" value="1" id="inc_ar" class="export-form__checkbox">
+      <label for="inc_ar">Include AR aging</label>
+    </div>
+  <% end %>
+  <% if export_type == "class_report" %>
+    <div class="export-form__row export-form__row--check">
+      <input type="hidden" name="export_job[include_sections][attendee_list]" value="0">
+      <input type="checkbox" name="export_job[include_sections][attendee_list]" value="1" id="inc_attendees" class="export-form__checkbox" checked>
+      <label for="inc_attendees">Include attendee list</label>
+    </div>
+  <% end %>
+
+  <div class="export-form__actions">
+    <%= link_to "Cancel", admin_exports_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+    <%= f.submit "Generate", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+  </div>
+<% end %>

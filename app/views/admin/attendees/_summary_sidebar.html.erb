@@ -1,0 +1,44 @@
+<%# Sticky summary card: pricing breakdown + status badges %>
+<%= odt_card(title: "Summary", icon: "calculator", extra_class: "attendee-edit-summary") do %>
+  <input type="hidden" id="base_price_input" value="<%= @training_class.price.to_f || 0 %>">
+  <%= f.hidden_field :price, value: 0 %>
+
+  <div class="attendee-edit-summary__badges mb-3">
+    <%= odt_badge(@attendee.payment_status || "Pending", status: (@attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %>
+    <% if @attendee.document_status == "Receipt" %>
+      <%= odt_badge("Receipt", status: :receipt, size: :sm) %>
+    <% elsif @attendee.document_status.present? %>
+      <%= odt_badge(@attendee.document_status, variant: :info, size: :sm) %>
+    <% else %>
+      <%= odt_badge("—", variant: :neutral, size: :sm) %>
+    <% end %>
+  </div>
+
+    <h6 class="attendee-edit-summary__panel-title">Pricing Breakdown</h6>
+    <div class="odt-panel attendee-edit-summary__panel">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">ราคาเริ่มต้น</span>
+        <strong id="display_base_price">0.00</strong>
+      </div>
+      <div class="mb-2">
+        <div class="d-flex justify-content-between text-success">
+          <span>ส่วนลดรวม</span>
+          <strong id="display_discount">0.00</strong>
+        </div>
+        <div id="discount_details" class="small text-muted mt-1"></div>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">ก่อน VAT</span>
+        <strong id="display_price_before_vat">0.00</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-2 text-info">
+        <span>VAT (7%)</span>
+        <strong id="display_vat">0.00</strong>
+      </div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <strong>ราคาสุทธิ (รวม VAT)</strong>
+        <strong class="attendee-edit-summary__total" id="display_final_price">0.00</strong> ฿
+    </div>
+  </div>
+<% end %>

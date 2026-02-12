@@ -1,0 +1,42 @@
+<%
+  k = @perf_kpis || {}
+  cur_rev = k[:promo_revenue].to_f
+  prev_rev = k[:previous_promo_revenue].to_f
+  rev_delta = prev_rev.positive? ? ((cur_rev - prev_rev) / prev_rev * 100).round(0) : 0
+  seats = k[:seats].to_i
+  prev_seats = k[:previous_seats].to_i
+  seats_delta = prev_seats.positive? ? (seats - prev_seats) : 0
+  disc = k[:total_discount].to_f
+  prev_disc = k[:previous_total_discount].to_f
+  disc_delta = prev_disc.positive? ? ((disc - prev_disc) / prev_disc * 100).round(0) : 0
+  margin = k[:avg_margin].to_f
+  prev_margin = k[:previous_avg_margin].to_f
+  margin_delta = prev_margin.positive? ? (margin - prev_margin).round(0) : 0
+  cells = [
+    { label: "Promo Revenue (net)", value: number_to_thb(cur_rev), sub: rev_delta.zero? ? "vs prev" : (rev_delta > 0 ? "▲ #{rev_delta}% vs prev" : "▼ #{rev_delta.abs}% vs prev"), trend: rev_delta, value_variant: "default", icon: "currency-exchange" },
+    { label: "Seats via Promo", value: seats, sub: seats_delta.zero? ? "vs prev" : (seats_delta > 0 ? "▲ #{seats_delta} vs prev" : "▼ #{seats_delta.abs} vs prev"), trend: seats_delta, value_variant: "neutral", icon: "people" },
+    { label: "Total Discount", value: number_to_thb(disc), sub: disc_delta.zero? ? "vs prev" : (disc_delta > 0 ? "▲ #{disc_delta}%" : "▼ #{disc_delta.abs}%"), trend: -disc_delta, value_variant: "danger", icon: "tag" },
+    { label: "Avg Margin Impact %", value: "#{margin}%", sub: margin_delta.zero? ? "vs prev" : (margin_delta > 0 ? "▲ #{margin_delta}pp" : "▼ #{margin_delta.abs}pp"), trend: margin_delta, value_variant: "success", icon: "pie-chart" },
+    { label: "Best Promo", value: k[:best_promo_name].presence || "—", sub: "top revenue", icon: "trophy" }
+  ]
+%>
+<section class="perf-kpi-strip" aria-label="Promotion KPIs">
+  <div class="odt-kpi-strip__inner perf-kpi-strip__inner">
+    <% cells.each do |cell| %>
+      <div class="odt-kpi-strip__cell">
+        <div class="odt-kpi-strip__head">
+          <% if cell[:icon].present? %><span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span><% end %>
+          <span class="odt-kpi-strip__label"><%= cell[:label] %></span>
+        </div>
+        <span class="odt-kpi-strip__value <%= "odt-kpi-strip__value--#{cell[:value_variant]}" if cell[:value_variant].present? %>">
+          <%= cell[:value] %>
+          <% if cell[:trend].present? && cell[:trend].to_f != 0 %>
+            <% up = cell[:trend].to_f > 0 %>
+            <span class="odt-kpi-strip__trend odt-kpi-strip__trend--<%= up ? 'up' : 'down' %>" aria-label="<%= up ? 'Up' : 'Down' %>"><%= up ? '▲' : '▼' %></span>
+          <% end %>
+        </span>
+        <% if cell[:sub].present? %><span class="odt-kpi-strip__sub"><%= cell[:sub] %></span><% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

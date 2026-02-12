@@ -1,0 +1,60 @@
+/*
+ * ODT Design Tokens – centralized design system variables.
+ * Use these tokens for new styles; existing --odt-* variables remain for compatibility.
+ *
+ * Typography scale (use these so font size is aligned across all pages):
+ *   --font-size-xs:  0.6875rem (11px) – captions, tiny labels
+ *   --font-size-sm:  0.75rem (12px)   – labels, table headers
+ *   --font-size-base: 0.875rem (14px) – body, inputs, table cells
+ *   --font-size-md:  0.9375rem (15px) – subtitle, secondary text
+ *   --font-size-lg:  1rem (16px)      – section titles
+ *   --font-size-xl:  1.125rem (18px)
+ *   --font-size-2xl: 1.25rem (20px)  – h3
+ *   --font-size-3xl: 1.5rem (24px)   – h2, page title
+ *   --font-size-4xl: 1.75rem (28px)  – h1
+ */
+
+:root {
+  /* Font – single family across all pages */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Typography scale */
+  --font-size-xs: 0.6875rem;
+  --font-size-sm: 0.75rem;
+  --font-size-base: 0.875rem;
+  --font-size-md: 0.9375rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
+  --font-size-2xl: 1.25rem;
+  --font-size-3xl: 1.5rem;
+  --font-size-4xl: 1.75rem;
+
+  --color-ink: #292929;
+  --color-primary: #13139c;
+  --color-accent: #ffc700;
+  --color-accent-2: #f5bf00;
+  --color-surface: #f9f9fe;
+
+  /* ODT brand – use for CFO dashboard and nav accents */
+  --odt-blue: #13139c;
+  --odt-yellow: #F5C400;
+  --odt-blue-tint: rgba(19, 19, 156, 0.06);
+  --odt-yellow-tint: rgba(245, 196, 0, 0.12);
+  --odt-muted: #6b7280;
+
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.08);
+  --border-light: 1px solid #e5e7eb;
+  --border-muted: 1px solid #f3f4f6;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}

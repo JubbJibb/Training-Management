@@ -1,0 +1,31 @@
+<%
+  rows = local_assigns[:rows] || []
+  max_val = rows.flat_map { |r| [r[:revenue_net].to_f, r[:cash_received].to_f] }.max.to_f
+  max_val = 1 if max_val <= 0
+  w = 400
+  h = 160
+  pad = { t: 16, r: 16, b: 24, l: 48 }
+  chart_w = w - pad[:l] - pad[:r]
+  chart_h = h - pad[:t] - pad[:b]
+  n = rows.size
+  step_x = n > 1 ? chart_w.to_f / (n - 1) : chart_w
+  rev_points = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:revenue_net].to_f / max_val) * chart_h }" }.join(" ")
+  cash_points = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:cash_received].to_f / max_val) * chart_h }" }.join(" ")
+%>
+<div class="cfo-dash-chart">
+  <svg class="cfo-dash-chart__svg" viewBox="0 0 <%= w %> <%= h %>" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <%# Grid lines %>
+    <% [0.25, 0.5, 0.75].each do |p| %>
+      <line x1="<%= pad[:l] %>" y1="<%= pad[:t] + chart_h * (1 - p) %>" x2="<%= w - pad[:r] %>" y2="<%= pad[:t] + chart_h * (1 - p) %>" class="cfo-dash-chart__grid" />
+    <% end %>
+    <%# Revenue line (ODT blue) %>
+    <% if rows.any? %>
+      <polyline points="<%= rev_points %>" class="cfo-dash-chart__line cfo-dash-chart__line--revenue" fill="none" />
+      <polyline points="<%= cash_points %>" class="cfo-dash-chart__line cfo-dash-chart__line--cash" fill="none" />
+    <% end %>
+  </svg>
+  <div class="cfo-dash-chart__legend">
+    <span class="cfo-dash-chart__legend-item cfo-dash-chart__legend-item--revenue">Revenue (net)</span>
+    <span class="cfo-dash-chart__legend-item cfo-dash-chart__legend-item--cash">Cash received</span>
+  </div>
+</div>

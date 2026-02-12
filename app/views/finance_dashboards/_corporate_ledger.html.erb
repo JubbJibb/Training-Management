@@ -1,0 +1,44 @@
+<div class="cfo-dash-section-container">
+  <%= odt_section_header title: "Corporate ledger" %>
+  <div class="cfo-dash-section-container__body">
+  <% if summary[:corporate_ledger_rows].any? %>
+    <div class="cfo-dash-table-wrap">
+      <table class="cfo-dash-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th class="cfo-dash-table-num">Billed (net)</th>
+            <th class="cfo-dash-table-num">Cash</th>
+            <th class="cfo-dash-table-num">Outstanding</th>
+            <th>Status</th>
+            <th>Last activity</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% summary[:corporate_ledger_rows].each do |row| %>
+            <tr>
+              <td><strong><%= row[:company] %></strong></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:total_billed_net]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:cash_received]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:outstanding]) %></td>
+              <td><%= row[:status] %></td>
+              <td><%= row[:last_activity]&.strftime("%d/%m/%y %H:%M") || "—" %></td>
+              <td>
+                <button type="button" class="cfo-dash-link" data-bs-toggle="collapse" data-bs-target="#ledger-<%= row[:attendee_ids].first %>">View</button>
+              </td>
+            </tr>
+            <tr class="collapse" id="ledger-<%= row[:attendee_ids].first %>">
+              <td colspan="7" class="cfo-dash-ledger-detail">
+                <%= render "finance_dashboards/corporate_ledger_detail", row: row %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="cfo-dash-empty">No corporate ledger data.</p>
+  <% end %>
+  </div>
+</div>

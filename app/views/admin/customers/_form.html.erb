@@ -1,0 +1,11 @@
+<%= form_with model: [:admin, customer], id: "customer_edit_form", class: "customer-edit-form", data: { controller: "customer-edit", action: "input->customer-edit#onPreviewInput" } do |f| %>
+  <div class="customer-edit-layout">
+    <div class="customer-edit-main">
+      <%= render "admin/customers/form_basic_info", f: f, customer: customer %>
+      <%= render "admin/customers/form_billing_tax", f: f, customer: customer %>
+    </div>
+    <div class="customer-edit-aside">
+      <%= render "admin/customers/edit_side_panel", customer: customer %>
+    </div>
+  </div>
+<% end %>

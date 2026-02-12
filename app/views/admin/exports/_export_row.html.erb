@@ -1,0 +1,20 @@
+<li class="export-row" id="<%= dom_id(export_job) %>">
+  <span class="export-row__type"><%= export_job.export_type.humanize %> (<%= export_job.format %>)</span>
+  <span class="export-row__state">
+    <% if export_job.queued? %>
+      <i class="bi bi-hourglass-split" aria-hidden="true"></i> Queued
+    <% elsif export_job.running? %>
+      <i class="bi bi-arrow-repeat spin" aria-hidden="true"></i> Running
+    <% elsif export_job.succeeded? %>
+      <i class="bi bi-check-circle text-success" aria-hidden="true"></i> Ready
+    <% else %>
+      <i class="bi bi-exclamation-circle text-danger" aria-hidden="true"></i> Failed
+    <% end %>
+  </span>
+  <span class="export-row__date"><%= export_job.created_at.strftime("%d %b %H:%M") %></span>
+  <% if export_job.succeeded? && export_job.file.attached? %>
+    <%= link_to "Download", admin_export_path(export_job), class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+  <% elsif export_job.failed? %>
+    <span class="export-row__error" title="<%= export_job.error_message %>"><%= truncate(export_job.error_message, length: 40) %></span>
+  <% end %>
+</li>

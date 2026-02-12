@@ -1,0 +1,10 @@
+<%
+  css = ["odt-accent-card", "odt-accent-card--#{accent}"]
+  opts = (options || {}).dup
+  opts[:class] = [css, opts[:class]].flatten.compact.join(" ")
+%>
+<div <%= tag.attributes(opts) %>>
+  <div class="odt-accent-card__body">
+    <%= body %>
+  </div>
+</div>

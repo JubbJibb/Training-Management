@@ -26,6 +26,23 @@ class Customer < ApplicationRecord
     attendees.attendees.select(:training_class_id).distinct.count
   end
 
+  # อัปเดตข้อมูลออกเอกสาร (Tax ID, Billing Name, Billing Address) จาก Attendee ที่มีข้อมูลล่าสุด
+  # เลือกจาก attendee ที่มี tax_id หรือ name_thai หรือ address (เรียงจาก class ล่าสุด)
+  def update_document_info_from_attendees
+    att = attendees
+           .attendees
+           .joins(:training_class)
+           .where("attendees.tax_id IS NOT NULL AND attendees.tax_id != '' OR attendees.name_thai IS NOT NULL AND attendees.name_thai != '' OR attendees.address IS NOT NULL AND attendees.address != ''")
+           .order("training_classes.date DESC")
+           .first
+    return false unless att
+
+    self.tax_id = att.tax_id.presence || tax_id
+    self.billing_name = att.document_billing_name.presence || billing_name
+    self.billing_address = att.address.presence || billing_address
+    save
+  end
+
   private
 
   def normalize_email

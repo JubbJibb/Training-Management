@@ -36,5 +36,15 @@ namespace :customers do
 
     puts "Done. customers_created=#{created} attendees_linked=#{linked} attendees_skipped_no_email=#{skipped}"
   end
+
+  desc "Sync customer information for duplicate names (fill blank fields from others with same name)"
+  task :sync_duplicates, [:dry_run] => :environment do |_t, args|
+    dry_run = args[:dry_run] != "false"
+    puts "Syncing customers with duplicate names (dry_run=#{dry_run})..."
+
+    result = CustomerSyncService.new(dry_run: dry_run).call
+
+    puts "Done. groups_processed=#{result[:groups_processed]} customers_updated=#{result[:customers_updated]} dry_run=#{result[:dry_run]}"
+  end
 end
 

@@ -1,91 +1,104 @@
-<% content_for :title, "Settings - Promotions" %>
+<% content_for :title, "Promotion Management" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    (function() {
+      function initDonut() {
+        var el = document.querySelector('[data-perf-donut]');
+        if (!el) return;
+        var src = el.querySelector('[data-perf-donut-source]');
+        if (!src || typeof Chart === 'undefined') return;
+        try {
+          var data = JSON.parse(src.textContent);
+          var labels = data.labels || [];
+          var values = data.values || [];
+          var ctx = el.querySelector('canvas');
+          if (!ctx) return;
+          var colors = ['#13139c', '#F5C400', '#059669', '#6b7280', '#dc2626'];
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: labels,
+              datasets: [{ data: values, backgroundColor: colors.slice(0, values.length), borderWidth: 0 }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: { legend: { display: false } }
+            }
+          });
+        } catch (e) {}
+      }
+      function initLine() {
+        var el = document.querySelector('[data-perf-line]');
+        if (!el) return;
+        var src = el.querySelector('[data-perf-line-source]');
+        if (!src || typeof Chart === 'undefined') return;
+        try {
+          var data = JSON.parse(src.textContent);
+          var dates = (data || []).map(function(p) { return p.date; });
+          var revenue = (data || []).map(function(p) { return p.revenue; });
+          var discount = (data || []).map(function(p) { return p.discount; });
+          var ctx = el.querySelector('canvas');
+          if (!ctx) return;
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: dates,
+              datasets: [
+                { label: 'Revenue', data: revenue, borderColor: '#13139c', fill: false, tension: 0.2 },
+                { label: 'Discount', data: discount, borderColor: '#dc2626', fill: false, tension: 0.2 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: { y: { beginAtZero: true } },
+              plugins: { legend: { position: 'bottom' } }
+            }
+          });
+        } catch (e) {}
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { initDonut(); initLine(); });
+      } else {
+        initDonut();
+        initLine();
+      }
+      document.addEventListener('turbo:frame-render', function() { setTimeout(function() { initDonut(); initLine(); }, 50); });
+    })();
+  </script>
+<% end %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2><i class="bi bi-gear"></i> Settings - Promotions & Pricing</h2>
-  <%= link_to new_admin_setting_path, class: "btn btn-primary" do %>
-    <i class="bi bi-plus-circle"></i> New Promotion
-  <% end %>
-</div>
+<div class="promo-mgmt-page">
+  <%= render "admin/settings/promo_header" %>
 
-<div class="card">
-  <div class="card-header">
-    <h5 class="mb-0">Active Promotions</h5>
-  </div>
-  <div class="card-body">
-    <% if @promotions.any? %>
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Discount</th>
-              <th>Base Price</th>
-              <th>Status</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @promotions.each do |promotion| %>
-              <tr>
-                <td><strong><%= promotion.name %></strong></td>
-                <td>
-                  <span class="badge bg-info">
-                    <%= promotion.discount_type.humanize %>
-                  </span>
-                </td>
-                <td><%= promotion.discount_description %></td>
-                <td>
-                  <% if promotion.base_price > 0 %>
-                    <%= number_with_delimiter(promotion.base_price) %> ฿
-                  <% else %>
-                    <span class="text-muted">-</span>
-                  <% end %>
-                </td>
-                <td>
-                  <% if promotion.active? %>
-                    <span class="badge bg-success">Active</span>
-                  <% else %>
-                    <span class="badge bg-secondary">Inactive</span>
-                  <% end %>
-                </td>
-                <td><%= promotion.description %></td>
-                <td>
-                  <%= link_to edit_admin_setting_path(promotion), class: "btn btn-sm btn-outline-primary" do %>
-                    <i class="bi bi-pencil"></i> Edit
-                  <% end %>
-                  <%= link_to admin_setting_path(promotion), method: :delete, 
-                      data: { confirm: "Are you sure?" }, 
-                      class: "btn btn-sm btn-outline-danger" do %>
-                    <i class="bi bi-trash"></i> Delete
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+  <section class="promo-mgmt-kpi-section" aria-label="Promotion KPIs">
+    <%= render "admin/settings/promo_kpi_strip" %>
+  </section>
+
+  <%# Marketing dashboard: Promotion Performance %>
+  <section class="perf-dashboard" aria-labelledby="perf-hero-title">
+    <%= render "admin/settings/perf_header" %>
+    <%= render "admin/settings/perf_filters" %>
+    <%= render "admin/settings/perf_kpi_strip" %>
+
+    <div class="perf-dashboard__main">
+      <div class="perf-dashboard__content">
+        <%= render "admin/settings/perf_revenue_share" %>
+        <%= render "admin/settings/perf_leaderboard" %>
       </div>
-    <% else %>
-      <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> No promotions yet. 
-        <%= link_to "Create your first promotion", new_admin_setting_path %>.
+      <div class="perf-dashboard__sidebar">
+        <%= render "admin/settings/perf_insights" %>
       </div>
-    <% end %>
-  </div>
-</div>
+    </div>
 
-<div class="card mt-4">
-  <div class="card-header">
-    <h5 class="mb-0">Default Promotions</h5>
-  </div>
-  <div class="card-body">
-    <p class="text-muted">You can create the following promotion types:</p>
-    <ul>
-      <li><strong>มา 4 จ่าย 3</strong> - Use discount type "buy_x_get_y" with discount_value = 3</li>
-      <li><strong>Earlybird ลด 10%</strong> - Use discount type "percentage" with discount_value = 10</li>
-      <li><strong>Post and Share ลด 5%</strong> - Use discount type "percentage" with discount_value = 5</li>
-      <li><strong>Friend get friends ลด 5%</strong> - Use discount type "percentage" with discount_value = 5</li>
-    </ul>
-  </div>
+    <div class="perf-drawer-wrap">
+      <%= turbo_frame_tag "promotion_drawer", class: "perf-drawer-frame" do %>
+        <p class="perf-drawer-placeholder" aria-live="polite">Click &quot;View&quot; on a promotion to see details.</p>
+      <% end %>
+    </div>
+  </section>
+
+  <%= render "admin/settings/promo_table" %>
 </div>

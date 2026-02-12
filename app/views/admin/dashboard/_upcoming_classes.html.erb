@@ -1,0 +1,51 @@
+<%= turbo_frame_tag "dashboard_upcoming_classes" do %>
+  <div class="dashboard-section-container">
+    <%= render "shared/section_header", title: "Upcoming Classes", actions: odt_button("View All", variant: :primary, size: :sm, href: admin_training_classes_path, icon_left: "list-ul") %>
+    <div class="dashboard-section-container__body">
+      <% if @upcoming_classes.any? %>
+        <div class="dashboard-table-wrap">
+          <table class="dashboard-table" aria-label="Upcoming classes">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Seats</th>
+                <th>Paid / Pending</th>
+                <th class="dashboard-table-num">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @upcoming_classes.each do |tc| %>
+                <% paid_count = tc.attendees.attendees.where(payment_status: "Paid").count %>
+                <% pending_count = tc.attendees.attendees.where(payment_status: "Pending").count %>
+                <% revenue = tc.attendees.attendees.sum(&:total_final_price) %>
+                <% filled = tc.attendees.attendees.count %>
+                <% max_seats = tc.max_attendees || filled %>
+                <% fill_pct = max_seats.positive? ? (filled.to_f / max_seats * 100).round(0) : 0 %>
+                <tr>
+                  <td><strong><%= link_to tc.title, admin_training_class_path(tc), class: "dashboard-link" %></strong></td>
+                  <td><%= tc.date.strftime("%b %d, %Y") %></td>
+                  <td><%= tc.duration || "—" %></td>
+                  <td>
+                    <div class="dashboard-seats-cell">
+                      <%= render "shared/progress_bar", percent: fill_pct, extra_class: "dashboard-seats-bar" %>
+                      <span class="dashboard-seats-text"><%= filled %> / <%= max_seats %></span>
+                    </div>
+                  </td>
+                  <td>
+                    <%= odt_badge("#{paid_count} Paid", status: :paid, size: :sm) %>
+                    <%= odt_badge("#{pending_count} Pending", status: :pending, size: :sm) %>
+                  </td>
+                  <td class="dashboard-table-num">฿<%= number_with_delimiter(revenue.round(2), delimiter: ",") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <%= render "shared/empty_state", message: "No upcoming classes in this period.", icon: "calendar-x" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

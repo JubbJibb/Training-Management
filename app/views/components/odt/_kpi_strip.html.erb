@@ -1,0 +1,30 @@
+<%
+  cells = local_assigns[:cells] || []
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-kpi-strip"]
+  css << extra_class if extra_class.present?
+%>
+<section class="<%= css.join(' ') %>" aria-label="Key metrics">
+  <div class="odt-kpi-strip__inner">
+    <% cells.each do |cell| %>
+      <div class="odt-kpi-strip__cell">
+        <div class="odt-kpi-strip__head">
+          <% if cell[:icon].present? %>
+            <span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span>
+          <% end %>
+          <span class="odt-kpi-strip__label"><%= cell[:label] %></span>
+        </div>
+        <span class="odt-kpi-strip__value <%= "odt-kpi-strip__value--#{cell[:value_variant]}" if cell[:value_variant].present? %>">
+          <%= cell[:value] %>
+          <% if cell[:trend].present? %>
+            <% up = cell[:trend].to_s == "up" || cell[:trend].to_s == "1" || (cell[:trend].is_a?(Numeric) && cell[:trend] > 0) %>
+            <span class="odt-kpi-strip__trend odt-kpi-strip__trend--<%= up ? 'up' : 'down' %>" aria-label="<%= up ? 'Up' : 'Down' %>"><%= up ? '▲' : '▼' %></span>
+          <% end %>
+        </span>
+        <% if cell[:sub].present? %>
+          <span class="odt-kpi-strip__sub"><%= cell[:sub] %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

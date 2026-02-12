@@ -1,0 +1,31 @@
+<header class="customer-360-header" aria-label="Customer profile header">
+  <div class="customer-360-header__main">
+    <div class="customer-360-header__info">
+      <h1 class="customer-360-header__title"><%= customer.name %></h1>
+      <p class="customer-360-header__sub"><%= customer.email %></p>
+      <% if customer.phone.present? %>
+        <p class="customer-360-header__sub"><%= customer.phone %></p>
+      <% end %>
+      <span class="customer-360-badge customer-360-badge--<%= customer_360_segment_label(customer).downcase == 'corp' ? 'corp' : 'indi' %>" aria-label="Segment"><%= customer_360_segment_label(customer) %></span>
+    </div>
+    <div class="customer-360-header__meta">
+      <% last_act = customer_360_last_activity_at(customer, attendees) %>
+      <% if last_act %>
+        <span class="customer-360-header__meta-text">Last activity: <%= last_act.strftime("%d %b %Y %H:%M") %></span>
+      <% end %>
+      <% first_reg = customer_360_first_registration_at(attendees) %>
+      <% if first_reg %>
+        <span class="customer-360-header__meta-text">Customer since: <%= first_reg.to_date.strftime("%d %b %Y") %></span>
+      <% end %>
+    </div>
+    <div class="customer-360-header__actions">
+      <%= link_to edit_admin_customer_path(customer), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+        <i class="bi bi-pencil odt-btn__icon" aria-hidden="true"></i><span class="odt-btn__label">Edit</span>
+      <% end %>
+      <%= render "admin/customers/export_dropdown", customer: customer %>
+      <%= link_to admin_customers_path, class: "odt-btn odt-btn--ghost odt-btn--sm" do %>
+        <i class="bi bi-arrow-left odt-btn__icon" aria-hidden="true"></i><span class="odt-btn__label">Back</span>
+      <% end %>
+    </div>
+  </div>
+</header>

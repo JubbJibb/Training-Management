@@ -1,0 +1,25 @@
+<%= odt_card(title: "Filters", icon: "funnel", extra_class: "class-finance-filter-bar") do %>
+  <div class="row g-3 align-items-end">
+    <div class="col-12 col-md-6 col-lg-3">
+      <label class="form-label small">Type</label>
+      <select name="type" class="form-select form-select-sm form-control-odt">
+        <option value="">All</option>
+        <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
+        <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+      <label class="form-label small">Status</label>
+      <select name="status" class="form-select form-select-sm form-control-odt">
+        <option value="">All</option>
+        <option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option>
+        <option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option>
+        <option value="Overdue" <%= "selected" if params[:status] == "Overdue" %>>Overdue</option>
+      </select>
+    </div>
+    <div class="col-12 col-lg-4 d-flex gap-2 flex-wrap">
+      <%= odt_button("Apply", variant: :primary, size: :sm, type: "submit") %>
+      <%= odt_button("Clear", variant: :secondary, size: :sm, href: finance_admin_training_class_path(training_class)) %>
+    </div>
+  </div>
+<% end %>

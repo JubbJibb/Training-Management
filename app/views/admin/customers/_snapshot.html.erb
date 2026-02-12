@@ -1,0 +1,86 @@
+<div id="customer_snapshot" class="customer-360-sidebar">
+  <section class="customer-360-section customer-360-section--compact" aria-labelledby="snapshot-heading">
+    <h2 class="customer-360-section__title" id="snapshot-heading"><i class="bi bi-graph-up" aria-hidden="true"></i> Customer Snapshot</h2>
+    <div class="customer-360-section__body">
+      <div class="customer-360-stats">
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Classes attended</span>
+          <span class="customer-360-stat__value"><%= customer.classes_attended_count %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Total registrations</span>
+          <span class="customer-360-stat__value"><%= attendee_only(attendees).size %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Total spent (LTV)</span>
+          <span class="customer-360-stat__value customer-360-stat__value--money"><%= customer_360_thb(customer_360_total_spent(attendees)) %></span>
+        </div>
+        <% avg = attendee_only(attendees).size.positive? ? (customer_360_total_spent(attendees) / attendee_only(attendees).size).round(2) : 0 %>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Avg per class</span>
+          <span class="customer-360-stat__value"><%= customer_360_thb(avg) %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Last activity</span>
+          <span class="customer-360-stat__value"><%= customer_360_last_activity_at(customer, attendees)&.strftime("%d %b %Y") || "—" %></span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="customer-360-section customer-360-section--compact" aria-labelledby="payment-heading">
+    <h2 class="customer-360-section__title" id="payment-heading"><i class="bi bi-currency-exchange" aria-hidden="true"></i> Payment Summary</h2>
+    <div class="customer-360-section__body">
+      <% ps = customer_360_payment_summary(attendees) %>
+      <div class="customer-360-stats">
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Paid</span>
+          <span class="customer-360-stat__value"><%= ps[:paid] %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Pending</span>
+          <span class="customer-360-stat__value"><%= ps[:pending] %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Outstanding</span>
+          <span class="customer-360-stat__value customer-360-stat__value--money"><%= customer_360_thb(customer_360_outstanding(attendees)) %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Collection rate</span>
+          <span class="customer-360-stat__value"><%= ps[:collection_rate] %>%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="customer-360-section customer-360-section--compact" aria-labelledby="doc-heading">
+    <h2 class="customer-360-section__title" id="doc-heading"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Document Readiness</h2>
+    <div class="customer-360-section__body">
+      <% doc = customer_360_doc_counts(attendees) %>
+      <div class="customer-360-stats">
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">QT missing</span>
+          <span class="customer-360-stat__value"><%= doc[:missing_qt] %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">INV missing</span>
+          <span class="customer-360-stat__value"><%= doc[:missing_inv] %></span>
+        </div>
+        <div class="customer-360-stat">
+          <span class="customer-360-stat__label">Receipt missing</span>
+          <span class="customer-360-stat__value"><%= doc[:missing_receipt] %></span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="customer-360-section customer-360-section--compact" aria-labelledby="quick-heading">
+    <h2 class="customer-360-section__title" id="quick-heading"><i class="bi bi-lightning" aria-hidden="true"></i> Quick Actions</h2>
+    <div class="customer-360-section__body">
+      <ul class="customer-360-quick-actions">
+        <li><%= link_to "Export Customer Info (CSV)", export_customer_info_admin_customer_path(customer), class: "customer-360-quick-link" %></li>
+        <li><%= link_to "Export Billing for Accounting (CSV)", export_billing_accounting_admin_customer_path(customer), class: "customer-360-quick-link" %></li>
+        <% if CustomField.for_entity("customer").exists? %>
+          <li><%= link_to "Customer + Custom Fields template (CSV)", export_customer_template_admin_customer_path(customer), class: "customer-360-quick-link" %></li>
+        <% end %>
+      </ul>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,6 @@
+<%
+  v = (local_assigns[:status].presence || variant).to_s
+  css = ["odt-badge", "odt-badge--#{v}", "odt-badge--#{size}"]
+  css << "odt-badge--pill" if local_assigns[:pill] != false && %w[paid pending overdue receipt].include?(v)
+%>
+<span class="<%= css.join(' ') %>"><%= text %></span>

@@ -1,0 +1,13 @@
+<%
+  css = ["odt-table-wrap"]
+  css << extra_class if extra_class.present?
+  opts = (options || {}).dup
+  opts[:class] = [css, opts[:class]].flatten.compact.join(" ")
+%>
+<div <%= tag.attributes(opts) %>>
+  <div class="table-responsive">
+    <table class="table table-hover table-sortable-filterable odt-table mb-0">
+      <%= content %>
+    </table>
+  </div>
+</div>

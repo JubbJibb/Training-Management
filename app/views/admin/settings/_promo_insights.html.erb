@@ -1,0 +1,15 @@
+<%
+  insights = @promo_insights || []
+%>
+<aside class="promo-mgmt-insights" aria-label="Marketing insights">
+  <h3 class="promo-mgmt-insights__title"><i class="bi bi-lightbulb" aria-hidden="true"></i> Insights</h3>
+  <% if insights.any? %>
+    <ul class="promo-mgmt-insights__list">
+      <% insights.each do |text| %>
+        <li class="promo-mgmt-insights__item"><%= text %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="promo-mgmt-insights__empty">Use promotions and run classes to see insights here.</p>
+  <% end %>
+</aside>

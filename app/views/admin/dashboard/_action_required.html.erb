@@ -1,0 +1,29 @@
+<%= turbo_frame_tag "dashboard_action_required" do %>
+  <div class="dashboard-section-container">
+    <%= render "shared/section_header", title: "Action Required", subtitle: "Queue by priority" %>
+    <div class="dashboard-section-container__body">
+      <% if @action_required_queue.any? %>
+        <ul class="dashboard-action-queue" aria-label="Action required queue">
+          <% @action_required_queue.each do |item| %>
+            <li class="dashboard-action-queue__item dashboard-action-queue__item--<%= item[:severity] %>">
+              <span class="dashboard-action-queue__icon" aria-hidden="true">
+                <% if item[:severity] == :critical %>
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                <% elsif item[:severity] == :warning %>
+                  <i class="bi bi-exclamation-circle"></i>
+                <% else %>
+                  <i class="bi bi-info-circle"></i>
+                <% end %>
+              </span>
+              <span class="dashboard-action-queue__label"><%= item[:label] %></span>
+              <span class="dashboard-action-queue__count"><%= item[:count] %></span>
+              <%= link_to item[:cta], item[:url], class: "dashboard-action-queue__cta" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <%= render "shared/empty_state", message: "You're all caught up!", icon: "check-circle" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

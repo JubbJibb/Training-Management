@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -57,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
   end
 
   create_table "attendees", force: :cascade do |t|
+    t.text "address"
     t.string "attendance_status", default: "No-show"
     t.string "company"
     t.datetime "created_at", null: false
@@ -66,13 +67,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
     t.string "email", null: false
     t.string "invoice_no"
     t.string "name", null: false
+    t.string "name_thai"
     t.text "notes"
     t.string "participant_type", default: "Indi"
     t.string "payment_status", default: "Pending"
     t.string "phone"
     t.decimal "price", precision: 10, scale: 2, default: "0.0"
+    t.string "quotation_no"
+    t.string "receipt_no"
+    t.integer "seats", default: 1, null: false
     t.string "source_channel"
     t.string "status", default: "attendee"
+    t.string "tax_id"
+    t.decimal "total_amount", precision: 12, scale: 2, default: "0.0"
     t.integer "total_classes", default: 0
     t.integer "training_class_id", null: false
     t.datetime "updated_at", null: false
@@ -91,6 +98,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
     t.index ["training_class_id"], name: "index_class_expenses_on_training_class_id"
   end
 
+  create_table "custom_field_values", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "custom_field_id", null: false
+    t.integer "record_id", null: false
+    t.string "record_type", null: false
+    t.datetime "updated_at", null: false
+    t.text "value"
+    t.index ["custom_field_id"], name: "index_custom_field_values_on_custom_field_id"
+    t.index ["record_type", "record_id", "custom_field_id"], name: "index_cfv_on_record_and_field", unique: true
+  end
+
+  create_table "custom_fields", force: :cascade do |t|
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.string "entity_type", null: false
+    t.string "field_type", default: "string"
+    t.string "key", null: false
+    t.string "label", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entity_type", "key"], name: "index_custom_fields_on_entity_type_and_key", unique: true
+  end
+
   create_table "customers", force: :cascade do |t|
     t.text "billing_address"
     t.string "billing_name"
@@ -104,6 +133,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_customers_on_email", unique: true
     t.index ["tax_id"], name: "index_customers_on_tax_id"
+  end
+
+  create_table "export_jobs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.string "export_type", null: false
+    t.string "filename"
+    t.json "filters", default: {}
+    t.datetime "finished_at"
+    t.string "format", null: false
+    t.boolean "include_custom_fields", default: false
+    t.json "include_sections", default: {}
+    t.integer "requested_by_id"
+    t.datetime "started_at"
+    t.string "state", default: "queued", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_by_id"], name: "index_export_jobs_on_requested_by_id"
   end
 
   create_table "promotions", force: :cascade do |t|
@@ -140,4 +186,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_080000) do
   add_foreign_key "attendees", "customers"
   add_foreign_key "attendees", "training_classes"
   add_foreign_key "class_expenses", "training_classes"
+  add_foreign_key "custom_field_values", "custom_fields"
+  add_foreign_key "export_jobs", "admin_users", column: "requested_by_id"
 end

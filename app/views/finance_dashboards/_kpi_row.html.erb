@@ -1,0 +1,11 @@
+<%= odt_kpi_strip(
+  cells: [
+    { icon: "currency-exchange", label: "Total Revenue (Incl VAT)", value: number_to_thb(summary[:total_incl_vat]), sub: "Net #{number_to_thb(summary[:net_before_vat])} · VAT #{number_to_thb(summary[:vat_amount])}" },
+    { icon: "receipt", label: "Net Revenue (Before VAT)", value: number_to_thb(summary[:net_before_vat]), sub: "Discount #{number_to_thb(summary[:discount_total])} (#{number_to_percent(summary[:discount_rate_pct])})" },
+    { icon: "wallet2", label: "Cash Received", value: number_to_thb(summary[:cash_received]), sub: "Collection #{number_to_percent(summary[:collection_rate_pct])}" },
+    { icon: "clock-history", label: "Outstanding (AR)", value: number_to_thb(summary[:outstanding]), sub: "#{summary[:invoices_pending_count]} invoices pending" },
+    { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(summary[:overdue_amount]), sub: "#{summary[:overdue_count]} invoices#{summary[:max_overdue_days] ? " · max #{summary[:max_overdue_days]} days" : ""}", value_variant: "danger" },
+    { icon: "graph-up", label: "Profit (Before VAT)", value: summary[:profit_before_vat].nil? ? "—" : number_to_thb(summary[:profit_before_vat]), sub: summary[:margin_pct].nil? ? "—" : "Margin #{number_to_percent(summary[:margin_pct])}" }
+  ],
+  extra_class: "cfo-dash-kpi"
+) %>

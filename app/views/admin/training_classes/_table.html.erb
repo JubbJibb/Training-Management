@@ -1,0 +1,50 @@
+<%= turbo_frame_tag "tc_index_table" do %>
+  <div class="tc-index-table-wrap">
+    <% if @training_classes.any? %>
+      <table class="tc-index-table" aria-label="Training classes">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Fill rate</th>
+            <th class="tc-index-table-num">Revenue (net)</th>
+            <th>Status</th>
+            <th>Instructor</th>
+            <th class="tc-index-table-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @training_classes.each do |tc| %>
+            <% fill_pct = tc.fill_rate_percent || 0 %>
+            <% fill_level = fill_pct >= 90 ? "high" : (fill_pct >= 50 ? "mid" : "low") %>
+            <tr class="tc-index-table__row">
+              <td><strong><%= link_to tc.title, admin_training_class_path(tc), class: "tc-index-link" %></strong></td>
+              <td><%= tc.date.strftime("%b %d, %Y") %></td>
+              <td>
+                <div class="tc-index-fill-cell tc-index-fill-cell--<%= fill_level %>">
+                  <%= render "shared/progress_bar", percent: [fill_pct, 100].min, extra_class: "tc-index-fill-bar" %>
+                  <span class="tc-index-fill-text"><%= tc.total_registered_seats %><%= tc.max_attendees.present? ? " / #{tc.max_attendees}" : "" %> · <%= fill_pct %>%</span>
+                </div>
+              </td>
+              <td class="tc-index-table-num">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></td>
+              <td><%= odt_badge(tc.status_label, variant: tc.status_label == "Upcoming" ? :info : (tc.status_label == "Cancelled" ? :danger : :neutral), size: :sm) %></td>
+              <td><%= tc.instructor.presence || "—" %></td>
+              <td class="tc-index-table-actions">
+                <%= link_to admin_training_class_path(tc), class: "tc-index-action-btn", title: "View", aria: { label: "View" } do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
+                <%= link_to edit_admin_training_class_path(tc), class: "tc-index-action-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                <%= link_to admin_training_class_path(tc), data: { turbo_method: :delete, turbo_confirm: "Delete this training class?" }, class: "tc-index-action-btn tc-index-action-btn--danger", title: "Delete", aria: { label: "Delete" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="tc-index-empty">
+        <%= render "shared/empty_state", message: @empty_state_message, icon: @empty_state_icon %>
+        <% if @tab == "upcoming" %>
+          <%= link_to "Create training class", new_admin_training_class_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

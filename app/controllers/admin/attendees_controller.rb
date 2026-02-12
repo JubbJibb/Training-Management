@@ -3,6 +3,7 @@ module Admin
     before_action :set_training_class
     before_action :set_attendee, only: [:show, :edit, :update, :destroy, :move_to_potential, :move_to_attendee]
     skip_before_action :set_attendee, only: [:index, :new, :create, :export]
+    skip_before_action :verify_authenticity_token, only: [:update], if: :document_modal_update?
     layout "admin"
     
     def index
@@ -10,6 +11,7 @@ module Admin
     end
     
     def show
+      redirect_to edit_admin_training_class_attendee_path(@training_class, @attendee)
     end
     
     def new
@@ -33,15 +35,20 @@ module Admin
     
     def update
       if @attendee.update(attendee_params)
-        if params[:quick_edit]
+        if params[:redirect_tab].present?
+          redirect_to admin_training_class_path(@training_class, tab: params[:redirect_tab]), notice: "#{@attendee.name} updated successfully."
+        elsif params[:quick_edit]
           redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} updated successfully."
         else
           redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee updated successfully."
         end
       else
-        if params[:quick_edit]
+        if params[:redirect_tab].present?
+          redirect_to admin_training_class_path(@training_class, tab: params[:redirect_tab]), alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
+        elsif params[:quick_edit]
           redirect_to admin_training_class_path(@training_class, tab: "attendees"), alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
         else
+          @promotions = Promotion.active.order(:name)
           render :edit, status: :unprocessable_entity
         end
       end
@@ -58,6 +65,10 @@ module Admin
     end
     
     def move_to_attendee
+      if request.get?
+        redirect_to admin_training_class_path(@training_class, tab: "potential"), notice: "Please use the 'Move to Attendees' button to convert this person to an attendee."
+        return
+      end
       @attendee.update(status: "attendee")
       redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} has been moved to Class Attendees. All information has been preserved."
     end
@@ -106,12 +117,17 @@ module Admin
     def set_attendee
       @attendee = @training_class.attendees.find(params[:id])
     end
-    
+
+    # Document tab modal submits with redirect_tab=documents; avoid CSRF issues from dynamic form action.
+    def document_modal_update?
+      params[:redirect_tab] == "documents" && params[:attendee].is_a?(ActionController::Parameters)
+    end
+
     def attendee_params
       params.require(:attendee).permit(:name, :email, :phone, :company, :notes, 
-                                        :participant_type, :source_channel, :payment_status, 
+                                        :participant_type, :seats, :source_channel, :payment_status, 
                                         :document_status, :attendance_status, :total_classes, :price,
-                                        :invoice_no, :due_date, :payment_slip, :status, promotion_ids: [])
+                                        :quotation_no, :invoice_no, :receipt_no, :due_date, :status, :name_thai, :tax_id, :address, promotion_ids: [], payment_slips: [])
     end
   end
 end

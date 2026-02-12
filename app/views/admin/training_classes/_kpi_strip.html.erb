@@ -1,0 +1,10 @@
+<%
+  cells = [
+    { icon: "calendar-event", label: "Upcoming", value: @kpi_upcoming_count, sub: "classes" },
+    { icon: "percent", label: "Avg fill rate", value: "#{@kpi_avg_fill_rate}%", sub: "upcoming" },
+    { icon: "people", label: "Seats sold", value: @kpi_seats_next_30, sub: "next 30 days" },
+    { icon: "currency-exchange", label: "Revenue forecast", value: number_to_currency(@kpi_revenue_forecast, unit: "฿", format: "%n %u", precision: 0), sub: "next 30 days" },
+    { icon: "graph-down", label: "Past 30d revenue", value: number_to_currency(@kpi_past_30_revenue, unit: "฿", format: "%n %u", precision: 0), sub: "realized" }
+  ]
+%>
+<%= odt_kpi_strip(cells: cells, extra_class: "tc-index-kpi-strip") %>

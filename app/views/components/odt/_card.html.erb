@@ -1,0 +1,34 @@
+<%
+  css = ["odt-card"]
+  css << "odt-card--hoverable" if hoverable
+  css << extra_class if extra_class.present?
+  opts = (options || {}).dup
+  opts[:class] = [css, opts[:class]].flatten.compact.join(" ")
+  header_content = options[:header]
+  footer_content = options[:footer]
+  title = local_assigns[:title]
+  icon = local_assigns[:icon]
+  header_action = local_assigns[:header_action]
+  has_structured_header = title.present? || icon.present? || header_action.present?
+%>
+<div <%= tag.attributes(opts) %>>
+  <% if has_structured_header %>
+    <div class="odt-card__header">
+      <span class="odt-card__header-title">
+        <% if icon.present? %><i class="bi bi-<%= icon %>"></i><% end %>
+        <%= title.presence || "Card" %>
+      </span>
+      <% if header_action.present? %>
+        <span class="odt-card__header-action"><%= header_action %></span>
+      <% end %>
+    </div>
+  <% elsif header_content.present? %>
+    <div class="odt-card__header"><%= header_content %></div>
+  <% end %>
+  <div class="odt-card__body">
+    <%= body %>
+  </div>
+  <% if footer_content.present? %>
+    <div class="odt-card__footer"><%= footer_content %></div>
+  <% end %>
+</div>

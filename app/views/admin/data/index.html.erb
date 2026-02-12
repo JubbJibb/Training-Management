@@ -1,0 +1,43 @@
+<% content_for :title, "Data – Download & Upload" %>
+
+<%= render "components/odt/page_header", title: "Data", subtitle: "Download reports and upload customer updates", icon: "download" %>
+
+<div class="data-menu-section">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card border h-100">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-download me-2"></i>Download</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <%= link_to admin_data_financial_report_path, class: "text-decoration-none d-flex align-items-center py-1" do %>
+                <i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Financial Report (CSV)
+              <% end %>
+            </li>
+            <li class="mb-2">
+              <%= link_to admin_data_customer_info_path, class: "text-decoration-none d-flex align-items-center py-1" do %>
+                <i class="bi bi-people me-2 text-primary"></i> Customer info (CSV)
+              <% end %>
+            </li>
+            <li class="mb-2">
+              <%= link_to admin_data_attendee_list_path, class: "text-decoration-none d-flex align-items-center py-1" do %>
+                <i class="bi bi-list-ul me-2 text-primary"></i> Attendee list (CSV)
+              <% end %>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border h-100">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-upload me-2"></i>Upload</h5>
+          <p class="card-text small text-muted mb-3">Update customer info (tax ID, billing name/address, etc.) from a CSV file matched by email.</p>
+          <%= link_to admin_data_upload_path, class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+            <i class="bi bi-upload odt-btn__icon odt-btn__icon--left"></i> Upload customer CSV
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

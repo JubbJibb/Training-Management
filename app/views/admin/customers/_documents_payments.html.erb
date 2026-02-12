@@ -1,0 +1,33 @@
+<section class="customer-360-section" aria-labelledby="documents-heading">
+  <h2 class="customer-360-section__title" id="documents-heading"><i class="bi bi-file-earmark-check" aria-hidden="true"></i> Documents &amp; Payments</h2>
+  <div class="customer-360-section__body">
+    <% if document_rows.any? %>
+      <div class="table-responsive table-modern-wrap">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Doc type</th>
+              <th>Doc no.</th>
+              <th>Date</th>
+              <th class="text-end">Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% document_rows.each do |row| %>
+              <tr>
+                <td><%= row[:doc_type] %></td>
+                <td><%= row[:doc_no] %></td>
+                <td><%= row[:date] %></td>
+                <td class="text-end amount-cell">฿<%= number_with_delimiter(row[:amount].to_f.round(2), delimiter: ",") %></td>
+                <td><span class="badge badge-modern <%= row[:status] == "issued" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= row[:status] %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="customer-360-empty">No document records yet. Documents are issued per registration from the class page.</p>
+    <% end %>
+  </div>
+</section>

@@ -1,0 +1,42 @@
+<% content_for :title, "Upload Customer Data" %>
+
+<%= render "components/odt/page_header", title: "Upload Customer Data", subtitle: "Update customer info from a CSV file (match by email)", icon: "upload" %>
+
+<div class="data-upload-section">
+  <% if flash[:upload_errors].present? %>
+    <div class="alert alert-warning" role="alert">
+      <strong>Some rows had issues:</strong>
+      <ul class="mb-0 mt-2">
+        <% Array(flash[:upload_errors]).each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="card border">
+    <div class="card-body">
+      <h5 class="card-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Upload CSV</h5>
+      <p class="text-muted small mb-3">CSV must include an <strong>email</strong> column (used to find the customer). Optional columns: name, phone, company, tax_id, billing_name, billing_address.</p>
+
+      <%= form_with url: admin_data_upload_customers_path, method: :post, local: true, multipart: true, class: "data-upload-form" do |f| %>
+        <div class="mb-3">
+          <label for="data_upload_file" class="form-label">Choose CSV file</label>
+          <input type="file" name="file" id="data_upload_file" class="form-control" accept=".csv,text/csv" required>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <button type="submit" class="odt-btn odt-btn--primary odt-btn--md">
+            <i class="bi bi-upload odt-btn__icon odt-btn__icon--left"></i>
+            <span class="odt-btn__label">Upload and update</span>
+          </button>
+          <%= link_to "Download template", admin_data_customer_info_path, class: "odt-btn odt-btn--secondary odt-btn--md" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h6 class="text-muted mb-2">CSV format</h6>
+    <p class="small text-muted mb-0">Header row: <code>email,name,phone,company,tax_id,billing_name,billing_address</code>. Only <code>email</code> is required; other columns update the matching customer if provided.</p>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="cfo-dash-section-container">
+  <%= odt_section_header title: "Financial Flow", subtitle: "Gross to total (incl. VAT)" %>
+  <div class="cfo-dash-section-container__body">
+  <div class="cfo-dash-flow__stack">
+    <div class="cfo-dash-flow__row">
+      <span class="cfo-dash-flow__label">Gross (before discount)</span>
+      <span class="cfo-dash-flow__value"><%= number_to_thb(summary[:gross_sales]) %></span>
+    </div>
+    <div class="cfo-dash-flow__row">
+      <span class="cfo-dash-flow__label">− Discount</span>
+      <span class="cfo-dash-flow__value">−<%= number_to_thb(summary[:discount_total]) %></span>
+    </div>
+    <div class="cfo-dash-flow__row cfo-dash-flow__row--net">
+      <span class="cfo-dash-flow__label">= Net (Before VAT)</span>
+      <span class="cfo-dash-flow__value"><%= number_to_thb(summary[:net_before_vat]) %></span>
+    </div>
+    <div class="cfo-dash-flow__row">
+      <span class="cfo-dash-flow__label">+ VAT (7%)</span>
+      <span class="cfo-dash-flow__value">+<%= number_to_thb(summary[:vat_amount]) %></span>
+    </div>
+    <div class="cfo-dash-flow__row cfo-dash-flow__row--total">
+      <span class="cfo-dash-flow__label">= Total (Incl VAT)</span>
+      <span class="cfo-dash-flow__value"><%= number_to_thb(summary[:total_incl_vat]) %></span>
+    </div>
+  </div>
+  <div class="cfo-dash-flow__meta">
+    <span>Discount rate <%= number_to_percent(summary[:discount_rate_pct]) %></span>
+    <span>Avg / seat <%= number_to_thb(summary[:avg_revenue_per_seat]) %> net</span>
+    <span>Seats <%= summary[:seats_sold_total] %> (Corp <%= summary[:seats_corp] %>, Indi <%= summary[:seats_indi] %>)</span>
+  </div>
+  </div>
+</div>

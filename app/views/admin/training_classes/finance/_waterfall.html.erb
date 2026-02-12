@@ -1,0 +1,38 @@
+<%= odt_card(title: "Revenue Waterfall (Pricing Funnel)", icon: "graph-up", extra_class: "class-finance-waterfall odt-section") do %>
+  <div class="revenue-structure-stack class-finance-waterfall-stack">
+    <div class="revenue-structure-row revenue-structure-row--gross">
+      <span class="revenue-structure-row__label">Gross Sales</span>
+      <span class="revenue-structure-row__value odt-table-numeric"><%= number_to_thb(waterfall[:gross_sales]) %></span>
+    </div>
+    <div class="revenue-structure-row revenue-structure-row--discounts">
+      <span class="revenue-structure-row__label">(−) Discounts</span>
+      <span class="revenue-structure-row__value odt-table-numeric">−<%= number_to_thb(waterfall[:discount_total]) %></span>
+    </div>
+    <div class="revenue-structure-row revenue-structure-row--net">
+      <span class="revenue-structure-row__label">= Net (Before VAT)</span>
+      <span class="revenue-structure-row__value odt-table-numeric"><%= number_to_thb(waterfall[:net_before_vat]) %></span>
+    </div>
+    <div class="revenue-structure-row revenue-structure-row--vat">
+      <span class="revenue-structure-row__label">(+) VAT (7%)</span>
+      <span class="revenue-structure-row__value odt-table-numeric">+<%= number_to_thb(waterfall[:vat_amount]) %></span>
+    </div>
+    <div class="revenue-structure-row revenue-structure-row--total">
+      <span class="revenue-structure-row__label">= Total Revenue (incl. VAT)</span>
+      <span class="revenue-structure-row__value odt-table-numeric"><strong><%= number_to_thb(waterfall[:total_incl_vat]) %></strong></span>
+    </div>
+  </div>
+  <div class="revenue-structure-kpi class-finance-waterfall-kpi">
+    <div class="revenue-structure-kpi__item">
+      <span class="revenue-structure-kpi__label">Discount Rate</span>
+      <span class="revenue-structure-kpi__value"><%= number_to_percent(waterfall[:discount_rate_pct]) %></span>
+    </div>
+    <div class="revenue-structure-kpi__item">
+      <span class="revenue-structure-kpi__label">Avg/Seat (rev, before VAT)</span>
+      <span class="revenue-structure-kpi__value"><%= number_to_thb(waterfall[:avg_revenue_per_seat]) %></span>
+    </div>
+    <div class="revenue-structure-kpi__item">
+      <span class="revenue-structure-kpi__label">Avg Discount/Seat</span>
+      <span class="revenue-structure-kpi__value"><%= number_to_thb(waterfall[:avg_discount_per_seat]) %></span>
+    </div>
+  </div>
+<% end %>

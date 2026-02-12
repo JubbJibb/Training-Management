@@ -1,0 +1,61 @@
+<section class="class-finance-kpi odt-section">
+  <div class="row g-3">
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--primary class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-currency-exchange"></i></span>
+        <span class="odt-metric-card__title">Total Revenue (incl. VAT)</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:total_revenue_incl_vat]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--primary class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-receipt"></i></span>
+        <span class="odt-metric-card__title">Net Revenue (before VAT)</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:net_revenue_before_vat]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--primary class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-graph-up"></i></span>
+        <span class="odt-metric-card__title">Gross Sales (before discounts)</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:gross_sales]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--primary class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-tag"></i></span>
+        <span class="odt-metric-card__title">Total Discounts</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:total_discounts]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--success class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-wallet2"></i></span>
+        <span class="odt-metric-card__title">Cash Received</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:cash_received]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--info class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-clock-history"></i></span>
+        <span class="odt-metric-card__title">Outstanding (AR)</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:outstanding]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--accent class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-percent"></i></span>
+        <span class="odt-metric-card__title">Collection Rate</span>
+        <span class="odt-metric-card__value"><%= number_to_percent(kpis[:collection_rate_pct]) %></span>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4 col-xxl-2">
+      <div class="odt-metric-card odt-metric-card--accent class-finance-kpi-card">
+        <span class="odt-metric-card__icon-wrap"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="odt-metric-card__title">Net Profit</span>
+        <span class="odt-metric-card__value"><%= number_to_thb(kpis[:net_profit]) %></span>
+        <span class="odt-metric-card__subtext">Net Revenue − Total Cost</span>
+      </div>
+    </div>
+  </div>
+</section>

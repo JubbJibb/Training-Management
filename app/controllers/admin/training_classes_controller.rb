@@ -3,17 +3,30 @@ module Admin
     layout "admin"
     
     def index
-      # Show upcoming classes first, then past classes
-      # This matches the dashboard logic - using the same scope
-      @upcoming_classes = TrainingClass.upcoming
-      @past_classes = TrainingClass.past
-      @training_classes = @upcoming_classes + @past_classes
+      @tab = params[:tab].presence || "upcoming"
+      @filter_instructors = TrainingClass.distinct.pluck(:instructor).compact.sort
+      load_training_classes_kpis
+      load_training_classes_for_tab
     end
     
     def show
       @training_class = TrainingClass.find(params[:id])
       @attendees = @training_class.attendees.attendees.order(:name)
       @potential_customers = @training_class.attendees.potential_customers.order(:name)
+      # Finance tab: load dashboard inline so the frame doesn't depend on a second request (avoids loading issues when frame is inside hidden tab)
+      @finance_dashboard = ::Finance::ClassFinanceDashboardQuery.new(
+        @training_class,
+        type: params[:type].presence, status: params[:status].presence
+      ).call
+    end
+
+    def finance
+      @training_class = TrainingClass.find(params[:id])
+      @finance_dashboard = ::Finance::ClassFinanceDashboardQuery.new(
+        @training_class,
+        type: params[:type].presence, status: params[:status].presence
+      ).call
+      render layout: false
     end
     
     def new
@@ -83,7 +96,54 @@ module Admin
     end
     
     private
-    
+
+    def load_training_classes_kpis
+      upcoming = TrainingClass.upcoming
+      @kpi_upcoming_count = upcoming.count
+      # Average fill rate (upcoming classes with max_attendees only)
+      with_max = upcoming.select { |tc| tc.max_attendees.present? && tc.max_attendees.positive? }
+      @kpi_avg_fill_rate = if with_max.any?
+        (with_max.sum { |tc| tc.fill_rate_percent || 0 }.to_f / with_max.size).round(0)
+      else
+        0
+      end
+      next_30_end = 30.days.from_now.to_date
+      next_30_classes = upcoming.where("date <= ?", next_30_end)
+      @kpi_seats_next_30 = next_30_classes.sum { |tc| tc.total_registered_seats }
+      @kpi_revenue_forecast = next_30_classes.sum(&:net_revenue)
+      past_30_start = 30.days.ago.to_date
+      past_30_classes = TrainingClass.past.where("(end_date IS NOT NULL AND end_date >= ?) OR (end_date IS NULL AND date >= ?)", past_30_start, past_30_start)
+      @kpi_past_30_revenue = past_30_classes.sum(&:net_revenue)
+    end
+
+    def load_training_classes_for_tab
+      case @tab
+      when "past"
+        @training_classes = TrainingClass.past
+        @empty_state_message = "No past classes."
+        @empty_state_icon = "clock-history"
+      when "cancelled"
+        @training_classes = TrainingClass.cancelled
+        @empty_state_message = "No cancelled classes."
+        @empty_state_icon = "x-circle"
+      else
+        @training_classes = TrainingClass.upcoming
+        @empty_state_message = "No upcoming classes. Create one to get started."
+        @empty_state_icon = "calendar-x"
+      end
+      apply_tc_filters
+    end
+
+    def apply_tc_filters
+      @training_classes = @training_classes.where(instructor: params[:instructor]) if params[:instructor].present?
+      if params[:date_from].present?
+        @training_classes = @training_classes.where("date >= ?", Date.parse(params[:date_from]))
+      end
+      if params[:date_to].present?
+        @training_classes = @training_classes.where("(end_date IS NOT NULL AND end_date <= ?) OR (end_date IS NULL AND date <= ?)", Date.parse(params[:date_to]), Date.parse(params[:date_to]))
+      end
+    end
+
     def training_class_params
       params.require(:training_class).permit(:title, :description, :date, :end_date, :start_time, :end_time, :location, :max_attendees, :instructor, :cost, :price)
     end

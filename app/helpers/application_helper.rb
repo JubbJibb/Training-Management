@@ -1,4 +1,52 @@
 module ApplicationHelper
+  include Odt::UiHelper
+
+  # Current nav section for accent styling (dashboard | operations | finance | settings)
+  def nav_section
+    case controller.controller_path
+    when "admin/dashboard" then "dashboard"
+    when "admin/finance" then "finance"
+    when "finance_dashboards" then "finance"
+    when "admin/training_classes", "admin/attendees", "admin/class_expenses" then "operations"
+    when "admin/customers" then "operations"
+    when "admin/settings" then "settings"
+    else "dashboard"
+    end
+  end
+
+  # Returns "nav-link active" or "nav-link" for navbar (tab_name: admin, finance, cfo, training_classes, customers, settings)
+  def nav_class(tab_name)
+    base = "nav-link"
+    active = case tab_name.to_s
+    when "admin" then controller.controller_path == "admin/dashboard"
+    when "finance" then controller.controller_path == "admin/finance"
+    when "cfo" then controller.controller_path == "finance_dashboards"
+    when "training_classes" then %w[admin/training_classes admin/attendees admin/class_expenses].include?(controller.controller_path)
+    when "customers" then controller.controller_path == "admin/customers"
+    when "settings" then controller.controller_path == "admin/settings"
+    else false
+    end
+    active ? "#{base} active" : base
+  end
+
+  # Format number as Thai Baht (e.g. ฿1,234.56)
+  def number_to_thb(number, decimals: 2)
+    n = number.to_f.round(decimals)
+    "฿#{number_with_delimiter(n, delimiter: ',')}"
+  end
+
+  # Format number as percent (e.g. 12.5%)
+  def number_to_percent(number, decimals: 1)
+    "#{number.to_f.round(decimals)}%"
+  end
+
+  def inline_error_for(record, attribute)
+    return "" unless record.is_a?(ActiveModel::Errors) || (record.respond_to?(:errors) && record.errors[attribute].any?)
+    messages = record.respond_to?(:errors) ? record.errors.full_messages_for(attribute) : []
+    return "" if messages.empty?
+    content_tag(:span, messages.first, class: "customer-edit-field-error", role: "alert")
+  end
+
   def number_with_delimiter(number, options = {})
     delimiter = options[:delimiter] || ","
     separator = options[:separator] || "."

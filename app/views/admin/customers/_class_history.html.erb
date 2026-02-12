@@ -1,0 +1,43 @@
+<section class="customer-360-section" aria-labelledby="class-history-heading">
+  <h2 class="customer-360-section__title" id="class-history-heading"><i class="bi bi-calendar-event" aria-hidden="true"></i> Class History</h2>
+  <div class="customer-360-section__body">
+    <div class="table-responsive table-modern-wrap">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Date</th>
+            <th>Seats</th>
+            <th>Status</th>
+            <th class="text-end">Amount</th>
+            <th aria-label="View class"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% class_history_items.each do |a| %>
+            <tr>
+              <td><%= a.training_class&.title.presence || "—" %></td>
+              <td><%= a.training_class&.date&.strftime("%d %b %Y") || "—" %></td>
+              <td><%= a.seats.to_i %></td>
+              <td><span class="badge badge-modern <%= a.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= a.payment_status.presence || "—" %></span></td>
+              <td class="text-end amount-cell">฿<%= number_with_delimiter(a.total_final_price.to_f.round(2), delimiter: ",") %></td>
+              <td class="action-cell">
+                <% if a.training_class %>
+                  <%= link_to admin_training_class_path(a.training_class), class: "odt-icon-btn odt-icon-btn--ghost", title: "View class", aria: { label: "View class" } do %>
+                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <% if class_history_items.empty? %>
+      <p class="customer-360-empty">No class history yet.</p>
+    <% end %>
+    <% if total_class_count && total_class_count > class_history_items.size %>
+      <%= link_to "View all classes (#{total_class_count})", admin_customer_path(customer, limit: "all"), class: "customer-360-quick-link mt-2 d-inline-block" %>
+    <% end %>
+  </div>
+</section>

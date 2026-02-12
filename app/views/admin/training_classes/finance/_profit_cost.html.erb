@@ -1,0 +1,61 @@
+<% prof = profitability %>
+<% cost_cats = cost_by_category %>
+<% expenses = expense_list %>
+<% base_cost = training_class.cost.to_f.round(2) %>
+<% add_expenses = expenses.sum(&:amount).round(2) %>
+<% total_cost = prof[:total_cost] %>
+<% top5 = expenses.first(5) %>
+<div class="cfo-two-col cfo-section">
+  <div class="cfo-two-col__block">
+    <h2 class="cfo-section-title">Profit &amp; Cost</h2>
+    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.875rem;">
+      <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+        <span>Base cost (class)</span>
+        <span><%= number_to_thb(base_cost) %></span>
+      </li>
+      <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+        <span>Additional expenses</span>
+        <span><%= number_to_thb(add_expenses) %></span>
+      </li>
+      <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+        <span><strong>Total cost</strong></span>
+        <span><strong><%= number_to_thb(total_cost) %></strong></span>
+      </li>
+      <li style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+        <span>Profit (Net − Cost)</span>
+        <span class="<%= prof[:profit].to_f >= 0 ? 'text-success' : 'text-danger' %>" style="font-weight: 700;"><%= number_to_thb(prof[:profit]) %></span>
+      </li>
+      <li style="display: flex; justify-content: space-between; padding: 8px 0;">
+        <span>Margin %</span>
+        <span><%= prof[:gross_margin_pct].nil? ? "—" : number_to_percent(prof[:gross_margin_pct]) %></span>
+      </li>
+    </ul>
+  </div>
+  <div class="cfo-two-col__block">
+    <h3 class="cfo-section-title">Expense breakdown</h3>
+    <div class="cfo-chart-placeholder" aria-hidden="true">
+      <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+        <line x1="40" y1="20" x2="40" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
+        <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
+        <% cost_cats.first(5).each_with_index do |row, i| %>
+          <% h = (row[:pct].to_f / 100.0 * 100).round %>
+          <rect x="<%= 50 + i * 65 %>" y="<%= 140 - h %>" width="50" height="<%= h %>" fill="#13139c" opacity="0.6" rx="4"/>
+        <% end %>
+        <text x="200" y="155" text-anchor="middle" font-size="10" fill="rgba(41,41,41,0.5)">Category</text>
+      </svg>
+    </div>
+    <h4 style="font-size: 0.8125rem; font-weight: 600; margin: 12px 0 8px;">Top 5 expenses</h4>
+    <% if top5.any? %>
+      <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.8125rem;">
+        <% top5.each do |e| %>
+          <li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+            <span><%= e.description.truncate(30) %></span>
+            <span><%= number_to_thb(e.amount) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="cfo-empty" style="padding: 16px 0;">No expenses yet.</p>
+    <% end %>
+  </div>
+</div>

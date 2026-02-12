@@ -1,0 +1,9 @@
+<%
+  # Renders inner content only; wrap in <td class="odt-amount-cell text-end" title="..."> when using.
+  attrs = {}
+  attrs[:title] = tooltip if tooltip.present?
+%>
+<span class="odt-amount-cell__value" <%= tag.attributes(attrs) %>>฿<%= amount.is_a?(Numeric) ? number_with_delimiter(amount, delimiter: ",") : amount %></span>
+<% if incl_vat.present? %>
+  <span class="odt-amount-cell__suffix"><%= incl_vat %></span>
+<% end %>

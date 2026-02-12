@@ -1,0 +1,28 @@
+<% # Table action menu: Bootstrap dropdown. items: [{ label:, icon:, url:, method: :get, data: {} }, ...] %>
+<div class="dropdown d-inline-block">
+  <button class="odt-icon-btn odt-icon-btn--ghost dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="<%= button_title %>">
+    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <% items.each do |item| %>
+      <li>
+        <% if item[:url].present? %>
+          <% method = (item[:method] || :get).to_s.downcase %>
+          <% if method == "delete" || method == "patch" %>
+            <% dd_class = "dropdown-item" %>
+            <% dd_class += " text-danger" if method == "delete" || item[:danger] %>
+            <%= link_to item[:url], class: dd_class, data: (item[:data] || {}).merge(turbo_method: method.to_sym, turbo_confirm: item[:confirm]) do %>
+              <% if item[:icon].present? %><i class="bi bi-<%= item[:icon] %> me-2"></i><% end %><%= item[:label] %>
+            <% end %>
+          <% else %>
+            <%= link_to item[:url], class: "dropdown-item", data: (item[:data] || {}), target: item[:target] do %>
+              <% if item[:icon].present? %><i class="bi bi-<%= item[:icon] %> me-2"></i><% end %><%= item[:label] %>
+            <% end %>
+          <% end %>
+        <% else %>
+          <span class="dropdown-item text-muted"><%= item[:label] %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

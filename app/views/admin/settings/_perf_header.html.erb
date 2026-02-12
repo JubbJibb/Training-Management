@@ -1,0 +1,27 @@
+<%
+  chips = @perf_filter_chips || []
+  period_label = @perf_query&.period_label || "This month"
+%>
+<header class="perf-hero">
+  <div class="perf-hero__text">
+    <h2 class="perf-hero__title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Promotion Performance</h2>
+    <p class="perf-hero__subtitle">
+      <%= period_label %>
+      <% if chips.any? %>
+        <span class="perf-hero__chips">
+          <% chips.each do |chip| %>
+            <span class="perf-chip" aria-label="Filter"><%= chip %></span>
+          <% end %>
+        </span>
+      <% end %>
+    </p>
+  </div>
+  <div class="perf-hero__actions" aria-label="Page actions">
+    <%= link_to promotion_export_admin_settings_path(params.permit(:period, :date_from, :date_to, :course_id, :segment, :channel, :payment_status).to_h), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+      <i class="bi bi-download odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i> Export CSV
+    <% end %>
+    <%= link_to new_admin_setting_path, class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i> Create Promotion
+    <% end %>
+  </div>
+</header>

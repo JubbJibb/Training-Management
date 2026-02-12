@@ -1,245 +1,244 @@
-<% content_for :title, "Finance Dashboard" %>
+<% content_for :title, "Financial Dashboard" %>
 
-<div class="row mb-4">
-  <div class="col-12">
-    <h1><i class="bi bi-cash-coin"></i> 💰 Finance Dashboard</h1>
-    <p class="text-muted">ฝั่งเงินล้วน ๆ - ควบคุมรายรับ + เอกสาร + Cash Flow</p>
-  </div>
-</div>
+<%= render "components/odt/page_header", title: "Financial Dashboard", subtitle: "ภาพรวมรายได้ · Cash Flow · งานที่ต้องทำ", icon: "cash-coin" %>
 
-<!-- KPI Cards -->
-<div class="row mb-4">
-  <div class="col-md-3 mb-3">
-    <div class="card text-white bg-success">
-      <div class="card-body">
-        <h6 class="card-title"><i class="bi bi-cash-stack"></i> Revenue This Month</h6>
-        <h2 class="card-text">฿<%= number_with_delimiter(@revenue_this_month, delimiter: ",") %></h2>
-      </div>
+<%# Filters %>
+<%= odt_card(title: "Filters", icon: "funnel", extra_class: "odt-section") do %>
+  <%= form_with url: admin_finance_index_path, method: :get, local: true, class: "row g-3 align-items-end" do |f| %>
+    <div class="col-12 col-md-2">
+      <label class="form-label small">Date from</label>
+      <input type="date" name="date_from" class="form-control form-control-sm" value="<%= params[:date_from] %>">
     </div>
-  </div>
-  <div class="col-md-3 mb-3">
-    <div class="card text-white bg-primary">
-      <div class="card-body">
-        <h6 class="card-title"><i class="bi bi-check-circle"></i> Paid This Month</h6>
-        <h2 class="card-text">฿<%= number_with_delimiter(@paid_this_month, delimiter: ",") %></h2>
-      </div>
+    <div class="col-12 col-md-2">
+      <label class="form-label small">Date to</label>
+      <input type="date" name="date_to" class="form-control form-control-sm" value="<%= params[:date_to] %>">
     </div>
-  </div>
-  <div class="col-md-3 mb-3">
-    <div class="card text-white bg-warning">
-      <div class="card-body">
-        <h6 class="card-title"><i class="bi bi-file-earmark-text"></i> Outstanding Invoice</h6>
-        <h2 class="card-text">฿<%= number_with_delimiter(@outstanding_invoice, delimiter: ",") %></h2>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 mb-3">
-    <div class="card text-white bg-danger">
-      <div class="card-body">
-        <h6 class="card-title"><i class="bi bi-exclamation-triangle"></i> Overdue Payments</h6>
-        <h2 class="card-text">฿<%= number_with_delimiter(@overdue_payments, delimiter: ",") %></h2>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row mb-4">
-  <!-- Invoice Summary -->
-  <div class="col-md-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5><i class="bi bi-file-earmark-text"></i> Invoice Summary</h5>
-      </div>
-      <div class="card-body">
-        <div class="row text-center">
-          <div class="col-6 mb-3">
-            <div class="border rounded p-3">
-              <h3 class="text-primary"><%= @inv_issued_this_month %></h3>
-              <small class="text-muted">INV issued (เดือนนี้)</small>
-            </div>
-          </div>
-          <div class="col-6 mb-3">
-            <div class="border rounded p-3">
-              <h3 class="text-warning"><%= @inv_unpaid %></h3>
-              <small class="text-muted">INV unpaid</small>
-            </div>
-          </div>
-          <div class="col-6 mb-3">
-            <div class="border rounded p-3">
-              <h3 class="text-danger"><%= @inv_overdue %></h3>
-              <small class="text-muted">INV overdue</small>
-            </div>
-          </div>
-          <div class="col-6 mb-3">
-            <div class="border rounded p-3">
-              <h3 class="text-info"><%= @receipt_not_issued %></h3>
-              <small class="text-muted">Receipt not issued</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Revenue Breakdown -->
-  <div class="col-md-6 mb-4">
-    <div class="card">
-      <div class="card-header">
-        <h5><i class="bi bi-pie-chart"></i> Revenue Breakdown</h5>
-      </div>
-      <div class="card-body">
-        <h6>By Course:</h6>
-        <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
-          <% @revenue_by_course.each do |course, amount| %>
-            <div class="d-flex justify-content-between mb-2">
-              <span class="text-truncate" style="max-width: 60%;" title="<%= course %>"><%= course %></span>
-              <strong>฿<%= number_with_delimiter(amount, delimiter: ",") %></strong>
-            </div>
-          <% end %>
-        </div>
-        
-        <h6 class="mt-4">By Type:</h6>
-        <div class="mb-3">
-          <div class="d-flex justify-content-between mb-2">
-            <span>Corporate:</span>
-            <strong>฿<%= number_with_delimiter(@revenue_by_type["Corp"] || 0, delimiter: ",") %></strong>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span>Individual:</span>
-            <strong>฿<%= number_with_delimiter(@revenue_by_type["Indi"] || 0, delimiter: ",") %></strong>
-          </div>
-        </div>
-        
-        <h6 class="mt-4">VAT Summary:</h6>
-        <dl class="row mb-0">
-          <dt class="col-sm-6">Subtotal:</dt>
-          <dd class="col-sm-6">฿<%= number_with_delimiter(@vat_summary[:subtotal], delimiter: ",") %></dd>
-          <dt class="col-sm-6">VAT (7%):</dt>
-          <dd class="col-sm-6">฿<%= number_with_delimiter(@vat_summary[:vat], delimiter: ",") %></dd>
-          <dt class="col-sm-6">Total (incl. VAT):</dt>
-          <dd class="col-sm-6"><strong>฿<%= number_with_delimiter(@vat_summary[:total], delimiter: ",") %></strong></dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Payment Status List -->
-<div class="row mb-4">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header">
-        <h5><i class="bi bi-list-check"></i> Payment Status List</h5>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>Company Name</th>
-                <th>Tax ID</th>
-                <th>Company Address</th>
-                <th>Contact Person</th>
-                <th>Phone</th>
-                <th>Mail</th>
-                <th>Class</th>
-                <th>Invoice No.</th>
-                <th class="text-end">Amount ex.VAT</th>
-                <th class="text-end">VAT 7%</th>
-                <th class="text-end">Amount inc.VAT</th>
-                <th>Due Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if @payment_status_list.any? %>
-                <% @payment_status_list.each do |attendee| %>
-                  <% c = attendee.customer %>
-                  <tr class="<%= 'table-danger' if attendee.due_date && attendee.due_date < Date.today && attendee.payment_status == 'Pending' %>">
-                    <td><strong><%= c&.company_name || attendee.company || "—" %></strong></td>
-                    <td><%= c&.tax_id.presence || "—" %></td>
-                    <td style="min-width: 220px;"><%= c&.company_address.presence || "—" %></td>
-                    <td><%= c&.contact_person || attendee.name %></td>
-                    <td><%= c&.phone.presence || attendee.phone.presence || "—" %></td>
-                    <td><%= c&.email.presence || attendee.email %></td>
-                    <td><%= attendee.training_class.title %></td>
-                    <td><%= attendee.invoice_no || "—" %></td>
-                    <td class="text-end">฿<%= number_with_delimiter(attendee.calculate_price_before_vat, delimiter: ",") %></td>
-                    <td class="text-end">฿<%= number_with_delimiter(attendee.calculate_vat_amount, delimiter: ",") %></td>
-                    <td class="text-end"><strong>฿<%= number_with_delimiter(attendee.calculate_final_price, delimiter: ",") %></strong></td>
-                    <td>
-                      <% if attendee.due_date %>
-                        <%= attendee.due_date.strftime("%b %d, %Y") %>
-                        <% if attendee.due_date < Date.today && attendee.payment_status == 'Pending' %>
-                          <span class="badge bg-danger">Overdue</span>
-                        <% end %>
-                      <% else %>
-                        —
-                      <% end %>
-                    </td>
-                    <td>
-                      <span class="badge <%= attendee.payment_status == "Paid" ? "bg-success" : "bg-warning" %>">
-                        <%= attendee.payment_status || "Pending" %>
-                      </span>
-                    </td>
-                  </tr>
-                <% end %>
-              <% else %>
-                <tr>
-                  <td colspan="13" class="text-center text-muted">No invoices found</td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Corporate Billing Overview -->
-<div class="row">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header">
-        <h5><i class="bi bi-building"></i> Corporate Billing Overview</h5>
-      </div>
-      <div class="card-body">
-        <% if @corporate_billing.any? %>
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>บริษัท</th>
-                  <th>Total Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @corporate_billing.each do |billing| %>
-                  <tr>
-                    <td><strong><%= billing[:company] %></strong></td>
-                    <td>
-                      <strong>฿<%= number_with_delimiter(billing[:amount], delimiter: ",") %></strong><br>
-                      <small class="text-success">Paid: ฿<%= number_with_delimiter(billing[:paid_amount] || 0, delimiter: ",") %></small><br>
-                      <small class="text-warning">Pending: ฿<%= number_with_delimiter(billing[:pending_amount] || 0, delimiter: ",") %></small>
-                    </td>
-                    <td>
-                      <% if (billing[:pending_amount] || 0) > 0 %>
-                        <span class="badge bg-warning">ค้างชำระ</span>
-                      <% else %>
-                        <span class="badge bg-success">ชำระครบ</span>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        <% else %>
-          <p class="text-muted">No corporate billing data available</p>
+    <div class="col-12 col-md-3">
+      <label class="form-label small">Class</label>
+      <select name="training_class_id" class="form-select form-select-sm">
+        <option value="">All classes</option>
+        <% @training_classes.each do |tc| %>
+          <option value="<%= tc.id %>" <%= "selected" if params[:training_class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
         <% end %>
-      </div>
+      </select>
+    </div>
+    <div class="col-12 col-md-2">
+      <label class="form-label small">Type</label>
+      <select name="type" class="form-select form-select-sm">
+        <option value="">All</option>
+        <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
+        <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-3 d-flex gap-2 flex-wrap">
+      <%= odt_button("Apply", variant: :primary, size: :sm, type: "submit") %>
+      <%= odt_button("Clear", variant: :secondary, size: :sm, href: admin_finance_index_path) %>
+      <%= odt_button("Export CSV", variant: :secondary, size: :sm, href: admin_finance_index_path(format: :csv, **params.permit(:date_from, :date_to, :training_class_id, :type).to_h), icon_left: "download") %>
+    </div>
+  <% end %>
+<% end %>
+
+<%# SECTION 1: Revenue Structure – stacked rows in Card %>
+<div class="odt-section">
+  <div class="row">
+    <div class="col-12 col-lg-6">
+      <%= odt_card(title: "Revenue Structure", icon: "graph-up") do %>
+        <div class="odt-stack">
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Gross</span>
+            <span class="odt-stack-row__value"><%= number_to_thb(@gross_sales) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Discounts</span>
+            <span class="odt-stack-row__value">−<%= number_to_thb(@total_discounts) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Net (Before VAT)</span>
+            <span class="odt-stack-row__value"><%= number_to_thb(@net_before_vat) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">VAT (7%)</span>
+            <span class="odt-stack-row__value"><%= number_to_thb(@vat_amount) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label"><strong>Total (Incl. VAT)</strong></span>
+            <span class="odt-stack-row__value"><strong><%= number_to_thb(@total_incl_vat) %></strong></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%# SECTION 2: Cash Flow %>
+    <div class="col-12 col-lg-6">
+      <%= odt_card(title: "Cash Flow", icon: "wallet2") do %>
+        <div class="odt-stack">
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Cash Received</span>
+            <span class="odt-stack-row__value text-success"><%= number_to_thb(@cash_received) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Outstanding</span>
+            <span class="odt-stack-row__value text-warning"><%= number_to_thb(@outstanding) %></span>
+          </div>
+          <div class="odt-stack-row">
+            <span class="odt-stack-row__label">Collection Rate</span>
+            <span class="odt-stack-row__value"><%= number_to_percent(@collection_rate_pct) %></span>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
+</div>
+
+<%# SECTION 3: Cost & Profit %>
+<div class="odt-section">
+  <%= odt_card(title: "Cost & Profit", icon: "currency-dollar") do %>
+    <div class="odt-stack">
+      <div class="odt-stack-row">
+        <span class="odt-stack-row__label">Total Cost</span>
+        <span class="odt-stack-row__value"><%= number_to_thb(@total_cost) %></span>
+      </div>
+      <div class="odt-stack-row">
+        <span class="odt-stack-row__label"><strong>Profit</strong> <small class="text-muted">(Net before VAT − Cost)</small></span>
+        <span class="odt-stack-row__value <%= @profit >= 0 ? 'text-success' : 'text-danger' %>"><strong><%= number_to_thb(@profit) %></strong></span>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# Action Required %>
+<div class="odt-section">
+  <h5 class="mb-2"><i class="bi bi-list-check"></i> Action Required</h5>
+  <div class="row g-2 g-lg-3">
+    <div class="col-6 col-md-4 col-lg">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "pending_qt")), class: "text-decoration-none" do %>
+        <%= odt_card(hoverable: true, extra_class: "action-card border-warning h-100") do %>
+          <div class="text-center py-2">
+            <span class="bi bi-file-earmark-text text-warning fs-4"></span>
+            <div class="mt-1 fw-bold"><%= @pending_qt_count %></div>
+            <small class="text-muted">Pending QT</small>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "inv_unpaid")), class: "text-decoration-none" do %>
+        <%= odt_card(hoverable: true, extra_class: "action-card border-info h-100") do %>
+          <div class="text-center py-2">
+            <span class="bi bi-file-earmark-text text-info fs-4"></span>
+            <div class="mt-1 fw-bold"><%= @inv_unpaid_count %></div>
+            <small class="text-muted">Invoice issued but unpaid</small>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "overdue")), class: "text-decoration-none" do %>
+        <%= odt_card(hoverable: true, extra_class: "action-card border-danger h-100") do %>
+          <div class="text-center py-2">
+            <span class="bi bi-exclamation-triangle text-danger fs-4"></span>
+            <div class="mt-1 fw-bold"><%= @overdue_count %></div>
+            <small class="text-muted">Overdue</small>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "paid_no_receipt")), class: "text-decoration-none" do %>
+        <%= odt_card(hoverable: true, extra_class: "action-card border-secondary h-100") do %>
+          <div class="text-center py-2">
+            <span class="bi bi-receipt text-secondary fs-4"></span>
+            <div class="mt-1 fw-bold"><%= @paid_no_receipt_count %></div>
+            <small class="text-muted">Paid but receipt not issued</small>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "due_this_week")), class: "text-decoration-none" do %>
+        <%= odt_card(hoverable: true, extra_class: "action-card border-primary h-100") do %>
+          <div class="text-center py-2">
+            <span class="bi bi-calendar-week text-primary fs-4"></span>
+            <div class="mt-1 fw-bold"><%= @due_this_week %></div>
+            <small class="text-muted">Upcoming due this week</small>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @action_list.present? && @action_list_attendees.respond_to?(:any?) && @action_list_attendees.any? %>
+    <%= odt_card(
+      title: case @action_list when "pending_qt" then "Pending QT" when "inv_unpaid" then "Invoice issued but unpaid" when "overdue" then "Overdue" when "paid_no_receipt" then "Paid but receipt not issued" when "due_this_week" then "Due this week" else @action_list.to_s end,
+      header_action: odt_button("Close", variant: :secondary, size: :sm, href: admin_finance_index_path(request.query_parameters.except("action_list")))
+    ) do %>
+      <%= odt_table do %>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Company</th>
+              <th class="odt-table-numeric">Amount</th>
+              <th>Due</th>
+              <th>Doc</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @action_list_attendees.each do |a| %>
+              <tr>
+                <td><%= link_to a.name, edit_admin_training_class_attendee_path(a.training_class, a) %></td>
+                <td><%= a.training_class.title %></td>
+                <td><%= a.customer&.company_name || a.company || "—" %></td>
+                <td class="odt-table-numeric">฿<%= number_with_delimiter(a.total_final_price.round(2), delimiter: ",") %></td>
+                <td><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
+                <td><%= a.document_status || "—" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        <% end %>
+    <% end %>
+  <% end %>
+</div>
+
+<%# Corporate Billing Overview %>
+<div class="odt-section">
+  <%= odt_card(title: "Corporate Billing Overview", icon: "building") do %>
+    <% if @corporate_billing.any? %>
+      <%= odt_table do %>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th class="odt-table-numeric">Gross</th>
+            <th class="odt-table-numeric">Discount</th>
+            <th class="odt-table-numeric">Net</th>
+            <th class="odt-table-numeric">Paid</th>
+            <th class="odt-table-numeric">Outstanding</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @corporate_billing.each do |b| %>
+            <tr>
+              <td><strong><%= b[:company] %></strong></td>
+              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:gross].round(2), delimiter: ",") %></td>
+              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:discount].round(2), delimiter: ",") %></td>
+              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:net].round(2), delimiter: ",") %></td>
+              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:paid].round(2), delimiter: ",") %></td>
+              <td class="odt-table-numeric"><strong>฿<%= number_with_delimiter(b[:outstanding].round(2), delimiter: ",") %></strong></td>
+              <td><%= odt_badge(b[:status], status: b[:status] == "Paid" ? :paid : :pending) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      <% end %>
+    <% else %>
+      <%= odt_table_empty_state("No corporate billing data", icon: "building") %>
+    <% end %>
+  <% end %>
+</div>
+
+<%# Trends placeholder %>
+<div class="odt-section">
+  <%= odt_card(title: "Trends", icon: "graph-up-arrow") do %>
+    <p class="text-muted mb-0 small">Revenue by month, cash inflow, discount trend, and Corporate vs Individual trend can be added here with a chart library (e.g. Chart.js).</p>
+  <% end %>
 </div>

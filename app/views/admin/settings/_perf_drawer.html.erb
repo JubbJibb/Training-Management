@@ -1,0 +1,50 @@
+<%
+  d = @drilldown || {}
+  promo = d[:promotion]
+  by_segment = d[:by_segment] || {}
+  by_channel = d[:by_channel] || {}
+  time_series = d[:time_series] || []
+%>
+<%= turbo_frame_tag "promotion_drawer" do %>
+  <div class="perf-drawer__inner">
+    <div class="perf-drawer__header">
+      <h4 class="perf-drawer__title"><%= promo&.name || "Promotion" %></h4>
+      <%= link_to "Close", admin_settings_path(params.permit(:period, :date_from, :date_to, :course_id, :segment, :channel, :payment_status).to_h), data: { turbo_frame: "_top" }, class: "perf-drawer__close", aria: { label: "Close drawer" } %>
+    </div>
+    <% if promo %>
+      <div class="perf-drawer__body">
+        <h5 class="perf-drawer__subtitle">By segment</h5>
+        <ul class="perf-drawer__list" aria-label="Revenue by segment">
+          <% by_segment.each do |seg, amount| %>
+            <li><%= seg %> — <%= number_to_thb(amount) %></li>
+          <% end %>
+          <% if by_segment.empty? %><li class="perf-drawer__muted">No data</li><% end %>
+        </ul>
+        <h5 class="perf-drawer__subtitle">By channel</h5>
+        <ul class="perf-drawer__list" aria-label="Revenue by channel">
+          <% by_channel.each do |ch, amount| %>
+            <li><%= ch %> — <%= number_to_thb(amount) %></li>
+          <% end %>
+          <% if by_channel.empty? %><li class="perf-drawer__muted">No data</li><% end %>
+        </ul>
+        <% if time_series.any? %>
+          <h5 class="perf-drawer__subtitle">Revenue vs discount over time</h5>
+          <div class="perf-drawer__chart" data-perf-line>
+            <script type="application/json" data-perf-line-source><%= raw time_series.to_json %></script>
+            <canvas id="perfLineCanvas" width="300" height="120" aria-label="Revenue and discount over time"></canvas>
+          </div>
+          <table class="perf-drawer__table" aria-label="Time series fallback">
+            <thead><tr><th>Date</th><th class="perf-num">Revenue</th><th class="perf-num">Discount</th></tr></thead>
+            <tbody>
+              <% time_series.each do |pt| %>
+                <tr><td><%= pt[:date] %></td><td class="perf-num"><%= number_to_thb(pt[:revenue].to_f) %></td><td class="perf-num"><%= number_to_thb(pt[:discount].to_f) %></td></tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="perf-drawer__muted">Promotion not found.</p>
+    <% end %>
+  </div>
+<% end %>

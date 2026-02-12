@@ -1,0 +1,22 @@
+<aside class="customer-edit-side" aria-labelledby="tips-heading">
+  <section class="customer-edit-panel" data-customer-edit-target="tipsPanel">
+    <h2 class="customer-edit-panel__title" id="tips-heading"><i class="bi bi-lightbulb" aria-hidden="true"></i> Tips</h2>
+    <div class="customer-edit-panel__body" data-customer-edit-target="tipsIndi">
+      <p class="customer-edit-tip">Billing name defaults to customer name.</p>
+      <p class="customer-edit-tip">Tax ID optional unless request receipt.</p>
+    </div>
+    <div class="customer-edit-panel__body" data-customer-edit-target="tipsCorp" hidden>
+      <p class="customer-edit-tip">Billing name should be company legal name.</p>
+      <p class="customer-edit-tip">Tax ID + address recommended for QT/INV/Receipt.</p>
+    </div>
+  </section>
+  <section class="customer-edit-panel" aria-labelledby="preview-heading">
+    <h2 class="customer-edit-panel__title" id="preview-heading"><i class="bi bi-eye" aria-hidden="true"></i> Document preview</h2>
+    <div class="customer-edit-panel__body" data-customer-edit-target="preview">
+      <p class="customer-edit-preview-label">Billing Name</p>
+      <p class="customer-edit-preview-value" data-customer-edit-target="previewBillingName"><%= customer.billing_name.presence || customer.company_name.presence || customer.name.presence || "—" %></p>
+      <p class="customer-edit-preview-label">Address</p>
+      <p class="customer-edit-preview-value customer-edit-preview-value--block" data-customer-edit-target="previewAddress"><%= customer.billing_address.presence || "—" %></p>
+    </div>
+  </section>
+</aside>

@@ -1,0 +1,13 @@
+<%
+  message = local_assigns[:message] || "No data"
+  icon = local_assigns[:icon]
+  extra_class = local_assigns[:extra_class]
+  css = ["shared-empty-state"]
+  css << extra_class if extra_class.present?
+%>
+<div class="<%= css.join(' ') %>" role="status">
+  <% if icon.present? %>
+    <span class="shared-empty-state__icon" aria-hidden="true"><i class="bi bi-<%= icon %>"></i></span>
+  <% end %>
+  <p class="shared-empty-state__text"><%= message %></p>
+</div>

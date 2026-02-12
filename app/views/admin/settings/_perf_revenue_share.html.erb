@@ -1,0 +1,40 @@
+<%
+  share = @perf_revenue_share || {}
+  labels = share[:labels] || []
+  values = share[:values] || []
+  total = share[:total].to_f
+  chart_data = { labels: labels, values: values, total: total }.to_json
+%>
+<section class="perf-revenue-share" aria-labelledby="perf-revenue-share-title">
+  <h3 id="perf-revenue-share-title" class="perf-section-title">Revenue contribution by promotion</h3>
+  <% if labels.any? && total.positive? %>
+    <div class="perf-revenue-share__content">
+      <div class="perf-revenue-share__chart" data-perf-donut>
+        <script type="application/json" data-perf-donut-source><%= raw chart_data %></script>
+        <canvas id="perfDonutCanvas" width="200" height="200" role="img" aria-label="Donut chart of revenue by promotion"></canvas>
+      </div>
+      <div class="perf-revenue-share__legend" role="list">
+        <% labels.each_with_index do |label, i| %>
+          <% pct = total.positive? ? (values[i].to_f / total * 100).round(0) : 0 %>
+          <div class="perf-revenue-share__legend-item" role="listitem"><span class="perf-revenue-share__dot"></span> <%= label %> — <%= pct %>%</div>
+        <% end %>
+      </div>
+    </div>
+    <noscript>
+      <table class="perf-revenue-share__table" aria-label="Revenue by promotion (fallback)">
+        <thead><tr><th>Promotion</th><th class="perf-num">Revenue</th><th class="perf-num">Share</th></tr></thead>
+        <tbody>
+          <% labels.each_with_index do |label, i| %>
+            <% pct = total.positive? ? (values[i].to_f / total * 100).round(0) : 0 %>
+            <tr><td><%= label %></td><td class="perf-num"><%= number_to_thb(values[i].to_f) %></td><td class="perf-num"><%= pct %>%</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </noscript>
+  <% else %>
+    <div class="perf-revenue-share__empty" role="status">
+      <i class="bi bi-pie-chart" aria-hidden="true"></i>
+      <p>No promotion revenue in this period.</p>
+    </div>
+  <% end %>
+</section>

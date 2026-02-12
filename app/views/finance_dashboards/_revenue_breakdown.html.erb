@@ -1,0 +1,99 @@
+<div class="cfo-dash-section-container">
+  <%= odt_section_header title: "Revenue breakdown" %>
+  <div class="cfo-dash-section-container__body">
+  <% if summary[:breakdown_by_course].any? %>
+    <div class="cfo-dash-table-wrap">
+      <table class="cfo-dash-table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th class="cfo-dash-table-num">Seats</th>
+            <th class="cfo-dash-table-num">Gross</th>
+            <th class="cfo-dash-table-num">Discount</th>
+            <th class="cfo-dash-table-num">Net</th>
+            <th class="cfo-dash-table-num">Cash</th>
+            <th class="cfo-dash-table-num">Outstanding</th>
+            <th class="cfo-dash-table-num">Profit</th>
+            <th class="cfo-dash-table-num">Margin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% summary[:breakdown_by_course].each do |row| %>
+            <tr>
+              <td><%= row[:course] %></td>
+              <td class="cfo-dash-table-num"><%= row[:seats_sold] %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:gross]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:discount]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_before_vat]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:cash_received]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:outstanding]) %></td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:profit]) %></td>
+              <td class="cfo-dash-table-num"><%= row[:margin_pct].nil? ? "—" : "#{row[:margin_pct]}%" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="cfo-dash-empty">No course data.</p>
+  <% end %>
+  <div class="cfo-dash-section__grid">
+    <% if summary[:breakdown_by_segment].any? %>
+      <div class="cfo-dash-ar-cash__block">
+        <h3 class="cfo-dash-block-title">By segment</h3>
+        <div class="cfo-dash-table-wrap">
+          <table class="cfo-dash-table">
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th class="cfo-dash-table-num">Seats</th>
+                <th class="cfo-dash-table-num">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% summary[:breakdown_by_segment].each do |row| %>
+                <tr>
+                  <td><%= row[:segment] %></td>
+                  <td class="cfo-dash-table-num"><%= row[:seats] %></td>
+                  <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_before_vat]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+    <% if summary[:breakdown_by_channel].any? %>
+      <div class="cfo-dash-ar-cash__block">
+        <h3 class="cfo-dash-block-title">By channel</h3>
+        <div class="cfo-dash-table-wrap">
+          <table class="cfo-dash-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Leads</th>
+                <th class="cfo-dash-table-num">Attendees</th>
+                <th class="cfo-dash-table-num">Paid</th>
+                <th class="cfo-dash-table-num">Conv %</th>
+                <th class="cfo-dash-table-num">Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% summary[:breakdown_by_channel].each do |row| %>
+                <tr>
+                  <td><%= row[:channel] %></td>
+                  <td><%= row[:leads] %></td>
+                  <td class="cfo-dash-table-num"><%= row[:attendees] %></td>
+                  <td class="cfo-dash-table-num"><%= row[:paid] %></td>
+                  <td class="cfo-dash-table-num"><%= row[:conversion_pct].nil? ? "—" : "#{row[:conversion_pct]}%" %></td>
+                  <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_revenue]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  </div>
+</div>

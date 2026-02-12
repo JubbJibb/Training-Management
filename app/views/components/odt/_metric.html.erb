@@ -1,0 +1,15 @@
+<%
+  label = local_assigns[:label]
+  value = local_assigns[:value]
+  meta = local_assigns[:meta]
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-metric"]
+  css << extra_class if extra_class.present?
+%>
+<div class="<%= css.join(' ') %>">
+  <span class="odt-metric__label"><%= label %></span>
+  <span class="odt-metric__value"><%= value %></span>
+  <% if meta.present? %>
+    <span class="odt-metric__meta"><%= meta %></span>
+  <% end %>
+</div>

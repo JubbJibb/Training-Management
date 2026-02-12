@@ -1,0 +1,14 @@
+<%
+  deltas = local_assigns[:kpi_deltas] || @kpi_deltas || {}
+  cells = [
+    { icon: "calendar-event", label: "Upcoming classes", value: @total_upcoming_classes, sub: "in period", trend: deltas[:upcoming] },
+    { icon: "people", label: "Attendees", value: @total_attendees_in_period, sub: "in period", trend: deltas[:attendees] },
+    { icon: "person-plus", label: "New leads", value: @new_leads_in_period, sub: "in period", trend: deltas[:leads] },
+    { icon: "arrow-repeat", label: "Repeat learners", value: @repeat_learners, sub: "all time", trend: deltas[:repeat] },
+    { icon: "file-earmark-text", label: "Pending QT", value: @pending_qt, sub: "needs quote", trend: deltas[:pending_qt], value_variant: (@pending_qt > 0 ? "warning" : nil) },
+    { icon: "receipt", label: "Unpaid INV", value: @inv_not_confirmed, sub: "unpaid invoices", trend: deltas[:unpaid_inv], value_variant: (@inv_not_confirmed > 0 ? "danger" : nil) },
+    { icon: "file-check", label: "Missing receipts", value: @receipt_not_issued, sub: "paid, no receipt", trend: deltas[:receipts] },
+    { icon: "people-fill", label: "Almost full", value: @classes_near_full_count, sub: "classes ≥90%", trend: deltas[:near_full] }
+  ]
+%>
+<%= odt_kpi_strip(cells: cells, extra_class: "dashboard-kpi-strip") %>

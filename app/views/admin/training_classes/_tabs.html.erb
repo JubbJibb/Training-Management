@@ -1,0 +1,17 @@
+<%
+  tab = local_assigns[:tab] || @tab || "upcoming"
+  base_params = request.query_parameters.except(:tab).to_h
+%>
+<nav class="customer-tabs tc-index-tabs" aria-label="Training class list">
+  <div class="customer-tabs__inner">
+    <%= link_to admin_training_classes_path(base_params.merge(tab: "upcoming")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'upcoming'}", data: { turbo_frame: "tc_index_table" } do %>
+      <i class="bi bi-calendar-event" aria-hidden="true"></i> Upcoming
+    <% end %>
+    <%= link_to admin_training_classes_path(base_params.merge(tab: "past")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'past'}", data: { turbo_frame: "tc_index_table" } do %>
+      <i class="bi bi-clock-history" aria-hidden="true"></i> Past
+    <% end %>
+    <%= link_to admin_training_classes_path(base_params.merge(tab: "cancelled")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'cancelled'}", data: { turbo_frame: "tc_index_table" } do %>
+      <i class="bi bi-x-circle" aria-hidden="true"></i> Cancelled
+    <% end %>
+  </div>
+</nav>

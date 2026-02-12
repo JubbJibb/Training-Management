@@ -1,0 +1,23 @@
+<%
+  css = ["odt-btn", "odt-btn--#{variant}", "odt-btn--#{size}"]
+  css << "odt-btn--loading" if loading
+  css << options[:class].to_s if options[:class].present?
+  html_opts = options.except(:href, :url).merge(class: css.join(" ").strip)
+  html_opts[:disabled] = true if disabled
+  url = options[:href] || options[:url]
+%>
+<% if url.present? %>
+  <%= link_to url, html_opts do %>
+    <% if icon_left.present? %><i class="bi bi-<%= icon_left %> odt-btn__icon odt-btn__icon--left"></i><% end %>
+    <% if loading %><span class="odt-btn__spinner" aria-hidden="true"></span><% end %>
+    <span class="odt-btn__label"><%= label %></span>
+    <% if icon_right.present? %><i class="bi bi-<%= icon_right %> odt-btn__icon odt-btn__icon--right"></i><% end %>
+  <% end %>
+<% else %>
+  <button type="<%= html_opts[:type] || 'button' %>" <%= tag.attributes(html_opts.except(:type)) %>>
+    <% if icon_left.present? %><i class="bi bi-<%= icon_left %> odt-btn__icon odt-btn__icon--left"></i><% end %>
+    <% if loading %><span class="odt-btn__spinner" aria-hidden="true"></span><% end %>
+    <span class="odt-btn__label"><%= label %></span>
+    <% if icon_right.present? %><i class="bi bi-<%= icon_right %> odt-btn__icon odt-btn__icon--right"></i><% end %>
+  </button>
+<% end %>

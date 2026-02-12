@@ -1,0 +1,26 @@
+<%
+  base_params = request.query_parameters.to_h
+%>
+<div class="tc-index-filter-bar">
+  <%= form_with url: admin_training_classes_path, method: :get, data: { turbo_frame: "tc_index_table" }, class: "tc-index-filter-bar__form" do |f| %>
+    <%= hidden_field_tag :tab, @tab %>
+    <div class="tc-index-filter-bar__row">
+      <div class="tc-index-filter-bar__field">
+        <label for="tc_filter_instructor" class="tc-index-filter-bar__label">Instructor</label>
+        <%= select_tag :instructor, options_for_select([["All", ""]] + (@filter_instructors || []).map { |i| [i, i] }, params[:instructor]), id: "tc_filter_instructor", class: "tc-index-filter-bar__input" %>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="tc_filter_date_from" class="tc-index-filter-bar__label">From</label>
+        <%= date_field_tag :date_from, params[:date_from], id: "tc_filter_date_from", class: "tc-index-filter-bar__input" %>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="tc_filter_date_to" class="tc-index-filter-bar__label">To</label>
+        <%= date_field_tag :date_to, params[:date_to], id: "tc_filter_date_to", class: "tc-index-filter-bar__input" %>
+      </div>
+      <div class="tc-index-filter-bar__actions">
+        <button type="submit" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--primary">Apply</button>
+        <%= link_to "Clear", admin_training_classes_path(tab: @tab), class: "tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary", data: { turbo_frame: "tc_index_table" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,20 @@
+<%# Renders a CFO-style metric strip. metrics: array of { key:, label:, value:, subtext:, tone: (optional) } tone: primary | success | warning | danger | default %>
+<% metrics = local_assigns[:metrics] || [] %>
+<div class="cfo-metric-strip" role="region" aria-label="Key financial metrics">
+  <% metrics.each do |m| %>
+    <div class="cfo-metric-strip__cell">
+      <% if m[:icon].present? %>
+        <span class="cfo-metric-strip__label">
+          <i class="bi bi-<%= m[:icon] %> cfo-metric-strip__icon" aria-hidden="true"></i>
+          <%= m[:label] %>
+        </span>
+      <% else %>
+        <span class="cfo-metric-strip__label"><%= m[:label] %></span>
+      <% end %>
+      <span class="cfo-metric-strip__value <%= m[:tone].present? ? "cfo-metric-strip__value--#{m[:tone]}" : 'cfo-metric-strip__value--default' %>"><%= m[:value] %></span>
+      <% if m[:subtext].present? %>
+        <span class="cfo-metric-strip__sub"><%= m[:subtext] %></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>

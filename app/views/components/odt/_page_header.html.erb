@@ -1,0 +1,22 @@
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  icon = local_assigns[:icon]
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-page-header"]
+  css << extra_class if extra_class.present?
+%>
+<header class="<%= css.join(' ') %>">
+  <div class="odt-page-header__text">
+    <h1 class="odt-page-header__title">
+      <% if icon.present? %><i class="bi bi-<%= icon %>" aria-hidden="true"></i><% end %>
+      <%= title %>
+    </h1>
+    <% if subtitle.present? %>
+      <p class="odt-page-header__subtitle"><%= subtitle %></p>
+    <% end %>
+  </div>
+  <% if block_given? %>
+    <div class="odt-page-header__actions" aria-label="Page actions"><%= yield %></div>
+  <% end %>
+</header>

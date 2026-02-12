@@ -1,0 +1,60 @@
+<%= odt_card(title: "Profitability & Cost Breakdown", icon: "currency-dollar", extra_class: "class-finance-profitability odt-section") do %>
+  <div class="class-finance-profit-metrics mb-4">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <div class="class-finance-stat">
+          <span class="class-finance-stat__label">Total Cost</span>
+          <span class="class-finance-stat__value"><%= number_to_thb(profitability[:total_cost]) %></span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="class-finance-stat">
+          <span class="class-finance-stat__label">Profit (Net Rev − Cost)</span>
+          <span class="class-finance-stat__value <%= profitability[:profit] >= 0 ? 'text-success' : 'text-danger' %>"><%= number_to_thb(profitability[:profit]) %></span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="class-finance-stat">
+          <span class="class-finance-stat__label">Gross Margin %</span>
+          <span class="class-finance-stat__value"><%= profitability[:gross_margin_pct].nil? ? "—" : number_to_percent(profitability[:gross_margin_pct]) %></span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="class-finance-stat">
+          <span class="class-finance-stat__label">Cost per Seat</span>
+          <span class="class-finance-stat__value"><%= profitability[:cost_per_seat].nil? ? "—" : number_to_thb(profitability[:cost_per_seat]) %></span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="class-finance-stat">
+          <span class="class-finance-stat__label">Profit per Seat</span>
+          <span class="class-finance-stat__value"><%= profitability[:profit_per_seat].nil? ? "—" : number_to_thb(profitability[:profit_per_seat]) %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if cost_by_category.any? %>
+    <h6 class="mb-2">Cost by Category</h6>
+    <%= odt_table(extra_class: "odt-table--sm mb-4") do %>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th class="odt-table-numeric">Amount</th>
+          <th class="odt-table-numeric">% of total cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% cost_by_category.each do |row| %>
+          <tr>
+            <td><%= row[:category] %></td>
+            <td class="odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
+            <td class="odt-table-numeric"><%= number_to_percent(row[:pct]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    <% end %>
+  <% end %>
+
+  <p class="text-muted small mb-0"><%= link_to "Edit base cost", edit_admin_training_class_path(training_class), class: "text-muted" %></p>
+<% end %>

@@ -1,0 +1,53 @@
+<%# Revenue Structure (Pricing Funnel) – finance-logical 5-row stack + 3-column KPI strip.
+    Uses instance vars from FinanceController: @gross_sales, @total_discounts, @net_before_vat,
+    @vat_amount, @total_incl_vat, @discount_rate_pct, @avg_discount_per_seat, @avg_revenue_per_seat
+%>
+<div class="revenue-structure-card">
+  <div class="revenue-structure-card__header">
+    <h5 class="revenue-structure-card__title">Revenue Structure</h5>
+    <span class="revenue-structure-card__subtitle">Pricing flow · Before & after VAT</span>
+  </div>
+  <div class="revenue-structure-card__body">
+    <div class="revenue-structure-stack">
+      <div class="revenue-structure-row revenue-structure-row--gross">
+        <span class="revenue-structure-row__label">Gross Revenue</span>
+        <span class="revenue-structure-row__value"><%= number_to_thb(@gross_sales) %></span>
+      </div>
+      <div class="revenue-structure-row revenue-structure-row--discounts">
+        <span class="revenue-structure-row__label">− Discounts</span>
+        <span class="revenue-structure-row__value">
+          −<%= number_to_thb(@total_discounts) %>
+          <% if @discount_rate_pct && @discount_rate_pct > 0 %>
+            <span class="revenue-structure-row__sub">(<%= number_to_percent(@discount_rate_pct) %>)</span>
+          <% end %>
+        </span>
+      </div>
+      <div class="revenue-structure-row revenue-structure-row--net">
+        <span class="revenue-structure-row__label">= Net Revenue (Before VAT)</span>
+        <span class="revenue-structure-row__value"><%= number_to_thb(@net_before_vat) %></span>
+      </div>
+      <div class="revenue-structure-row revenue-structure-row--vat">
+        <span class="revenue-structure-row__label">+ VAT (7%)</span>
+        <span class="revenue-structure-row__value">+<%= number_to_thb(@vat_amount) %></span>
+      </div>
+      <div class="revenue-structure-row revenue-structure-row--total">
+        <span class="revenue-structure-row__label">= Total Invoice Value (Incl. VAT)</span>
+        <span class="revenue-structure-row__value"><%= number_to_thb(@total_incl_vat) %></span>
+      </div>
+    </div>
+    <div class="revenue-structure-kpi">
+      <div class="revenue-structure-kpi__item">
+        <span class="revenue-structure-kpi__label">Discount Rate</span>
+        <span class="revenue-structure-kpi__value"><%= number_to_percent(@discount_rate_pct || 0) %></span>
+      </div>
+      <div class="revenue-structure-kpi__item">
+        <span class="revenue-structure-kpi__label">Avg Discount / Seat</span>
+        <span class="revenue-structure-kpi__value"><%= number_to_thb(@avg_discount_per_seat || 0) %></span>
+      </div>
+      <div class="revenue-structure-kpi__item">
+        <span class="revenue-structure-kpi__label">Avg Revenue / Seat</span>
+        <span class="revenue-structure-kpi__value"><%= number_to_thb(@avg_revenue_per_seat || 0) %></span>
+      </div>
+    </div>
+  </div>
+</div>

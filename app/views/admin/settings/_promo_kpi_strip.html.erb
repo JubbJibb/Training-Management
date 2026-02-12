@@ -1,0 +1,14 @@
+<%
+  kpi = @promo_kpi || {}
+  cells = [
+    { icon: "tag", label: "Active promotions", value: kpi[:active_count].to_i, sub: "enabled" },
+    { icon: "people", label: "Seats using promo", value: kpi[:seats_using_promo].to_i, sub: "this month" },
+    { icon: "currency-exchange", label: "Total discount given", value: number_to_thb(kpi[:total_discount_thb].to_f), sub: "THB" },
+    { icon: "percent", label: "Avg discount %", value: "#{kpi[:avg_discount_pct].to_f}%", sub: "average" },
+    { icon: "graph-up", label: "Revenue from promos", value: number_to_thb(kpi[:revenue_from_promotions].to_f), sub: "this month" },
+    { icon: "pie-chart", label: "Margin impact", value: "#{kpi[:margin_impact_pct].to_f}%", sub: "net of discount" }
+  ]
+%>
+<section class="promo-mgmt-kpi" aria-label="Promotion summary">
+  <%= odt_kpi_strip(cells: cells, extra_class: "promo-mgmt-kpi-strip") %>
+</section>

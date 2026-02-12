@@ -1,15 +1,14 @@
 <% content_for :title, "Add Attendee" %>
 
+<%= render "components/odt/page_header", title: "Add Attendee", subtitle: "Add to #{@training_class.title}", icon: "person-plus" do %>
+  <%= link_to admin_training_class_attendees_path(@training_class), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Attendees
+  <% end %>
+<% end %>
+
 <div class="row">
   <div class="col-md-6 offset-md-3">
-    <%= link_to admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary mb-3" do %>
-      <i class="bi bi-arrow-left"></i> Back to Attendees
-    <% end %>
-    
     <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-person-plus"></i> Add Attendee to <%= @training_class.title %></h3>
-      </div>
       <div class="card-body">
         <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true do |f| %>
           <% if @attendee.errors.any? %>
@@ -51,6 +50,15 @@
           <div class="mb-3" id="company-field" style="<%= 'display: none;' unless @attendee.participant_type == 'Corp' %>">
             <%= f.label :company, "บริษัท", class: "form-label" %>
             <%= f.text_field :company, class: "form-control" %>
+          </div>
+          
+          <div class="mb-3" id="seats-field" style="<%= 'display: none;' unless @attendee.participant_type == 'Corp' %>">
+            <%= f.label :seats, "จำนวนที่นั่ง (Seats)", class: "form-label" %>
+            <%= f.number_field :seats, class: "form-control", min: 1, value: @attendee.participant_type == 'Corp' ? (@attendee.seats || 1) : 1 %>
+            <small class="form-text text-muted">Corporate: ระบุจำนวนที่นั่งได้ (Indi จะเป็น 1 ที่นั่ง)</small>
+          </div>
+          <div class="mb-3" id="seats-indi-hint" style="<%= 'display: none;' if @attendee.participant_type == 'Corp' %>">
+            <span class="text-muted">จำนวนที่นั่ง: 1 (Individual)</span>
           </div>
           
           <div class="mb-3">
@@ -120,9 +128,8 @@
           </div>
           
           <div class="mb-3">
-            <div class="card bg-light">
-              <div class="card-body">
-                <h6 class="card-title">สรุปราคา</h6>
+            <div class="odt-panel">
+              <h6 class="card-title mb-3">สรุปราคา</h6>
                 <div class="d-flex justify-content-between mb-2">
                   <span>ราคาเริ่มต้น:</span>
                   <span class="text-end"><strong id="display_base_price">0.00</strong> ฿</span>
@@ -132,7 +139,7 @@
                     <span>ส่วนลดรวม:</span>
                     <span class="text-end"><strong id="display_discount">0.00</strong> ฿</span>
                   </div>
-                  <div id="discount_details" class="ms-3 small text-muted text-end">
+                  <div id="discount_details" class="ms-2 small text-muted text-start">
                     <!-- รายละเอียดส่วนลดจะแสดงที่นี่ -->
                   </div>
                 </div>
@@ -149,16 +156,25 @@
                   <strong>ราคาสุทธิ (รวม VAT):</strong>
                   <span class="text-end"><strong class="text-primary fs-5" id="display_final_price">0.00</strong> ฿</span>
                 </div>
-              </div>
             </div>
           </div>
           
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <%= f.label :invoice_no, "Invoice No.", class: "form-label" %>
-              <%= f.text_field :invoice_no, class: "form-control" %>
+            <div class="col-md-4 mb-3">
+              <%= f.label :quotation_no, "Quotation No.", class: "form-label" %>
+              <%= f.text_field :quotation_no, class: "form-control", placeholder: "e.g. QT-2026-001" %>
             </div>
-            
+            <div class="col-md-4 mb-3">
+              <%= f.label :invoice_no, "Invoice No.", class: "form-label" %>
+              <%= f.text_field :invoice_no, class: "form-control", placeholder: "e.g. INV-2026-001" %>
+            </div>
+            <div class="col-md-4 mb-3">
+              <%= f.label :receipt_no, "Receipt No.", class: "form-label" %>
+              <%= f.text_field :receipt_no, class: "form-control", placeholder: "e.g. RCP-2026-001" %>
+            </div>
+          </div>
+          
+          <div class="row">
             <div class="col-md-6 mb-3">
               <%= f.label :due_date, "Due Date", class: "form-label" %>
               <%= f.date_field :due_date, class: "form-control" %>
@@ -171,9 +187,9 @@
           </div>
           
           <div class="mb-3">
-            <%= f.label :payment_slip, "สลิปการโอนเงิน (Payment Slip)", class: "form-label" %>
-            <%= f.file_field :payment_slip, class: "form-control", accept: "image/*,.pdf" %>
-            <small class="form-text text-muted">รองรับไฟล์: JPG, PNG, GIF, PDF (ขนาดไม่เกิน 10MB)</small>
+            <%= f.label :payment_slips, "สลิปการโอนเงิน (Payment Slips)", class: "form-label" %>
+            <%= f.file_field :payment_slips, class: "form-control", accept: "image/*,.pdf", multiple: true %>
+            <small class="form-text text-muted">รองรับหลายไฟล์: JPG, PNG, GIF, PDF (ขนาดไม่เกิน 10MB ต่อไฟล์)</small>
           </div>
           
           <div class="mb-3">
@@ -198,22 +214,33 @@
     const basePriceInput = document.getElementById('base_price_input');
     const promotionCheckboxes = document.querySelectorAll('.promotion-checkbox');
     
+    const seatsField = document.getElementById('seats-field');
+    const seatsIndiHint = document.getElementById('seats-indi-hint');
+    const seatsInput = document.querySelector('input[name="attendee[seats]"]');
+    
     // Handle participant type change
     if (participantTypeSelect) {
       participantTypeSelect.addEventListener('change', function() {
         if (this.value === 'Corp') {
           companyField.style.display = 'block';
+          if (seatsField) seatsField.style.display = 'block';
+          if (seatsIndiHint) seatsIndiHint.style.display = 'none';
+          if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
         } else {
           companyField.style.display = 'none';
+          if (seatsField) seatsField.style.display = 'none';
+          if (seatsIndiHint) seatsIndiHint.style.display = 'block';
+          if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }
         }
       });
     }
     
-    // Calculate price with discounts
+    // Calculate price with discounts (per-seat then × seats for reservation total)
     function calculatePrice() {
-      // ใช้ราคาจาก Training Class เสมอ
-      const basePrice = parseFloat(basePriceInput.value) || <%= @training_class.price.to_f || 0 %>;
-      let totalDiscount = 0;
+      const seats = Math.max(1, parseInt(seatsInput && seatsInput.value ? seatsInput.value : 1, 10) || 1);
+      // ใช้ราคาจาก Training Class เสมอ (per seat)
+      const basePricePerSeat = parseFloat(basePriceInput.value) || <%= @training_class.price.to_f || 0 %>;
+      let totalDiscountPerSeat = 0;
       const discountDetails = [];
       
       promotionCheckboxes.forEach(function(checkbox) {
@@ -226,7 +253,7 @@
           let discountDesc = '';
           switch(discountType) {
             case 'percentage':
-              discount = parseFloat((basePrice * (discountValue / 100.0)).toFixed(2));
+              discount = parseFloat((basePricePerSeat * (discountValue / 100.0)).toFixed(2));
               discountDesc = `${promotionName} (${discountValue}%)`;
               break;
             case 'fixed':
@@ -235,12 +262,12 @@
               break;
             case 'buy_x_get_y':
               // มา X+1 จ่าย X => ลด 1/(X+1) ของราคา
-              discount = parseFloat((basePrice / (discountValue + 1)).toFixed(2));
+              discount = parseFloat((basePricePerSeat / (discountValue + 1)).toFixed(2));
               discountDesc = `${promotionName} (มา ${discountValue + 1} จ่าย ${discountValue})`;
               break;
           }
           if (discount > 0) {
-            totalDiscount = parseFloat((totalDiscount + discount).toFixed(2));
+            totalDiscountPerSeat = parseFloat((totalDiscountPerSeat + discount).toFixed(2));
             discountDetails.push({
               name: discountDesc,
               amount: discount
@@ -249,23 +276,31 @@
         }
       });
       
-      const priceBeforeVat = Math.max(0, parseFloat((basePrice - totalDiscount).toFixed(2)));
-      const vatAmount = parseFloat((priceBeforeVat * 0.07).toFixed(2));
-      const finalPrice = parseFloat((priceBeforeVat + vatAmount).toFixed(2));
+      const priceBeforeVatPerSeat = Math.max(0, parseFloat((basePricePerSeat - totalDiscountPerSeat).toFixed(2)));
+      const vatPerSeat = parseFloat((priceBeforeVatPerSeat * 0.07).toFixed(2));
+      const finalPerSeat = parseFloat((priceBeforeVatPerSeat + vatPerSeat).toFixed(2));
       
-      // Update display
-      document.getElementById('display_base_price').textContent = parseFloat(basePrice.toFixed(2)).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      // Totals = per-seat × seats (for both corp and indi)
+      const basePrice = parseFloat((basePricePerSeat * seats).toFixed(2));
+      const totalDiscount = parseFloat((totalDiscountPerSeat * seats).toFixed(2));
+      const priceBeforeVat = parseFloat((priceBeforeVatPerSeat * seats).toFixed(2));
+      const vatAmount = parseFloat((vatPerSeat * seats).toFixed(2));
+      const finalPrice = parseFloat((finalPerSeat * seats).toFixed(2));
+      
+      // Update display (reservation total)
+      document.getElementById('display_base_price').textContent = basePrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_discount').textContent = totalDiscount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_price_before_vat').textContent = priceBeforeVat.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_vat').textContent = vatAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('display_final_price').textContent = finalPrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       
-      // Update discount details
+      // Update discount details (total per line = amount per seat × seats)
       const discountDetailsEl = document.getElementById('discount_details');
       if (discountDetails.length > 0) {
         discountDetailsEl.innerHTML = discountDetails.map(d => {
-          const formattedAmount = d.amount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-          return `<div class="text-end">• ${d.name}: -${formattedAmount} ฿</div>`;
+          const totalAmount = parseFloat((d.amount * seats).toFixed(2));
+          const formattedAmount = totalAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          return `<div class="text-start">• ${d.name}: -${formattedAmount} ฿</div>`;
         }).join('');
       } else {
         discountDetailsEl.innerHTML = '';
@@ -276,6 +311,10 @@
     if (basePriceInput) {
       basePriceInput.addEventListener('input', calculatePrice);
       basePriceInput.addEventListener('change', calculatePrice);
+    }
+    if (seatsInput) {
+      seatsInput.addEventListener('input', calculatePrice);
+      seatsInput.addEventListener('change', calculatePrice);
     }
     
     promotionCheckboxes.forEach(function(checkbox) {

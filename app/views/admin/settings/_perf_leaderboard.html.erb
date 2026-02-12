@@ -1,0 +1,45 @@
+<%
+  rows = @perf_leaderboard || []
+  medals = ["🥇", "🥈", "🥉"]
+%>
+<section class="perf-leaderboard" aria-labelledby="perf-leaderboard-title">
+  <h3 id="perf-leaderboard-title" class="perf-section-title">Leaderboard</h3>
+  <% if rows.any? %>
+    <div class="perf-leaderboard__wrap">
+      <table class="perf-leaderboard__table" aria-label="Promotion ranking">
+        <thead>
+          <tr>
+            <th scope="col" class="perf-leaderboard__rank">#</th>
+            <th scope="col">Promotion</th>
+            <th scope="col">Type</th>
+            <th scope="col" class="perf-num">Revenue</th>
+            <th scope="col" class="perf-num">Seats</th>
+            <th scope="col" class="perf-num">Margin %</th>
+            <th scope="col" class="perf-num">Discount</th>
+            <th scope="col">Impact</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each_with_index do |r, i| %>
+            <tr class="perf-leaderboard__row">
+              <td class="perf-leaderboard__rank"><%= medals[i] || (i + 1) %></td>
+              <td><strong><%= r[:name] %></strong></td>
+              <td><%= odt_badge(r[:type_label], variant: :neutral, size: :sm) %></td>
+              <td class="perf-num"><%= number_to_thb(r[:revenue].to_f) %></td>
+              <td class="perf-num"><%= r[:seats] %></td>
+              <td class="perf-num perf-leaderboard__margin"><%= r[:margin_pct] %>%</td>
+              <td class="perf-num perf-leaderboard__discount"><%= number_to_thb(r[:discount_cost].to_f) %></td>
+              <td><span class="perf-impact perf-impact--<%= r[:impact_tag].to_s.parameterize %>"><%= r[:impact_tag] %></span></td>
+              <td class="perf-leaderboard__action">
+                <%= link_to "View", promotion_drilldown_admin_settings_path(r[:id], params.permit(:period, :date_from, :date_to, :course_id, :segment, :channel, :payment_status).to_h), data: { turbo_frame: "promotion_drawer" }, class: "perf-leaderboard__link", aria: { label: "View #{r[:name]} details" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <%= render "shared/empty_state", message: "No promotion usage in this period.", icon: "trophy" %>
+  <% end %>
+</section>

@@ -1,0 +1,87 @@
+<% content_for :title, "ODT Components" %>
+
+<%= render "components/odt/page_header", title: "ODT Design System – Components", subtitle: "Reusable UI components rendered in isolation", icon: "puzzle" %>
+
+<%# 1) Button %>
+<div class="odt-section">
+  <h5 class="mb-3">Button</h5>
+  <div class="card">
+    <div class="card-body">
+      <p class="small text-muted mb-2">Variants: primary (navy), secondary (outline), ghost, danger. Sizes: sm, md, lg. Icon left, disabled, loading.</p>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <%= odt_button("Primary", variant: :primary, size: :md, icon_left: "check") %>
+        <%= odt_button("Secondary", variant: :secondary, size: :md, icon_left: "pencil") %>
+        <%= odt_button("Ghost", variant: :ghost, size: :md) %>
+        <%= odt_button("Danger", variant: :danger, size: :md, icon_left: "trash") %>
+        <%= odt_button("Small", variant: :primary, size: :sm) %>
+        <%= odt_button("Large", variant: :primary, size: :lg, icon_left: "star") %>
+        <%= odt_button("Disabled", variant: :primary, disabled: true) %>
+        <%= odt_button("Loading", variant: :primary, loading: true) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 2) Card %>
+<div class="odt-section">
+  <h5 class="mb-3">Card</h5>
+  <div class="row">
+    <div class="col-md-6">
+      <%= odt_card(title: "Card with header", icon: "card-heading", header_action: odt_button("Action", variant: :secondary, size: :sm)) do %>
+        <p class="mb-0">Body content. Default radius 12px, shadow-sm.</p>
+      <% end %>
+    </div>
+    <div class="col-md-6">
+      <%= odt_card(title: "Card with footer", icon: "card-text", footer: content_tag(:div, odt_button("Save", variant: :primary, size: :sm), class: "text-end")) do %>
+        <p class="mb-0">Body content here.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%# 3) Badge %>
+<div class="odt-section">
+  <h5 class="mb-3">Badge (status + pill)</h5>
+  <div class="card">
+    <div class="card-body">
+      <p class="small text-muted mb-2">Statuses: paid (green), pending (orange), overdue (red), receipt (blue). Pill style.</p>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <%= odt_badge("Paid", status: :paid) %>
+        <%= odt_badge("Pending", status: :pending) %>
+        <%= odt_badge("Overdue", status: :overdue) %>
+        <%= odt_badge("Receipt", status: :receipt) %>
+        <%= odt_badge("Neutral", variant: :neutral) %>
+        <%= odt_badge("Small", status: :paid, size: :sm) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# 4) Table wrapper + empty state %>
+<div class="odt-section">
+  <h5 class="mb-3">Table wrapper</h5>
+  <p class="small text-muted mb-2">Consistent header, hover row, right-aligned numeric column (class <code>odt-table-numeric</code>), empty state.</p>
+  <div class="row">
+    <div class="col-12 col-lg-6">
+      <h6 class="mb-2">Table with data</h6>
+      <%= odt_table(extra_class: "mb-4") do %>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="odt-table-numeric">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Item A</td><td class="odt-table-numeric">฿1,000</td></tr>
+          <tr><td>Item B</td><td class="odt-table-numeric">฿2,500</td></tr>
+        </tbody>
+      <% end %>
+    </div>
+    <div class="col-12 col-lg-6">
+      <h6 class="mb-2">Empty state</h6>
+      <div class="odt-table-wrap">
+        <%= odt_table_empty_state("No records found", icon: "inbox") %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<div class="cfo-dash-section-container">
+  <%= odt_section_header title: "Documents & Compliance", subtitle: "Missing docs and action required" %>
+  <div class="cfo-dash-section-container__body">
+  <div class="cfo-dash-docs-strip">
+    <%= odt_doc_chip("QT missing: #{summary[:docs_missing_qt]}", variant: :warning, url: finance_dashboard_path(request.query_parameters.merge(status: "no_document")), turbo_frame: "finance_dashboard") %>
+    <%= odt_doc_chip("INV missing: #{summary[:docs_missing_inv]}", variant: :info, url: finance_dashboard_path(request.query_parameters.merge(status: "pending")), turbo_frame: "finance_dashboard") %>
+    <%= odt_doc_chip("Receipt missing: #{summary[:docs_missing_receipt]}", variant: :default) %>
+    <%= odt_doc_chip("Slip missing: #{summary[:docs_missing_slip]}", variant: :default) %>
+  </div>
+  <h3 class="cfo-dash-block-title">Action required</h3>
+  <% if summary[:action_required_rows].any? %>
+    <div class="cfo-dash-table-scroll">
+      <table class="cfo-dash-table cfo-dash-table--sticky">
+        <thead>
+          <tr>
+            <th>Company / Contact</th>
+            <th>Class</th>
+            <th>Missing docs</th>
+            <th class="cfo-dash-table-num">Amount</th>
+            <th>Due</th>
+            <th>Status</th>
+            <th class="cfo-dash-table-actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% summary[:action_required_rows].first(50).each do |row| %>
+            <tr class="<%= "cfo-dash-table__row--action" if row[:due_date] && row[:due_date] < Date.current %>">
+              <td><%= row[:company] %> / <%= row[:contact] %></td>
+              <td><%= row[:class_name] %></td>
+              <td>
+                <% row[:missing_doc].to_s.split(", ").each do |d| %>
+                  <%= odt_doc_chip(d, variant: d == "QT" || d == "INV" ? :warning : :default) %>
+                <% end %>
+              </td>
+              <td class="cfo-dash-table-num"><%= number_to_thb(row[:amount]) %></td>
+              <td><%= row[:due_date]&.strftime("%d/%m/%y") || "—" %></td>
+              <td><%= odt_badge(row[:status], status: row[:status] == "Paid" ? :paid : :pending, size: :sm) %></td>
+              <td class="cfo-dash-table-actions">
+                <%= link_to "Edit", edit_admin_training_class_attendee_path(row[:attendee].training_class, row[:attendee]), class: "cfo-dash-btn-link" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="cfo-dash-empty">No actions required.</p>
+  <% end %>
+  </div>
+</div>

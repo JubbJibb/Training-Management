@@ -1,0 +1,23 @@
+<% from_edit = request.referer.to_s.include?("/edit") %>
+<% if from_edit %>
+  <%= turbo_stream.update "customer_edit_form_wrapper" do %>
+    <%= render "admin/customers/form", customer: @customer %>
+  <% end %>
+  <%= turbo_stream.update "customer_edit_flash" do %>
+    <%= render "admin/customers/flash_message", type: :notice, message: "Synced from latest registration." %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "customer_billing_tax_info" do %>
+    <div id="customer_billing_tax_info">
+      <%= render "admin/customers/billing_tax_info", customer: @customer, attendees: @attendees %>
+    </div>
+  <% end %>
+  <%= turbo_stream.replace "customer_snapshot" do %>
+    <div id="customer_snapshot">
+      <%= render "admin/customers/snapshot", customer: @customer, attendees: @attendees %>
+    </div>
+  <% end %>
+  <%= turbo_stream.update "customer_360_flash" do %>
+    <%= render "admin/customers/flash_message", type: :notice, message: "Billing & tax info synced from latest registration." %>
+  <% end %>
+<% end %>

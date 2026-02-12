@@ -1,0 +1,19 @@
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  actions = local_assigns[:actions]
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-section-header"]
+  css << extra_class if extra_class.present?
+%>
+<header class="<%= css.join(' ') %>">
+  <div class="odt-section-header__text">
+    <h2 class="odt-section-header__title"><%= title %></h2>
+    <% if subtitle.present? %>
+      <p class="odt-section-header__subtitle"><%= subtitle %></p>
+    <% end %>
+  </div>
+  <% if actions.present? %>
+    <div class="odt-section-header__actions"><%= actions %></div>
+  <% end %>
+</header>

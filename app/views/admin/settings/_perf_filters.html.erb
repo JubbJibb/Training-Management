@@ -1,0 +1,56 @@
+<%= turbo_frame_tag "promotion_performance_filters", class: "perf-filters-wrap" do %>
+  <%= form_with url: admin_settings_path, method: :get, local: true, data: { turbo_frame: "_top" }, class: "perf-filters" do |f| %>
+    <%= hidden_field_tag :period, params[:period] || "this_month" %>
+    <div class="perf-filters__row">
+      <div class="perf-filters__group">
+        <label for="perf_period" class="perf-filters__label">Period</label>
+        <select name="period" id="perf_period" class="perf-filters__select">
+          <option value="this_month" <%= "selected" if (params[:period] || "this_month") == "this_month" %>>This month</option>
+          <option value="last_month" <%= "selected" if params[:period] == "last_month" %>>Last month</option>
+          <option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option>
+          <option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option>
+        </select>
+      </div>
+      <div class="perf-filters__group perf-filters__group--date" data-perf-dates-visible="<%= params[:period] == 'custom' %>">
+        <label for="perf_date_from" class="perf-filters__label">From</label>
+        <%= text_field_tag :date_from, params[:date_from], type: "date", id: "perf_date_from", class: "perf-filters__input" %>
+      </div>
+      <div class="perf-filters__group perf-filters__group--date" data-perf-dates-visible="<%= params[:period] == 'custom' %>">
+        <label for="perf_date_to" class="perf-filters__label">To</label>
+        <%= text_field_tag :date_to, params[:date_to], type: "date", id: "perf_date_to", class: "perf-filters__input" %>
+      </div>
+      <div class="perf-filters__group">
+        <label for="perf_course_id" class="perf-filters__label">Course</label>
+        <select name="course_id" id="perf_course_id" class="perf-filters__select">
+          <option value="">All</option>
+          <% TrainingClass.order(date: :desc).limit(50).each do |tc| %>
+            <option value="<%= tc.id %>" <%= "selected" if params[:course_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+          <% end %>
+        </select>
+      </div>
+      <div class="perf-filters__group">
+        <label for="perf_segment" class="perf-filters__label">Segment</label>
+        <select name="segment" id="perf_segment" class="perf-filters__select">
+          <option value="all" <%= "selected" if params[:segment].blank? || params[:segment] == "all" %>>All</option>
+          <option value="Indi" <%= "selected" if params[:segment] == "Indi" %>>Individual</option>
+          <option value="Corp" <%= "selected" if params[:segment] == "Corp" %>>Corporate</option>
+        </select>
+      </div>
+      <div class="perf-filters__group">
+        <label for="perf_channel" class="perf-filters__label">Channel</label>
+        <%= text_field_tag :channel, params[:channel], id: "perf_channel", class: "perf-filters__input", placeholder: "All" %>
+      </div>
+      <div class="perf-filters__group">
+        <label for="perf_payment_status" class="perf-filters__label">Payment</label>
+        <select name="payment_status" id="perf_payment_status" class="perf-filters__select">
+          <option value="">All</option>
+          <option value="Paid" <%= "selected" if params[:payment_status] == "Paid" %>>Paid</option>
+          <option value="Pending" <%= "selected" if params[:payment_status] == "Pending" %>>Pending</option>
+        </select>
+      </div>
+      <div class="perf-filters__submit">
+        <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+      </div>
+    </div>
+  <% end %>
+<% end %>
