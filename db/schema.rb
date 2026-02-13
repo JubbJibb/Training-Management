@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_000000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -59,6 +59,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
   create_table "attendees", force: :cascade do |t|
     t.text "address"
     t.string "attendance_status", default: "No-show"
+    t.text "billing_address"
+    t.string "billing_name"
     t.string "company"
     t.datetime "created_at", null: false
     t.integer "customer_id"
@@ -70,6 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
     t.string "name_thai"
     t.text "notes"
     t.string "participant_type", default: "Indi"
+    t.date "payment_date"
     t.string "payment_status", default: "Pending"
     t.string "phone"
     t.decimal "price", precision: 10, scale: 2, default: "0.0"
@@ -98,6 +101,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
     t.index ["training_class_id"], name: "index_class_expenses_on_training_class_id"
   end
 
+  create_table "courses", force: :cascade do |t|
+    t.integer "capacity"
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "duration_text"
+    t.string "external_id"
+    t.string "source_url"
+    t.datetime "synced_at"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_courses_on_external_id"
+    t.index ["title"], name: "index_courses_on_title"
+  end
+
   create_table "custom_field_values", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "custom_field_id", null: false
@@ -121,12 +139,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_100000) do
   end
 
   create_table "customers", force: :cascade do |t|
+    t.text "address"
     t.text "billing_address"
     t.string "billing_name"
     t.string "company"
     t.datetime "created_at", null: false
     t.string "email", null: false
     t.string "name", null: false
+    t.string "name_thai"
     t.string "participant_type"
     t.string "phone"
     t.string "tax_id"

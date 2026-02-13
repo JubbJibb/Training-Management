@@ -1,0 +1,16 @@
+<%# Insights panel: 3-5 auto-generated insights or empty state %>
+<%
+  insights = local_assigns[:insights] || []
+%>
+<div class="class-finance-insights odt-card" role="region" aria-labelledby="insights-title">
+  <h2 class="cfo-section-title" id="insights-title">Insights</h2>
+  <% if insights.any? %>
+    <ul class="class-finance-insights-list" style="list-style: none; padding: 0; margin: 0;">
+      <% insights.each do |text| %>
+        <li class="class-finance-insights-item"><%= text %></li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="cfo-empty class-finance-insights-empty">Add more payments and expenses to see insights.</p>
+  <% end %>
+</div>

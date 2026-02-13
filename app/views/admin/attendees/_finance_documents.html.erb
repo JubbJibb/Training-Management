@@ -30,6 +30,10 @@
     </div>
     <div class="row g-3 mb-3">
       <div class="col-md-6">
+        <%= f.label :payment_date, "วันที่ชำระเงิน", class: "form-label" %>
+        <%= f.date_field :payment_date, class: "form-control form-control-odt", value: @attendee.payment_date&.strftime("%Y-%m-%d") %>
+      </div>
+      <div class="col-md-6">
         <%= f.label :due_date, "Due Date", class: "form-label" %>
         <%= f.date_field :due_date, class: "form-control form-control-odt" %>
       </div>

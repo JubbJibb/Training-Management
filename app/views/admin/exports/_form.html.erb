@@ -24,7 +24,7 @@
     <label class="export-form__label">Course</label>
     <select name="export_job[filters][course_id]" class="export-form__select">
       <option value="">All</option>
-      <% TrainingClass.order(date: :desc).limit(30).each do |tc| %>
+      <% (@filter_training_classes || TrainingClass.order(date: :desc).limit(50)).each do |tc| %>
         <option value="<%= tc.id %>"><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
       <% end %>
     </select>

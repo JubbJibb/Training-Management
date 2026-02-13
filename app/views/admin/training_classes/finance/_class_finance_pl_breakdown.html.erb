@@ -1,0 +1,80 @@
+<%# P&L Breakdown: card with blue-accent header + timeline-style list (like Payment Status) %>
+<%
+  w = waterfall
+  prof = profitability
+  cost_rows = cost_by_category || []
+  rev_per_seat = w[:avg_revenue_per_seat].to_f
+  profit_per_seat = prof[:profit_per_seat]
+%>
+<div class="class-finance-pl-card class-finance-card cfo-two-col__block" role="region" aria-labelledby="pl-breakdown-title">
+  <div class="class-finance-card__header" id="pl-breakdown-title">
+    <h2 class="class-finance-card__title">P&L Breakdown</h2>
+  </div>
+  <div class="class-finance-card__body">
+    <ul class="class-finance-pl-timeline" aria-label="P&L calculation ladder">
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--primary" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">Gross Sales</span>
+          <span class="class-finance-pl-timeline__value"><%= number_to_thb(w[:gross_sales]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--neutral" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">(−) Discounts</span>
+          <span class="class-finance-pl-timeline__value">−<%= number_to_thb(w[:discount_total]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--primary" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">= Net Revenue</span>
+          <span class="class-finance-pl-timeline__value"><%= number_to_thb(w[:net_before_vat]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--neutral" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">(+) VAT</span>
+          <span class="class-finance-pl-timeline__value">+<%= number_to_thb(w[:vat_amount]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--total" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">= Total (Incl VAT)</span>
+          <span class="class-finance-pl-timeline__value class-finance-pl-timeline__value--total"><%= number_to_thb(w[:total_incl_vat]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__divider" aria-hidden="true"></li>
+      <% cost_rows.each do |row| %>
+        <li class="class-finance-pl-timeline__item">
+          <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--neutral" aria-hidden="true"></span>
+          <div class="class-finance-pl-timeline__content">
+            <span class="class-finance-pl-timeline__label">Costs · <%= row[:category] %></span>
+            <span class="class-finance-pl-timeline__value">−<%= number_to_thb(row[:amount]) %></span>
+          </div>
+        </li>
+      <% end %>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--<%= prof[:profit].to_f >= 0 ? 'success' : 'danger' %>" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">= Net Profit</span>
+          <span class="class-finance-pl-timeline__value class-finance-pl-timeline__value--<%= prof[:profit].to_f >= 0 ? 'success' : 'danger' %>"><%= number_to_thb(prof[:profit]) %></span>
+        </div>
+      </li>
+      <li class="class-finance-pl-timeline__item">
+        <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--neutral" aria-hidden="true"></span>
+        <div class="class-finance-pl-timeline__content">
+          <span class="class-finance-pl-timeline__label">= Margin %</span>
+          <span class="class-finance-pl-timeline__value"><%= prof[:gross_margin_pct].nil? ? "—" : number_to_percent(prof[:gross_margin_pct]) %></span>
+        </div>
+      </li>
+    </ul>
+    <footer class="class-finance-pl-footer">
+      <span>Profit per seat: <%= profit_per_seat.nil? ? "—" : number_to_thb(profit_per_seat) %></span>
+      <span>Revenue per seat: <%= rev_per_seat.nil? || rev_per_seat.zero? ? "—" : number_to_thb(rev_per_seat) %></span>
+    </footer>
+  </div>
+</div>

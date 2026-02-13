@@ -11,7 +11,6 @@ module Exports
       headers = %w[Type Company_Name Contact_Person Phone Email Tax_ID Address Segment Note]
       headers += CustomField.for_entity("customer").pluck(:label) if include_custom_fields
 
-      io = StringIO.new
       p = Axlsx::Package.new
       p.workbook.add_worksheet(name: "Customers") do |sheet|
         sheet.add_row headers, style: sheet.workbook.styles.add_style(b: true)
@@ -30,10 +29,9 @@ module Exports
           row += custom_values_for(c) if include_custom_fields
           sheet.add_row row
         end
-        sheet.sheet_view.pane_state = :frozen
-        sheet.sheet_view.pane { |pane| pane.top_left_cell = "A2"; pane.state = :frozen; pane.y_split = 1 }
+        sheet.sheet_view.pane { |pane| pane.top_left_cell = "A2"; pane.state = :frozen_split; pane.y_split = 1 }
       end
-      p.serialize(io)
+      io = p.to_stream
       io.rewind
       io
     end

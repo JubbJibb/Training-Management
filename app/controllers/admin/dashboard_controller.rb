@@ -82,8 +82,13 @@ module Admin
       @pending_qt = Attendee.attendees.where(document_status: [nil, ""], payment_status: "Pending").count
       @inv_not_confirmed = Attendee.attendees.where(document_status: "INV", payment_status: "Pending").count
       @receipt_not_issued = Attendee.attendees.where(payment_status: "Paid").where.not(document_status: "Receipt").count
-      @classes_near_full = classes_scope.select { |tc| tc.max_attendees && (tc.attendees.attendees.count.to_f / tc.max_attendees >= 0.9) }
-      @classes_near_full_count = @classes_near_full.size
+      # Single query: count classes where registered seats >= 90% of max_attendees (no custom select so .count works)
+      near_full_sql = classes_scope.joins(:attendees)
+        .where(attendees: { status: [nil, "attendee"] })
+        .group("training_classes.id")
+        .having("training_classes.max_attendees > 0 AND (SUM(attendees.seats) * 1.0 / training_classes.max_attendees) >= 0.9")
+      @classes_near_full_count = near_full_sql.count.size
+      @classes_near_full = [] # not used for list, only count; keep for compatibility
       # Optional deltas for trend (nil = hide)
       @kpi_deltas = { upcoming: nil, attendees: nil, leads: nil, repeat: nil, pending_qt: nil, unpaid_inv: nil, receipts: nil, near_full: nil }
     end

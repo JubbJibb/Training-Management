@@ -1,12 +1,17 @@
 <%= turbo_frame_tag "export_modal" do %>
   <div class="export-modal" role="dialog" aria-labelledby="export_modal_title" aria-modal="true">
     <div class="export-modal__backdrop" data-action="click->export-modal#close"></div>
-    <div class="export-modal__content">
+    <div class="export-modal__content export-modal__content--wide">
       <header class="export-modal__header">
-        <h2 id="export_modal_title" class="export-modal__title">Generate Export</h2>
+        <h2 id="export_modal_title" class="export-modal__title"><%= @export_job.label %></h2>
         <%= link_to "×", admin_exports_path, class: "export-modal__close", data: { turbo_frame: "_top" }, aria: { label: "Close" } %>
       </header>
-      <%= render "admin/exports/form", export_job: @export_job %>
+      <% form_partial = "form_#{@export_job.export_type}" %>
+      <% if lookup_context.exists?(form_partial, ["admin/exports"], true) %>
+        <%= render form_partial, export_job: @export_job %>
+      <% else %>
+        <%= render "admin/exports/form", export_job: @export_job %>
+      <% end %>
     </div>
   </div>
 <% end %>

@@ -1,0 +1,66 @@
+<%# AR aging: 0-30, 30-60, 60-90, 90+ with progress bars and status %>
+<% ar = overview[:ar_aging] || {} %>
+<% buckets = ar[:buckets] || [] %>
+<% total_ar = ar[:total_outstanding].to_f %>
+<% total_ar = 1 if total_ar.zero? %>
+<% health = overview[:health_status].to_s %>
+<% dso = overview[:days_sales_outstanding] %>
+<% rate = overview[:collection_rate].to_f %>
+<div class="foh-ar" role="region" aria-label="AR aging summary">
+  <div class="foh-card-header">
+    <h3 class="foh-ar__title">AR Aging Summary</h3>
+  </div>
+  <div class="foh-card-body">
+  <div class="table-wrap">
+  <table class="table data-table foh-ar__table table-sortable-filterable" aria-label="AR aging">
+    <colgroup>
+      <col style="width: 18%;">
+      <col style="width: 22%;">
+      <col style="width: 12%;">
+      <col style="width: 32%;">
+      <col style="width: 16%;">
+    </colgroup>
+    <thead>
+      <tr>
+        <th><span class="th-inner">Bucket</span></th>
+        <th class="foh-ar__num num"><span class="th-inner">Amount</span></th>
+        <th class="foh-ar__num num"><span class="th-inner">%</span></th>
+        <th><span class="th-inner">Progress</span></th>
+        <th><span class="th-inner">Status</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% buckets.each do |b| %>
+        <% pct = (b[:amount] / total_ar * 100).round(0) %>
+        <tr>
+          <td class="no-wrap"><%= b[:label] %></td>
+          <td class="foh-ar__num num"><%= number_to_thb(b[:amount]) %></td>
+          <td class="foh-ar__num num"><%= pct %>%</td>
+          <td>
+            <div class="foh-ar__bar-wrap">
+              <span class="foh-ar__bar foh-ar__bar--<%= b[:status] %>" style="width: <%= pct %>%"></span>
+            </div>
+          </td>
+          <td>
+            <% if b[:status] == "ok" %><span aria-hidden="true">✅</span>
+            <% elsif b[:status] == "warning" %><span aria-hidden="true">⚠️</span>
+            <% else %><span aria-hidden="true">🔴</span><% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+  <div class="foh-ar__footer">
+    <strong>Total Outstanding: <%= number_to_thb(ar[:total_outstanding]) %></strong>
+  </div>
+  <div class="foh-ar__metrics">
+    <% health_label = { "excellent" => "Excellent", "good" => "Good", "fair" => "Fair", "poor" => "Poor" }[health] || "—" %>
+    <span class="foh-ar__metric">Collection Rate: <strong><%= rate %>%</strong> (<%= health_label %>)</span>
+    <% if dso.present? %>
+      <span class="foh-ar__metric">Days Sales Outstanding: <strong><%= dso %> days</strong></span>
+    <% end %>
+    <span class="foh-ar__badge foh-ar__badge--<%= health %>"><%= health_label %></span>
+  </div>
+  </div>
+</div>

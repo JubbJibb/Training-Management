@@ -1,0 +1,15 @@
+<%# Quick actions: Export PDF, Export Excel, Print, Email %>
+<div class="foh-actions" role="region" aria-label="Quick actions">
+  <%= link_to new_admin_export_path(export_type: "financial_report", file_format: "pdf"), class: "foh-actions__btn", data: { turbo_frame: "export_modal" } do %>
+    <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Export Report
+  <% end %>
+  <%= link_to new_admin_export_path(export_type: "overall_revenue_summary"), class: "foh-actions__btn", data: { turbo_frame: "export_modal" } do %>
+    <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Export Excel
+  <% end %>
+  <button type="button" class="foh-actions__btn" onclick="window.print();">
+    <i class="bi bi-printer" aria-hidden="true"></i> Print
+  </button>
+  <button type="button" class="foh-actions__btn" disabled title="Coming soon">
+    <i class="bi bi-envelope" aria-hidden="true"></i> Email Report
+  </button>
+</div>

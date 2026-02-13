@@ -55,7 +55,7 @@ module Exports
         footer(pdf)
       end.render(io)
       io.rewind
-      io
+      Exports::PdfTemplateHelper.wrap_with_template(io)
     end
 
     private

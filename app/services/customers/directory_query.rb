@@ -13,6 +13,15 @@ module Customers
   class DirectoryQuery
     SEGMENTS = %w[all indi corp top_spenders].freeze
     DEFAULT_TOP_N = 20
+    SORT_COLUMNS = {
+      "customer" => "customers.name",
+      "type" => "customers.participant_type",
+      "times_attended" => "times_attended",
+      "last_attended" => "last_attended_at",
+      "total_spent" => "total_spent_net_raw",
+      "outstanding" => "outstanding_raw",
+      "seats_total" => "seats_total_raw"
+    }.freeze
 
     def initialize(params = {})
       @q = params[:q].to_s.strip.presence
@@ -20,6 +29,8 @@ module Customers
       @segment = "all" unless SEGMENTS.include?(@segment)
       @top_n = (params[:top_n].presence || DEFAULT_TOP_N).to_i
       @top_n = DEFAULT_TOP_N if @top_n < 1
+      @sort = params[:sort].to_s.presence
+      @direction = params[:direction].to_s.downcase == "asc" ? "asc" : "desc"
     end
 
     def call
@@ -47,7 +58,10 @@ module Customers
           "MAX(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') THEN training_classes.date END) AS last_attended_at",
           "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') AND attendees.payment_status = 'Paid' THEN COALESCE(attendees.total_amount, attendees.price * attendees.seats) ELSE 0 END), 0) AS total_spent_net_raw",
           "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') AND attendees.payment_status = 'Pending' THEN COALESCE(attendees.total_amount, attendees.price * attendees.seats) ELSE 0 END), 0) AS outstanding_raw",
-          "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') THEN attendees.seats ELSE 0 END), 0) AS seats_total_raw"
+          "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') THEN attendees.seats ELSE 0 END), 0) AS seats_total_raw",
+          "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') AND (attendees.document_status IS NULL OR attendees.document_status = '') THEN 1 ELSE 0 END), 0) AS docs_missing_qt_raw",
+          "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') AND (attendees.document_status IS NULL OR attendees.document_status = '' OR attendees.document_status = 'QT') THEN 1 ELSE 0 END), 0) AS docs_missing_inv_raw",
+          "COALESCE(SUM(CASE WHEN (attendees.status = 'attendee' OR attendees.status IS NULL OR attendees.status = '') AND (attendees.document_status IS NULL OR attendees.document_status != 'Receipt') THEN 1 ELSE 0 END), 0) AS docs_missing_receipt_raw"
         )
     end
 
@@ -77,12 +91,19 @@ module Customers
     end
 
     def apply_sort(rel)
-      case @segment
-      when "corp", "top_spenders"
-        rel.reorder(Arel.sql("total_spent_net_raw DESC"))
+      order_sql = if @sort && SORT_COLUMNS[@sort]
+        col = SORT_COLUMNS[@sort]
+        expr = (col == "last_attended_at" ? "COALESCE(last_attended_at, '0001-01-01')" : col)
+        Arel.sql("#{expr} #{@direction.upcase}")
       else
-        rel.reorder(Arel.sql("COALESCE(last_attended_at, '0001-01-01') DESC"))
+        case @segment
+        when "corp", "top_spenders"
+          Arel.sql("total_spent_net_raw DESC")
+        else
+          Arel.sql("COALESCE(last_attended_at, '0001-01-01') DESC")
+        end
       end
+      rel.reorder(order_sql)
     end
 
     def apply_limit(rel)

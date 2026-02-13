@@ -1,0 +1,34 @@
+<%
+  customer = local_assigns[:customer]
+  segment = local_assigns[:segment].to_s.presence || "all"
+  sort = local_assigns[:sort].to_s.presence
+  direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
+  base_params = local_assigns[:base_params] || {}
+%>
+<tr id="<%= dom_id(customer, :row) %>">
+  <td class="truncate-2">
+    <%= link_to admin_customer_path(customer), class: "customer-table__name-link text-decoration-none" do %>
+      <strong><%= customer.company_name %></strong>
+      <% if customer.email.present? %>
+        <div class="customer-table__meta truncate"><%= customer.email %></div>
+      <% end %>
+    <% end %>
+  </td>
+  <td>
+    <span class="badge <%= customer.participant_type == 'Corp' ? 'badge-type-corp' : 'badge-type-indi' %> badge-modern"><%= customer.participant_type.presence || "—" %></span>
+  </td>
+  <td class="text-center"><%= customer.respond_to?(:times_attended) ? customer.times_attended.to_i : 0 %></td>
+  <td class="no-wrap"><% la = customer.respond_to?(:last_attended_at) ? customer.last_attended_at : nil %>
+    <%= la.present? ? (la.is_a?(Date) ? la.strftime("%d/%m/%y") : (la.respond_to?(:strftime) ? la.strftime("%d/%m/%y") : la.to_s)) : "—" %>
+  </td>
+  <td class="num text-end"><%= number_to_thb(customer.respond_to?(:total_spent_net_raw) ? customer.total_spent_net_raw.to_f : 0) %></td>
+  <td class="num text-end"><%= number_to_thb(customer.respond_to?(:outstanding_raw) ? customer.outstanding_raw.to_f : 0) %></td>
+  <td class="text-center"><%= customer.respond_to?(:seats_total_raw) ? customer.seats_total_raw.to_i : 0 %></td>
+  <td class="text-center customer-table__docs-cell">
+    <%= render "admin/customers/billing_tax_icons", customer: customer, segment: segment, sort: sort, direction: direction, base_params: base_params %>
+  </td>
+  <td class="text-end action-cell actions-col">
+    <%= link_to register_for_class_admin_customer_path(customer), class: "btn btn-action btn-action--register", title: "สมัครเรียน" do %><i class="bi bi-person-plus"></i><% end %>
+    <%= link_to edit_admin_customer_path(customer), class: "btn btn-action", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
+  </td>
+</tr>

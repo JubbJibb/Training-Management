@@ -1,0 +1,27 @@
+<%
+  attendee = local_assigns[:attendee]
+  training_class = local_assigns[:training_class]
+  status = attendee.billing_tax_status
+  short = attendee.billing_tax_present_values_short
+  frame_id = "attendee_tax_cell_#{attendee.id}"
+%>
+<%= turbo_frame_tag frame_id do %>
+  <div class="doc-edit-cell doc-tax-cell customer-table__billing-tax-icons-wrap" data-edit-section="tax-info" title="Click to fill or update tax info">
+    <span class="customer-table__billing-tax-icons icon-group">
+      <span class="customer-table__billing-tax-icon customer-table__billing-tax-icon--hit <%= status[:tax_id] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:tax_id] ? "Tax ID: present (#{h(short[:tax_id])})" : "Tax ID: missing" %>">
+        <i class="bi bi-receipt" aria-hidden="true"></i>
+      </span>
+      <span class="customer-table__billing-tax-icon customer-table__billing-tax-icon--hit <%= status[:billing_name] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:billing_name] ? "Billing Name: present" : "Billing Name: missing" %>">
+        <i class="bi bi-person-vcard" aria-hidden="true"></i>
+      </span>
+      <span class="customer-table__billing-tax-icon customer-table__billing-tax-icon--hit <%= status[:billing_address] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:billing_address] ? "Billing Address: present (#{h(short[:billing_address])})" : "Billing Address: missing" %>">
+        <i class="bi bi-geo-alt" aria-hidden="true"></i>
+      </span>
+    </span>
+    <% if attendee.customer_id.present? && attendee.customer %>
+      <%= button_to sync_tax_from_customer_admin_training_class_attendee_path(training_class, attendee), method: :post, class: "btn btn-link btn-sm p-0 ms-1 text-nowrap", form: { data: { turbo_frame: frame_id } }, title: "Sync จาก Billing & Tax ของลูกค้า" do %>
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Sync
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

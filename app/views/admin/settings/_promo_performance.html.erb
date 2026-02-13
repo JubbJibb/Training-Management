@@ -33,26 +33,36 @@
         </div>
       </div>
 
-      <div class="promo-mgmt-conversion-table-wrap">
-        <table class="promo-mgmt-table" aria-label="Promotion conversion">
+      <div class="table-wrap promo-mgmt-conversion-table-wrap">
+        <table class="table data-table promo-mgmt-table table-sortable-filterable" aria-label="Promotion conversion">
+          <colgroup>
+            <col style="width: 18%;">
+            <col style="width: 10%;">
+            <col style="width: 10%;">
+            <col style="width: 12%;">
+            <col style="width: 12%;">
+            <col style="width: 12%;">
+            <col style="width: 12%;">
+            <col style="width: 14%;">
+          </colgroup>
           <thead>
             <tr>
-              <th>Promotion</th>
-              <th>Type</th>
-              <th class="promo-mgmt-table-num">Used seats</th>
-              <th class="promo-mgmt-table-num">Revenue</th>
-              <th class="promo-mgmt-table-num">Discount cost</th>
-              <th class="promo-mgmt-table-num">Avg / seat</th>
-              <th class="promo-mgmt-table-num">Conv. %</th>
-              <th class="promo-mgmt-table-num">Margin impact %</th>
+              <th><span class="th-inner">Promotion</span></th>
+              <th><span class="th-inner">Type</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Used seats</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Revenue</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Discount cost</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Avg / seat</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Conv. %</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Margin impact %</span></th>
             </tr>
           </thead>
           <tbody>
             <% rows.each do |r| %>
               <tr>
-                <td><strong><%= r[:name] %></strong></td>
+                <td class="truncate"><strong><%= r[:name] %></strong></td>
                 <td><%= r[:type_label] %></td>
-                <td class="promo-mgmt-table-num"><%= r[:used_seats] %></td>
+                <td class="promo-mgmt-table-num num"><%= r[:used_seats] %></td>
                 <td class="promo-mgmt-table-num"><%= number_to_thb(r[:revenue_generated].to_f) %></td>
                 <td class="promo-mgmt-table-num"><%= number_to_thb(r[:total_discount_cost].to_f) %></td>
                 <td class="promo-mgmt-table-num"><%= number_to_thb(r[:avg_price_per_seat].to_f) %></td>

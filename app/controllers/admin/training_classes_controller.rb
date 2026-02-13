@@ -11,8 +11,9 @@ module Admin
     
     def show
       @training_class = TrainingClass.find(params[:id])
-      @attendees = @training_class.attendees.attendees.order(:name)
+      @attendees = @training_class.attendees.attendees.includes(:customer).order(:name)
       @potential_customers = @training_class.attendees.potential_customers.order(:name)
+      @document_summary = DocumentSummaryService.new(@training_class.id).summary
       # Finance tab: load dashboard inline so the frame doesn't depend on a second request (avoids loading issues when frame is inside hidden tab)
       @finance_dashboard = ::Finance::ClassFinanceDashboardQuery.new(
         @training_class,
@@ -31,6 +32,15 @@ module Admin
     
     def new
       @training_class = TrainingClass.new
+      if params[:course_id].present?
+        course = Course.find_by(id: params[:course_id])
+        if course
+          @course = course
+          @training_class.title = course.title
+          @training_class.description = course.description
+          @training_class.max_attendees = course.capacity if course.capacity.present?
+        end
+      end
     end
     
     def create

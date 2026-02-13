@@ -1,0 +1,34 @@
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var discountTypeSelect = document.getElementById('discount_type_select');
+    var discountValueHelp = document.getElementById('discount_value_help');
+    var discountValueInput = document.querySelector('input[name="promotion[discount_value]"]');
+
+    function updateHelpText() {
+      var type = discountTypeSelect && discountTypeSelect.value;
+      if (!discountValueHelp || !discountValueInput) return;
+      switch (type) {
+        case 'percentage':
+          discountValueHelp.textContent = 'กรอกเป็นเปอร์เซ็นต์ (เช่น 10 สำหรับ 10%, 5 สำหรับ 5%)';
+          discountValueInput.placeholder = 'เช่น 10 (สำหรับ 10%)';
+          break;
+        case 'fixed':
+          discountValueHelp.textContent = 'กรอกเป็นจำนวนเงิน (เช่น 500 สำหรับลด 500 บาท)';
+          discountValueInput.placeholder = 'เช่น 500 (สำหรับลด 500 บาท)';
+          break;
+        case 'buy_x_get_y':
+          discountValueHelp.textContent = 'กรอกจำนวนคนที่ต้องจ่าย (เช่น 3 สำหรับ "มา 4 จ่าย 3")';
+          discountValueInput.placeholder = 'เช่น 3 (สำหรับ มา 4 จ่าย 3)';
+          break;
+        default:
+          discountValueHelp.textContent = '';
+          discountValueInput.placeholder = '';
+      }
+    }
+
+    if (discountTypeSelect) {
+      discountTypeSelect.addEventListener('change', updateHelpText);
+      updateHelpText();
+    }
+  });
+</script>

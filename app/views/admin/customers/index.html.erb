@@ -1,5 +1,8 @@
 <% content_for :title, "Customers" %>
 <%= render "components/odt/page_header", title: "Customers", subtitle: "รวมข้อมูลผู้เรียน/ลูกค้าทั้งหมด เพื่อใช้ทำ QT/INV/Receipt และดูสถิติ", icon: "people" do %>
+  <%= link_to new_admin_customer_path, class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+    <i class="bi bi-plus-circle" aria-hidden="true"></i> Create new Customer
+  <% end %>
   <%= button_to "Sync ข้อมูลลูกค้าชื่อซ้ำ", sync_duplicates_admin_customers_path, method: :post, class: "odt-btn odt-btn--secondary odt-btn--sm", form: { data: { turbo_confirm: "จะอัปเดตข้อมูลลูกค้าที่ชื่อซ้ำกัน ให้ครบจากรายการอื่นในกลุ่ม ต้องการดำเนินการหรือไม่?" } } %>
 <% end %>
 
@@ -19,7 +22,8 @@
   </div>
 </div>
 
-<%= turbo_frame_tag "customers_table" do %>
+<%= turbo_frame_tag "customers_table", class: "customers-table-frame" do %>
   <%= render "admin/customers/tabs", segment: @segment, q: @q, top_n: @top_n %>
-  <%= render "admin/customers/table", customers: @customers, segment: @segment %>
+  <%= render "admin/customers/table", customers: @customers, segment: @segment, sort: @sort, direction: @direction %>
 <% end %>
+<%= turbo_frame_tag "modal" %>

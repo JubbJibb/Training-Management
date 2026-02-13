@@ -1,17 +1,34 @@
 module Admin
   class CustomersController < ApplicationController
+    include ActionView::RecordIdentifier
+
     layout "admin"
 
-    before_action :set_customer, only: [:show, :edit, :update, :sync_document_info, :export_customer_info, :export_billing_accounting, :export_customer_template]
+    before_action :set_customer, only: [:show, :edit, :update, :sync_document_info, :export_customer_info, :export_billing_accounting, :export_customer_template, :edit_billing_tax, :update_billing_tax, :register_for_class]
 
     def index
       @q = params[:q].to_s.strip
       @segment = params[:segment].to_s.presence || "all"
       @top_n = (params[:top_n].presence || Customers::DirectoryQuery::DEFAULT_TOP_N).to_i
+      @sort = params[:sort].to_s.presence
+      @direction = params[:direction].to_s.downcase == "asc" ? "asc" : "desc"
 
-      query = Customers::DirectoryQuery.new(q: @q, segment: @segment, top_n: @top_n)
+      query = Customers::DirectoryQuery.new(q: @q, segment: @segment, top_n: @top_n, sort: @sort, direction: @direction)
       @customers = query.call
       @segment = query.segment
+    end
+
+    def new
+      @customer = Customer.new
+    end
+
+    def create
+      @customer = Customer.new(customer_params)
+      if @customer.save
+        redirect_to admin_customer_path(@customer), notice: "สร้างลูกค้าใหม่เรียบร้อย"
+      else
+        render :new, status: :unprocessable_entity
+      end
     end
 
     def show
@@ -46,7 +63,31 @@ module Admin
         notice: "Sync แล้ว: กลุ่มชื่อซ้ำ #{result[:groups_processed]} กลุ่ม, อัปเดต #{result[:customers_updated]} รายการ"
     end
 
+    def merge
+      primary = find_customer_param(:primary_email, :primary_id)
+      source  = find_customer_param(:source_email, :source_id)
+      if primary.blank?
+        redirect_to admin_customers_path, alert: "ไม่พบ Customer หลัก (ระบุ primary_email หรือ primary_id)"
+        return
+      end
+      if source.blank?
+        redirect_to admin_customers_path, alert: "ไม่พบ Customer ที่จะ merge (ระบุ source_email หรือ source_id)"
+        return
+      end
+      result = CustomerMergeService.new(primary: primary, source: source).call
+      if result[:success]
+        redirect_to admin_customer_path(primary),
+          notice: "Merge แล้ว: ย้ายผู้เข้าร่วม #{result[:attendees_reassigned]} รายการมาที่ #{primary.email}#{result[:attrs_updated].any? ? " (อัปเดตฟิลด์: #{result[:attrs_updated].join(', ')})" : ''}"
+      else
+        redirect_to admin_customers_path, alert: "Merge ไม่สำเร็จ: #{result[:error]}"
+      end
+    end
+
     def sync_document_info
+      if request.get?
+        redirect_to edit_admin_customer_path(@customer), notice: "ใช้ปุ่ม «Sync from latest registration» เพื่อดึงข้อมูลจากประวัติลงทะเบียน"
+        return
+      end
       if @customer.update_document_info_from_attendees
         respond_to do |format|
           format.turbo_stream do
@@ -83,10 +124,56 @@ module Admin
       send_customer_csv("customer-template-#{@customer.id}-#{Date.current}.csv", customer_template_headers, customer_template_rows)
     end
 
+    def register_for_class
+      @upcoming_classes = TrainingClass.upcoming.order(:date).limit(50)
+      render :register_for_class
+    end
+
+    def edit_billing_tax
+      if params[:close].present?
+        render partial: "admin/customers/empty_modal_fragment", layout: false
+        return
+      end
+      render partial: "admin/customers/billing_tax_modal", locals: { customer: @customer }, layout: false
+    end
+
+    def update_billing_tax
+      if @customer.update(customer_params.slice(:tax_id, :billing_name, :billing_address))
+        query = Customers::DirectoryQuery.new(
+          q: params[:q].to_s.strip.presence,
+          segment: params[:segment].to_s.presence || "all",
+          top_n: params[:top_n].presence,
+          sort: params[:sort].to_s.presence,
+          direction: params[:direction].to_s.downcase == "asc" ? "asc" : "desc"
+        )
+        rel = query.call
+        row_customer = rel.find { |r| r.id == @customer.id } || @customer
+        base_params = { q: params[:q].to_s.presence, segment: params[:segment].to_s.presence, top_n: params[:top_n].to_s.presence }.compact
+        render turbo_stream: [
+          turbo_stream.replace(dom_id(@customer, :row), partial: "admin/customers/row", locals: { customer: row_customer, segment: params[:segment].to_s.presence || "all", sort: params[:sort].to_s.presence, direction: params[:direction].to_s.downcase == "asc" ? "asc" : "desc", base_params: base_params }),
+          turbo_stream.replace("modal", partial: "admin/customers/empty_modal_fragment")
+        ], status: :ok
+      else
+        render turbo_stream: turbo_stream.replace("modal", partial: "admin/customers/billing_tax_modal", locals: { customer: @customer }), status: :unprocessable_entity
+      end
+    end
+
     private
 
     def set_customer
       @customer = Customer.find(params[:id])
+    end
+
+    def find_customer_param(email_key, id_key)
+      email = params[email_key].to_s.strip.downcase.presence
+      id = params[id_key].to_s.presence
+      if id.present?
+        Customer.find_by(id: id)
+      elsif email.present?
+        Customer.find_by(email: email)
+      else
+        nil
+      end
     end
 
     def customer_has_missing_billing?
@@ -121,11 +208,13 @@ module Admin
     def customer_params
       params.require(:customer).permit(
         :name,
+        :name_thai,
         :participant_type,
         :company,
         :email,
         :phone,
         :tax_id,
+        :address,
         :billing_name,
         :billing_address
       )

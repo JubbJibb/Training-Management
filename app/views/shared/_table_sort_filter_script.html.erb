@@ -32,9 +32,11 @@
   function getSortValue(cell) {
     if (!cell) return '';
     var text = (cell.textContent || '').trim();
-    var num = text.replace(/[^\d.-]/g, '');
-    if (num && !isNaN(parseFloat(num))) return parseFloat(num);
-    return text.toLowerCase();
+    var firstLine = text.split(/\r?\n/)[0] || text;
+    firstLine = firstLine.trim();
+    if (!firstLine) return '';
+    if (/^-?\d+(\.\d*)?\s*$/.test(firstLine)) return parseFloat(firstLine);
+    return firstLine.toLowerCase();
   }
 
   function sortTable(table, colIndex, dir) {

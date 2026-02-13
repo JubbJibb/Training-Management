@@ -63,186 +63,199 @@
     </div>
   </div>
 
-  <div class="class-detail-two-col">
-    <div class="class-detail-two-col__left">
-      <%= odt_card(title: "Class Details", icon: "info-circle", extra_class: "class-details-card-odt") do %>
-        <div class="class-details-grid-2col">
-          <div class="class-details-col">
-            <div class="class-details-row">
-              <span class="class-details-label">Date</span>
-              <span class="class-details-value">
-                <%= @training_class.date.strftime("%B %d, %Y") %>
-                <% if @training_class.end_date && @training_class.end_date != @training_class.date %>
-                  – <%= @training_class.end_date.strftime("%B %d, %Y") %>
+  <!-- 5 Tabs: Class Overview | Class Attendees | Potential Customers | Financial Documents | Financial Dashboard -->
+  <nav class="customer-tabs class-detail-tabs" aria-label="Class sections">
+    <div class="customer-tabs__inner" id="classTabs" role="tablist">
+      <button class="customer-tabs__tab active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-selected="true">
+        <i class="bi bi-info-circle"></i> Class Overview
+      </button>
+      <button class="customer-tabs__tab" id="attendees-tab" data-bs-toggle="tab" data-bs-target="#attendees" type="button" role="tab">
+        <i class="bi bi-people-fill"></i> Class Attendees
+      </button>
+      <button class="customer-tabs__tab" id="potential-tab" data-bs-toggle="tab" data-bs-target="#potential" type="button" role="tab">
+        <i class="bi bi-person-plus"></i> Potential Customers
+      </button>
+      <button class="customer-tabs__tab" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+        <i class="bi bi-file-earmark-text"></i> Financial Documents
+      </button>
+      <button class="customer-tabs__tab" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">
+        <i class="bi bi-cash-coin"></i> Financial Dashboard
+      </button>
+    </div>
+  </nav>
+
+  <div class="tab-content class-detail-tab-content" id="classTabsContent">
+    <!-- Tab 1: Class Overview -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+      <div class="class-detail-two-col">
+        <div class="class-detail-two-col__left">
+          <%= odt_card(title: "Class Details", icon: "info-circle", extra_class: "class-details-card-odt") do %>
+            <div class="class-details-grid-2col">
+              <div class="class-details-col">
+                <div class="class-details-row">
+                  <span class="class-details-label">Date</span>
+                  <span class="class-details-value">
+                    <%= @training_class.date.strftime("%B %d, %Y") %>
+                    <% if @training_class.end_date && @training_class.end_date != @training_class.date %>
+                      – <%= @training_class.end_date.strftime("%B %d, %Y") %>
+                    <% end %>
+                  </span>
+                </div>
+                <div class="class-details-row">
+                  <span class="class-details-label">Duration</span>
+                  <span class="class-details-value"><%= @training_class.duration %></span>
+                </div>
+                <% if @training_class.instructor.present? %>
+                  <div class="class-details-row">
+                    <span class="class-details-label">Instructor</span>
+                    <span class="class-details-value"><%= @training_class.instructor %></span>
+                  </div>
                 <% end %>
-              </span>
+              </div>
+              <div class="class-details-col">
+                <% if @training_class.start_time || @training_class.end_time %>
+                  <div class="class-details-row">
+                    <span class="class-details-label">Time</span>
+                    <span class="class-details-value">
+                      <% if @training_class.start_time && @training_class.end_time %>
+                        <%= @training_class.start_time.strftime("%I:%M %p") %> – <%= @training_class.end_time.strftime("%I:%M %p") %>
+                      <% elsif @training_class.start_time %>
+                        <%= @training_class.start_time.strftime("%I:%M %p") %>
+                      <% end %>
+                    </span>
+                  </div>
+                <% end %>
+                <div class="class-details-row">
+                  <span class="class-details-label">Location</span>
+                  <span class="class-details-value"><%= @training_class.location %></span>
+                </div>
+                <% if @training_class.max_attendees.present? %>
+                  <div class="class-details-row">
+                    <span class="class-details-label">Max Attendees</span>
+                    <span class="class-details-value"><%= @training_class.max_attendees %></span>
+                  </div>
+                <% end %>
+              </div>
             </div>
-            <div class="class-details-row">
-              <span class="class-details-label">Duration</span>
-              <span class="class-details-value"><%= @training_class.duration %></span>
-            </div>
-            <% if @training_class.instructor.present? %>
-              <div class="class-details-row">
-                <span class="class-details-label">Instructor</span>
-                <span class="class-details-value"><%= @training_class.instructor %></span>
+            <% if @training_class.price.present? && @training_class.price > 0 %>
+              <div class="class-details-row class-details-row--price">
+                <span class="class-details-label">Price per seat</span>
+                <span class="class-details-value class-details-value--primary"><%= number_to_thb(@training_class.price) %></span>
               </div>
             <% end %>
-          </div>
-          <div class="class-details-col">
-            <% if @training_class.start_time || @training_class.end_time %>
-              <div class="class-details-row">
-                <span class="class-details-label">Time</span>
-                <span class="class-details-value">
-                  <% if @training_class.start_time && @training_class.end_time %>
-                    <%= @training_class.start_time.strftime("%I:%M %p") %> – <%= @training_class.end_time.strftime("%I:%M %p") %>
-                  <% elsif @training_class.start_time %>
-                    <%= @training_class.start_time.strftime("%I:%M %p") %>
+            <% if @training_class.description.present? %>
+              <div class="class-details-description">
+                <span class="class-details-label">Description</span>
+                <div class="class-details-value class-details-value--block"><%= simple_format(@training_class.description) %></div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+
+        <div class="class-detail-two-col__right">
+          <div class="class-detail-right-col">
+            <%= odt_card(title: "Attendance", icon: "people", extra_class: "attendance-card-odt") do %>
+              <div class="attendance-kpi">
+                <div class="attendance-kpi__main">
+                  <span class="attendance-kpi__number"><%= registered_seats %><% if max_seats.positive? %><span class="attendance-kpi__number-max">/ <%= max_seats %></span><% end %></span>
+                  <% if max_seats.positive? && registered_seats >= max_seats %>
+                    <%= odt_badge("Full", variant: :warning, size: :sm) %>
                   <% end %>
-                </span>
+                </div>
+                <p class="attendance-kpi__label">Seats utilized</p>
+                <% if max_seats.positive? %>
+                  <div class="attendance-kpi__bar" role="progressbar" aria-valuenow="<%= utilization_pct %>" aria-valuemin="0" aria-valuemax="100">
+                    <div class="attendance-kpi__bar-fill" style="width: <%= utilization_pct %>%;"></div>
+                  </div>
+                  <p class="attendance-kpi__pct"><%= utilization_pct %>% utilization</p>
+                <% end %>
+                <% if revenue_capacity.positive? %>
+                  <p class="attendance-kpi__capacity">Revenue capacity <%= number_to_thb(revenue_capacity) %></p>
+                <% end %>
+              </div>
+              <div class="attendance-card-odt__actions">
+                <%= odt_button("Manage Attendees", variant: :primary, size: :md, icon_left: "list-ul", href: admin_training_class_attendees_path(@training_class), class: "w-100 mb-2") %>
+                <%= odt_button("Export CSV", variant: :secondary, size: :md, icon_left: "download", href: export_admin_training_class_attendees_path(@training_class, format: :csv), class: "w-100") %>
               </div>
             <% end %>
-            <div class="class-details-row">
-              <span class="class-details-label">Location</span>
-              <span class="class-details-value"><%= @training_class.location %></span>
-            </div>
-            <% if @training_class.max_attendees.present? %>
-              <div class="class-details-row">
-                <span class="class-details-label">Max Attendees</span>
-                <span class="class-details-value"><%= @training_class.max_attendees %></span>
+
+            <%= odt_card(title: "Quick Finance", icon: "cash-coin", extra_class: "class-detail-finance-box") do %>
+              <div class="class-detail-finance-box__body">
+                <div class="class-detail-finance-row">
+                  <span class="class-detail-finance-row__label">Gross Sales</span>
+                  <span class="class-detail-finance-row__value"><%= number_to_thb(gross_sales) %></span>
+                </div>
+                <div class="class-detail-finance-row">
+                  <span class="class-detail-finance-row__label">Net Revenue (before VAT)</span>
+                  <span class="class-detail-finance-row__value"><%= number_to_thb(net_before_vat) %></span>
+                </div>
+                <div class="class-detail-finance-row">
+                  <span class="class-detail-finance-row__label">Cost</span>
+                  <span class="class-detail-finance-row__value"><%= number_to_thb(total_cost) %></span>
+                </div>
+                <div class="class-detail-finance-row class-detail-finance-row--success">
+                  <span class="class-detail-finance-row__label">Cash Received</span>
+                  <span class="class-detail-finance-row__value"><%= number_to_thb(cash_received) %></span>
+                </div>
+                <div class="class-detail-finance-row class-detail-finance-row--warning">
+                  <span class="class-detail-finance-row__label">Outstanding</span>
+                  <span class="class-detail-finance-row__value"><%= number_to_thb(outstanding) %></span>
+                </div>
               </div>
             <% end %>
           </div>
         </div>
-        <% if @training_class.price.present? && @training_class.price > 0 %>
-          <div class="class-details-row class-details-row--price">
-            <span class="class-details-label">Price per seat</span>
-            <span class="class-details-value class-details-value--primary"><%= number_to_thb(@training_class.price) %></span>
-          </div>
-        <% end %>
-        <% if @training_class.description.present? %>
-          <div class="class-details-description">
-            <span class="class-details-label">Description</span>
-            <div class="class-details-value class-details-value--block"><%= simple_format(@training_class.description) %></div>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-
-    <div class="class-detail-two-col__right">
-      <div class="class-detail-right-col">
-        <%= odt_card(title: "Attendance", icon: "people", extra_class: "attendance-card-odt") do %>
-          <div class="attendance-kpi">
-            <div class="attendance-kpi__main">
-              <span class="attendance-kpi__number"><%= registered_seats %><% if max_seats.positive? %><span class="attendance-kpi__number-max">/ <%= max_seats %></span><% end %></span>
-              <% if max_seats.positive? && registered_seats >= max_seats %>
-                <%= odt_badge("Full", variant: :warning, size: :sm) %>
-              <% end %>
-            </div>
-            <p class="attendance-kpi__label">Seats utilized</p>
-            <% if max_seats.positive? %>
-              <div class="attendance-kpi__bar" role="progressbar" aria-valuenow="<%= utilization_pct %>" aria-valuemin="0" aria-valuemax="100">
-                <div class="attendance-kpi__bar-fill" style="width: <%= utilization_pct %>%;"></div>
-              </div>
-              <p class="attendance-kpi__pct"><%= utilization_pct %>% utilization</p>
-            <% end %>
-            <% if revenue_capacity.positive? %>
-              <p class="attendance-kpi__capacity">Revenue capacity <%= number_to_thb(revenue_capacity) %></p>
-            <% end %>
-          </div>
-          <div class="attendance-card-odt__actions">
-            <%= odt_button("Manage Attendees", variant: :primary, size: :md, icon_left: "list-ul", href: admin_training_class_attendees_path(@training_class), class: "w-100 mb-2") %>
-            <%= odt_button("Export CSV", variant: :secondary, size: :md, icon_left: "download", href: export_admin_training_class_attendees_path(@training_class, format: :csv), class: "w-100") %>
-          </div>
-        <% end %>
-
-        <%= odt_card(title: "Quick Finance", icon: "cash-coin", extra_class: "class-detail-finance-box") do %>
-          <div class="class-detail-finance-box__body">
-            <div class="class-detail-finance-row">
-              <span class="class-detail-finance-row__label">Gross Sales</span>
-              <span class="class-detail-finance-row__value"><%= number_to_thb(gross_sales) %></span>
-            </div>
-            <div class="class-detail-finance-row">
-              <span class="class-detail-finance-row__label">Net Revenue (before VAT)</span>
-              <span class="class-detail-finance-row__value"><%= number_to_thb(net_before_vat) %></span>
-            </div>
-            <div class="class-detail-finance-row">
-              <span class="class-detail-finance-row__label">Cost</span>
-              <span class="class-detail-finance-row__value"><%= number_to_thb(total_cost) %></span>
-            </div>
-            <div class="class-detail-finance-row class-detail-finance-row--success">
-              <span class="class-detail-finance-row__label">Cash Received</span>
-              <span class="class-detail-finance-row__value"><%= number_to_thb(cash_received) %></span>
-            </div>
-            <div class="class-detail-finance-row class-detail-finance-row--warning">
-              <span class="class-detail-finance-row__label">Outstanding</span>
-              <span class="class-detail-finance-row__value"><%= number_to_thb(outstanding) %></span>
-            </div>
-          </div>
-        <% end %>
       </div>
     </div>
-  </div>
-</div>
 
-<div class="row class-detail-section">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">📊 Class Information</h5>
-        <%= odt_button("Add Attendee", variant: :primary, size: :sm, icon_left: "plus-circle", href: new_admin_training_class_attendee_path(@training_class)) %>
-      </div>
-      <div class="card-body">
-        <!-- Nav tabs – same style as Customers page (ODT yellow active underline) -->
-        <nav class="customer-tabs" aria-label="Class sections">
-          <div class="customer-tabs__inner" id="classTabs" role="tablist">
-            <button class="customer-tabs__tab active" id="attendees-tab" data-bs-toggle="tab" data-bs-target="#attendees" type="button" role="tab">
-              <i class="bi bi-people-fill"></i> Tab 1: Class Attendees
-            </button>
-            <button class="customer-tabs__tab" id="potential-tab" data-bs-toggle="tab" data-bs-target="#potential" type="button" role="tab">
-              <i class="bi bi-person-plus"></i> Tab 2: Potential Customers
-            </button>
-            <button class="customer-tabs__tab" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
-              <i class="bi bi-file-earmark-text"></i> Tab 3: Documents
-            </button>
-            <button class="customer-tabs__tab" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">
-              <i class="bi bi-cash-coin"></i> Finance Dashboard
-            </button>
-          </div>
-        </nav>
-
-        <!-- Tab content -->
-        <div class="tab-content mt-4" id="classTabsContent">
-          <!-- Tab 1: Class Attendees -->
-          <div class="tab-pane fade show active" id="attendees" role="tabpanel">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- Tab 2: Class Attendees -->
+    <div class="tab-pane fade" id="attendees" role="tabpanel" aria-labelledby="attendees-tab">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
               <h6 class="mb-0">👥 Class Attendees (ผู้ลงทะเบียนแล้ว)</h6>
-              <% if @attendees.any? %>
-                <%= link_to mailto_all_attendees_link(@training_class), 
-                    class: "btn btn-primary btn-sm", 
-                    title: "Send Email to All Attendees (Opens Outlook)",
-                    target: "_blank" do %>
-                  <i class="bi bi-envelope"></i> Send Email to All
+              <div class="d-flex align-items-center gap-2">
+                <%= odt_button("Add Attendee", variant: :primary, size: :sm, icon_left: "plus-circle", href: new_admin_training_class_attendee_path(@training_class)) %>
+                <% if @attendees.any? %>
+                  <%= link_to mailto_all_attendees_link(@training_class),
+                      class: "btn btn-primary btn-sm",
+                      title: "Send Email to All Attendees (Opens Outlook)",
+                      target: "_blank" do %>
+                    <i class="bi bi-envelope"></i> Send Email to All
+                  <% end %>
                 <% end %>
-              <% end %>
+              </div>
             </div>
             <% if @attendees.any? %>
-              <%= odt_table(extra_class: "attendees-table-wrap") do %>
+              <%= odt_table(extra_class: "attendees-table-wrap tc-class-attendees-wrap") do %>
+                <colgroup>
+                  <col class="col-num" style="width: 3%;">
+                  <col class="col-name" style="width: 15%;">
+                  <col class="col-company" style="width: 12%;">
+                  <col class="col-type" style="width: 5%;">
+                  <col class="col-seats" style="width: 5%;">
+                  <col class="col-channel" style="width: 7%;">
+                  <col class="col-payment" style="width: 7%;">
+                  <col class="col-payment-date" style="width: 9%;">
+                  <col class="col-amount" style="width: 17%;">
+                  <col class="col-note" style="width: 10%;">
+                  <col class="col-actions" style="width: 9%;">
+                </colgroup>
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Company</th>
-                    <th>Type</th>
-                    <th class="text-center">Seats</th>
-                    <th>Channel</th>
-                    <th>Payment</th>
-                    <th>Document</th>
-                    <th class="odt-table-numeric">Amount</th>
-                    <th>Note</th>
-                    <th class="text-end" style="width: 120px;">Actions</th>
+                    <th class="text-center col-num"><span class="th-inner">#</span></th>
+                    <th class="col-name"><span class="th-inner">Name</span></th>
+                    <th class="col-company"><span class="th-inner">Company</span></th>
+                    <th class="text-center col-type"><span class="th-inner">Type</span></th>
+                    <th class="text-center col-seats"><span class="th-inner">Seats</span></th>
+                    <th class="col-channel"><span class="th-inner">Channel</span></th>
+                    <th class="col-payment"><span class="th-inner">Payment</span></th>
+                    <th class="col-payment-date text-center"><span class="th-inner">Payment Date</span></th>
+                    <th class="odt-table-numeric num col-amount"><span class="th-inner">Amount</span></th>
+                    <th class="col-note"><span class="th-inner">Note</span></th>
+                    <th class="text-end actions-col col-actions"><span class="th-inner">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <% @attendees.each do |attendee| %>
+                  <% @attendees.each_with_index do |attendee, index| %>
                     <%
                       dropdown_items = [
                         { label: "Quick Edit", icon: "pencil", url: "#", data: { bs_toggle: "modal", bs_target: "#quickEditModal#{attendee.id}" } },
@@ -254,32 +267,32 @@
                       dropdown_items << { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(@training_class, attendee), method: "delete", confirm: "Remove #{attendee.name}?" }
                     %>
                     <tr>
-                      <td><strong><%= attendee.name %></strong></td>
-                      <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
-                      <td><%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %></td>
-                      <td class="text-center"><%= attendee.seats || 1 %></td>
-                      <td><%= attendee.source_channel || "—" %></td>
-                      <td><%= odt_badge(attendee.payment_status || "Pending", status: (attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %></td>
-                      <td>
-                        <% if attendee.document_status == "Receipt" %>
-                          <%= odt_badge("Receipt", status: :receipt, size: :sm) %>
-                        <% elsif attendee.document_status.present? %>
-                          <%= odt_badge(attendee.document_status, variant: :info, size: :sm) %>
-                        <% else %>
-                          <%= odt_badge("—", variant: :neutral, size: :sm) %>
+                      <td class="text-center col-num"><%= index + 1 %></td>
+                      <td class="col-name attendee-name-cell">
+                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "attendee-name-link text-decoration-none", title: "ดู/แก้ไขข้อมูล #{attendee.name}" do %>
+                          <span class="attendee-name-line"><strong><%= attendee.name %></strong></span>
+                          <% if attendee.email.present? %>
+                            <span class="attendee-email-line text-muted"><%= attendee.email %></span>
+                          <% end %>
                         <% end %>
                       </td>
-                      <td class="odt-amount-cell odt-table-numeric" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
+                      <td class="col-company attendee-company-cell"><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
+                      <td class="col-type"><%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %></td>
+                      <td class="text-center col-seats"><%= attendee.seats || 1 %></td>
+                      <td class="col-channel"><%= attendee.source_channel || "—" %></td>
+                      <td class="col-payment"><%= odt_badge(attendee.payment_status || "Pending", status: (attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %></td>
+                      <td class="col-payment-date text-center no-wrap doc-payment-date-cell" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#quickEditModal<%= attendee.id %>" title="Click to edit"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
+                      <td class="num odt-amount-cell odt-table-numeric col-amount" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
                         <%= odt_amount_cell(attendee.total_final_price, incl_vat: "incl. VAT") %>
                       </td>
-                      <td class="attendee-note-cell" style="max-width: 180px;" title="<%= attendee.notes.present? ? attendee.notes.gsub('"', '&quot;').truncate(200) : '' %>">
+                      <td class="col-note attendee-note-cell" title="<%= attendee.notes.present? ? attendee.notes.gsub('"', '&quot;').truncate(200) : '' %>">
                         <% if attendee.notes.present? %>
                           <span class="text-muted small"><%= truncate(attendee.notes, length: 40) %></span>
                         <% else %>
                           <span class="text-muted">—</span>
                         <% end %>
                       </td>
-                      <td class="text-end action-cell">
+                      <td class="text-end action-cell col-actions">
                         <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "odt-icon-btn odt-icon-btn--primary me-1", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
                         <%= link_to mailto_class_info_link(attendee), class: "odt-icon-btn odt-icon-btn--ghost me-1", title: "Email", target: "_blank" do %><i class="bi bi-envelope"></i><% end %>
                         <%= odt_action_menu(items: dropdown_items, button_title: "More actions") %>
@@ -310,7 +323,10 @@
                                   { selected: attendee.payment_status || "Pending" }, 
                                   { class: "form-select" } %>
                             </div>
-                            
+                            <div class="col-md-6 mb-3">
+                              <%= f.label :payment_date, "วันที่ชำระเงิน", class: "form-label" %>
+                              <%= f.date_field :payment_date, class: "form-control", value: attendee.payment_date&.strftime("%Y-%m-%d") %>
+                            </div>
                             <div class="col-md-6 mb-3">
                               <%= f.label :document_status, "สถานะเอกสาร", class: "form-label" %>
                               <%= f.select :document_status, [["", ""], ["QT", "QT"], ["INV", "INV"], ["Receipt", "Receipt"]], 
@@ -417,8 +433,8 @@
             <% end %>
           </div>
 
-          <!-- Tab 2: Potential Customers -->
-          <div class="tab-pane fade" id="potential" role="tabpanel" data-tab-id="potential">
+          <!-- Tab 3: Potential Customers -->
+          <div class="tab-pane fade" id="potential" role="tabpanel" aria-labelledby="potential-tab" data-tab-id="potential">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h6 class="mb-0">🎯 Potential Customers (ลูกค้าที่มีศักยภาพ)</h6>
               <div class="alert alert-info mb-0 py-2 px-3">
@@ -426,31 +442,41 @@
               </div>
             </div>
             <% if @potential_customers.any? %>
-              <div class="table-responsive table-modern-wrap">
-                <table class="table table-hover table-sortable-filterable">
+              <div class="table-wrap table-responsive table-modern-wrap">
+                <table class="table data-table table-hover table-sortable-filterable" aria-label="Potential customers">
+                  <colgroup>
+                    <col style="width: 14%;">
+                    <col style="width: 12%;">
+                    <col style="width: 6%;">
+                    <col style="width: 10%;">
+                    <col style="width: 11%;">
+                    <col style="width: 16%;">
+                    <col style="width: 16%;">
+                    <col style="width: 15%; min-width: 110px;">
+                  </colgroup>
                   <thead>
                     <tr>
-                      <th>Name</th>
-                      <th>Company</th>
-                      <th>Type</th>
-                      <th>Channel</th>
-                      <th>Phone</th>
-                      <th>Email</th>
-                      <th>Notes</th>
-                      <th class="text-end" style="width: 120px;">Actions</th>
+                      <th><span class="th-inner">Name</span></th>
+                      <th><span class="th-inner">Company</span></th>
+                      <th><span class="th-inner">Type</span></th>
+                      <th><span class="th-inner">Channel</span></th>
+                      <th><span class="th-inner">Phone</span></th>
+                      <th><span class="th-inner">Email</span></th>
+                      <th><span class="th-inner">Notes</span></th>
+                      <th class="text-end actions-col"><span class="th-inner">Actions</span></th>
                     </tr>
                   </thead>
                   <tbody>
                     <% @potential_customers.each do |customer| %>
                       <tr>
-                        <td><strong><%= customer.name %></strong></td>
-                        <td><%= customer.participant_type == "Corp" ? (customer.company || "—") : "—" %></td>
+                        <td class="truncate"><strong><%= customer.name %></strong></td>
+                        <td class="truncate"><%= customer.participant_type == "Corp" ? (customer.company || "—") : "—" %></td>
                         <td><span class="badge badge-attendees <%= customer.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi" %>"><%= customer.participant_type || "Indi" %></span></td>
-                        <td><%= customer.source_channel || "—" %></td>
-                        <td><%= customer.phone || "—" %></td>
-                        <td><%= customer.email %></td>
-                        <td><%= truncate(customer.notes, length: 30) || "—" %></td>
-                        <td class="text-end action-cell">
+                        <td class="truncate"><%= customer.source_channel || "—" %></td>
+                        <td class="truncate no-wrap"><%= customer.phone || "—" %></td>
+                        <td class="truncate"><%= customer.email %></td>
+                        <td class="truncate"><%= truncate(customer.notes, length: 30) || "—" %></td>
+                        <td class="text-end action-cell actions-col">
                           <%= button_to move_to_attendee_admin_training_class_attendee_path(@training_class, customer), method: :patch, data: { turbo_confirm: "Move #{customer.name} to Class Attendees?" }, class: "btn btn-action border-0", form: { class: "d-inline" }, title: "Move to Attendees" do %><i class="bi bi-arrow-left-circle"></i><% end %>
                           <%= link_to edit_admin_training_class_attendee_path(@training_class, customer), class: "btn btn-action", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
                           <%= link_to admin_training_class_attendee_path(@training_class, customer), data: { turbo_method: :delete, turbo_confirm: "Remove?" }, class: "btn btn-action btn-action-danger", title: "Remove" do %><i class="bi bi-trash"></i><% end %>
@@ -469,64 +495,118 @@
             <% end %>
           </div>
 
-          <!-- Tab 3: Documents -->
-          <div class="tab-pane fade" id="documents" role="tabpanel">
-            <h6 class="mb-3">📄 Documents Summary (สรุปสถานะเอกสาร)</h6>
-            <% 
-              qt_count = @attendees.where(document_status: "QT").count
-              inv_count = @attendees.where(document_status: "INV").count
-              receipt_count = @attendees.where(document_status: "Receipt").count
-              no_doc_count = @attendees.where(document_status: [nil, ""]).count
-            %>
-            <div class="row g-4 mb-4">
-              <div class="col-6 col-md-3">
-                <div class="card text-center card-hover odt-stat-card odt-stat-card--blue">
-                  <div class="card-body">
-                    <h3 class="mb-1"><%= qt_count %></h3>
-                    <p class="mb-0"><span class="badge badge-doc-qt">QT</span></p>
-                  </div>
+          <!-- Tab 4: Financial Documents -->
+          <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+              <div class="dropdown">
+                <button type="button" class="btn btn-primary btn-sm" id="doc-export-btn" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">
+                  <i class="bi bi-download me-1"></i> Export selected to Excel
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 doc-export-menu" style="min-width: 300px; max-height: 70vh; overflow-y: auto;" id="doc-export-menu">
+                  <p class="small fw-bold mb-2">Select fields to include:</p>
+                  <%= form_with url: export_documents_admin_training_class_attendees_path(@training_class), method: :get, local: true, id: "doc-export-form", target: "_blank", data: { doc_export_form: true } do |f| %>
+                    <div id="doc-export-attendee-ids"></div>
+
+                    <div class="doc-export-section">
+                      <p class="doc-export-section__title">ข้อมูลผู้สมัคร</p>
+                      <div class="row g-2 mb-2">
+                        <% %w[name email company name_thai tax_id address].each do |col| %>
+                          <div class="col-6">
+                            <label class="small d-flex align-items-center gap-1">
+                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
+                              <%= col == "name_thai" ? "Name (Thai)" : col.humanize %>
+                            </label>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <div class="doc-export-section">
+                      <p class="doc-export-section__title">รายละเอียดการสมัคร</p>
+                      <div class="row g-2 mb-2">
+                        <% %w[class_name unit_price discount vat final_price].each do |col| %>
+                          <div class="col-6">
+                            <label class="small d-flex align-items-center gap-1">
+                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
+                              <%= col == "class_name" ? "Class" : (col == "unit_price" ? "ราคา/หัว" : (col == "discount" ? "ส่วนลด" : (col == "vat" ? "VAT" : (col == "final_price" ? "ราคา Final" : col.humanize)))) %>
+                            </label>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <div class="doc-export-section">
+                      <p class="doc-export-section__title">เอกสาร</p>
+                      <div class="row g-2 mb-2">
+                        <% %w[document_status quotation_no invoice_no receipt_no payment_slip].each do |col| %>
+                          <div class="col-6">
+                            <label class="small d-flex align-items-center gap-1">
+                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
+                              <%= col.humanize %>
+                            </label>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <div class="doc-export-section">
+                      <p class="doc-export-section__title">อื่นๆ</p>
+                      <div class="row g-2 mb-2">
+                        <div class="col-6">
+                          <label class="small d-flex align-items-center gap-1">
+                            <input type="checkbox" name="columns[]" value="amount" class="form-check-input doc-column-cb">
+                            Amount
+                          </label>
+                        </div>
+                        <div class="col-6">
+                          <label class="small d-flex align-items-center gap-1">
+                            <input type="checkbox" name="columns[]" value="payment_date" class="form-check-input doc-column-cb">
+                            Payment Date
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm w-100" id="doc-export-submit">Download Excel</button>
+                  <% end %>
                 </div>
               </div>
-              <div class="col-6 col-md-3">
-                <div class="card text-center card-hover odt-stat-card odt-stat-card--blue">
-                  <div class="card-body">
-                    <h3 class="mb-1"><%= inv_count %></h3>
-                    <p class="mb-0"><span class="badge badge-doc-inv">INV</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-md-3">
-                <div class="card text-center card-hover odt-stat-card odt-stat-card--success">
-                  <div class="card-body">
-                    <h3 class="mb-1"><%= receipt_count %></h3>
-                    <p class="mb-0"><span class="badge badge-doc-receipt">Receipt</span></p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-md-3">
-                <div class="card text-center card-hover odt-stat-card odt-stat-card--muted">
-                  <div class="card-body">
-                    <h3 class="mb-1 text-muted"><%= no_doc_count %></h3>
-                    <p class="mb-0"><span class="badge badge-doc-empty">No Document</span></p>
-                  </div>
-                </div>
-              </div>
+              <span class="text-muted small" id="doc-selected-count">0 selected</span>
             </div>
 
-            <div class="table-responsive table-modern-wrap">
-              <table class="table table-hover table-sortable-filterable" id="documents-table">
+            <div class="table-wrap odt-table-wrap attendees-table-wrap tc-documents-wrap">
+              <div class="table-responsive tc-table-inner">
+              <table class="table data-table table-hover table-sortable-filterable tc-documents-table mb-0" id="documents-table" aria-label="Documents by attendee">
+                <colgroup>
+                  <col class="col-checkbox" style="width: 2.5%;">
+                  <col class="col-num" style="width: 2.5%;">
+                  <col class="col-name" style="width: 13%;">
+                  <col class="col-company" style="width: 12%;">
+                  <col class="col-type" style="width: 5%;">
+                  <col class="col-quotation" style="width: 15%;">
+                  <col class="col-invoice" style="width: 8%;">
+                  <col class="col-receipt" style="width: 10.5%;">
+                  <col class="col-slip" style="width: 8%;">
+                  <col class="col-payment-date" style="width: 9%;">
+                  <col class="col-tax" style="width: 9.5%;">
+                  <col class="col-actions" style="width: 8%;">
+                </colgroup>
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Company</th>
-                    <th>Document</th>
-                    <th>Quotation No.</th>
-                    <th>Invoice No.</th>
-                    <th>Receipt No.</th>
-                    <th>Payment Slip</th>
-                    <th>Tax Info</th>
-                    <th class="text-end" style="width: 90px;">Actions</th>
+                    <th class="col-checkbox text-center">
+                      <input type="checkbox" id="doc-select-all" class="form-check-input" aria-label="Select all">
+                    </th>
+                    <th class="col-num text-center"><span class="th-inner">#</span></th>
+                    <th class="col-name"><span class="th-inner">Name</span></th>
+                    <th class="col-company"><span class="th-inner">Company</span></th>
+                    <th class="col-type text-center"><span class="th-inner">Type</span></th>
+                    <th class="col-quotation text-center"><span class="th-inner">Quotation No.</span></th>
+                    <th class="col-invoice text-center"><span class="th-inner">Invoice No.</span></th>
+                    <th class="col-receipt text-center"><span class="th-inner">Receipt No.</span></th>
+                    <th class="col-slip text-center"><span class="th-inner">Payment Slip</span></th>
+                    <th class="col-payment-date text-center"><span class="th-inner">Payment Date</span></th>
+                    <th class="col-tax text-center"><span class="th-inner">Tax Info</span></th>
+                    <th class="col-actions text-end"><span class="th-inner">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -544,41 +624,50 @@
                         data-name-thai="<%= attendee.name_thai.to_s %>"
                         data-tax-id="<%= attendee.tax_id.to_s %>"
                         data-address="<%= attendee.address.to_s.gsub('"', '&quot;').tr("\n", " ") %>"
-                        data-name-thai-prefill="<%= name_has_thai ? attendee.name : '' %>">
-                      <td><%= index + 1 %></td>
-                      <td><strong><%= attendee.name %></strong></td>
-                      <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
-                      <td>
-                        <% if attendee.document_status.present? %>
-                          <span class="badge badge-attendees badge-doc-<%= attendee.document_status.downcase %>"><%= attendee.document_status %></span>
-                        <% else %>
-                          <span class="badge badge-modern badge-doc-empty">—</span>
+                        data-name-thai-prefill="<%= name_has_thai ? attendee.name : '' %>"
+                        data-payment-date="<%= attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%Y-%m-%d") : '' %>">
+                      <td class="col-checkbox text-center">
+                        <input type="checkbox" class="form-check-input doc-export-checkbox" value="<%= attendee.id %>" aria-label="Select <%= attendee.name %>">
+                      </td>
+                      <td class="col-num text-center cell-nowrap"><%= index + 1 %></td>
+                      <td class="col-name doc-name-cell">
+                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "doc-name-link text-decoration-none", title: "ดู/แก้ไขข้อมูล #{attendee.name}" do %>
+                          <span class="doc-name-line"><strong><%= attendee.name %></strong></span>
+                          <% if attendee.email.present? %>
+                            <span class="doc-email-line text-muted"><%= attendee.email %></span>
+                          <% end %>
                         <% end %>
                       </td>
-                      <td class="doc-edit-cell" data-edit-section="doc-numbers" title="Click to fill or edit"><%= attendee.quotation_no.presence || "—" %></td>
-                      <td class="doc-edit-cell" data-edit-section="doc-numbers" title="Click to fill or edit"><%= attendee.invoice_no.presence || "—" %></td>
-                      <td class="doc-edit-cell" data-edit-section="doc-numbers" title="Click to fill or edit"><%= attendee.receipt_no.presence || "—" %></td>
-                      <td class="doc-slip-cell" data-edit-section="payment-slip" title="<%= attendee.payment_slips.attached? ? 'Click to view or add slips' : 'Click to upload or drag file here' %>">
+                      <td class="col-company"><span class="doc-company-inner"><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></span></td>
+                      <td class="col-type text-center">
+                        <%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %>
+                      </td>
+                      <td class="col-quotation text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.quotation_no.presence || "—" %></td>
+                      <td class="col-invoice text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.invoice_no.presence || "—" %></td>
+                      <td class="col-receipt text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.receipt_no.presence || "—" %></td>
+                      <td class="col-slip text-center doc-slip-cell" data-edit-section="payment-slip" title="<%= attendee.payment_slips.attached? ? 'Click to view or add slips' : 'Click to upload or drag file here' %>">
                         <% if attendee.payment_slips.attached? %>
-                          <span class="badge bg-success bg-opacity-10 text-success doc-slip-badge">Uploaded (<%= attendee.payment_slips.size %>)</span>
+                          <span class="doc-slip-badge doc-slip-pill" title="<%= attendee.payment_slips.size %> file(s) uploaded">
+                            <i class="bi bi-check-circle-fill doc-slip-icon" aria-hidden="true"></i>
+                            <span class="doc-slip-count"><%= attendee.payment_slips.size %></span>
+                          </span>
                         <% else %>
-                          <span class="doc-slip-upload-hint text-muted">Upload</span>
+                          <span class="doc-slip-upload-hint text-muted"><i class="bi bi-upload" aria-hidden="true"></i></span>
                         <% end %>
                       </td>
-                      <td class="doc-edit-cell doc-tax-cell" data-edit-section="tax-info" title="Click to fill or update tax info">
-                        <% if attendee.name_thai.present? || attendee.tax_id.present? || attendee.address.present? %>
-                          <span class="badge bg-opacity-10 text-dark doc-slip-badge" style="background-color: rgba(19, 19, 156, 0.1);">Filled</span>
-                        <% else %>
-                          <span class="doc-slip-upload-hint text-muted">Fill</span>
-                        <% end %>
+                      <td class="col-payment-date text-center cell-nowrap doc-edit-cell" data-edit-section="payment-date" title="Click to edit"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
+                      <td class="col-tax text-center">
+                        <%= render "admin/attendees/billing_tax_icons", attendee: attendee, training_class: @training_class %>
                       </td>
-                      <td class="text-end action-cell">
-                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "btn btn-action", title: "Full Edit" do %><i class="bi bi-pencil"></i><% end %>
+                      <td class="col-actions text-end action-cell">
+                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "odt-icon-btn odt-icon-btn--primary me-1", title: "แก้ไข" do %><i class="bi bi-pencil"></i><% end %>
+                        <%= link_to admin_training_class_attendee_path(@training_class, attendee), data: { turbo_method: :delete, turbo_confirm: "ลบ #{attendee.name} ออกจากคลาสนี้?" }, class: "odt-icon-btn odt-icon-btn--danger", title: "ลบ" do %><i class="bi bi-trash"></i><% end %>
                       </td>
                     </tr>
                   <% end %>
                 </tbody>
               </table>
+              </div>
             </div>
 
             <%# Modal: Edit document numbers (opened when clicking a document cell) %>
@@ -589,6 +678,7 @@
                     <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
                     <input type="hidden" name="_method" value="patch">
                     <input type="hidden" name="redirect_tab" value="documents">
+                    <input type="hidden" name="attendee[document_modal]" value="1">
                     <div class="modal-header">
                       <h5 class="modal-title" id="documentEditModalLabel"></h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -607,6 +697,12 @@
                         <div class="mb-3">
                           <label class="form-label">Receipt No.</label>
                           <input type="text" name="attendee[receipt_no]" id="documentEditReceiptNo" class="form-control" placeholder="e.g. RCP-2026-001">
+                        </div>
+                      </div>
+                      <div class="doc-modal-section" data-section="payment-date">
+                        <div class="mb-3">
+                          <label class="form-label">Payment Date</label>
+                          <input type="date" name="attendee[payment_date]" id="documentEditPaymentDate" class="form-control" value="">
                         </div>
                       </div>
                       <div class="doc-modal-section" data-section="payment-slip">
@@ -648,21 +744,18 @@
             </div>
           </div>
 
-          <!-- Tab 4: Finance – CFO-level dashboard (rendered inline; filter form still targets this frame for updates) -->
-          <div class="tab-pane fade" id="finance" role="tabpanel" data-tab-alias="financial">
-            <%= turbo_frame_tag "class_finance_tab", data: { turbo_action: "advance" } do %>
-              <%= render "admin/training_classes/finance/finance_tab_content", training_class: @training_class, finance_dashboard: @finance_dashboard %>
-            <% end %>
-          </div>
-        </div>
-      </div>
+          <!-- Tab 5: Financial Dashboard -->
+    <div class="tab-pane fade" id="finance" role="tabpanel" aria-labelledby="finance-tab" data-tab-alias="financial">
+      <%= turbo_frame_tag "class_finance_tab", data: { turbo_action: "advance" } do %>
+        <%= render "admin/training_classes/finance/finance_tab_content", training_class: @training_class, finance_dashboard: @finance_dashboard %>
+      <% end %>
     </div>
   </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Check if we need to switch tabs based on URL parameter (?tab=finance or ?tab=financial)
+    // Check if we need to switch tabs based on URL parameter (?tab=overview|attendees|potential|documents|finance)
     const urlParams = new URLSearchParams(window.location.search);
     let tabToOpen = urlParams.get('tab');
     if (tabToOpen === 'financial') tabToOpen = 'finance';
@@ -699,7 +792,7 @@
     // Documents tab: open edit modal with row data; only the clicked column's section is shown and submitted
     var docSlipPendingFile = null;
     var docModalCurrentSection = null;
-    var sectionTitles = { 'doc-numbers': 'Edit Document Numbers', 'payment-slip': 'Edit Payment Slip', 'tax-info': 'Edit Tax Info' };
+    var sectionTitles = { 'doc-numbers': 'Edit Document Numbers', 'payment-date': 'Edit Payment Date', 'payment-slip': 'Edit Payment Slip', 'tax-info': 'Edit Tax Info' };
     function openDocModal(row, droppedFile, section) {
       section = section || 'doc-numbers';
       docModalCurrentSection = section;
@@ -709,6 +802,8 @@
       document.getElementById('documentEditQuotationNo').value = row.dataset.quotationNo || '';
       document.getElementById('documentEditInvoiceNo').value = row.dataset.invoiceNo || '';
       document.getElementById('documentEditReceiptNo').value = row.dataset.receiptNo || '';
+      var paymentDateEl = document.getElementById('documentEditPaymentDate');
+      if (paymentDateEl) paymentDateEl.value = row.dataset.paymentDate || '';
       document.getElementById('documentEditNameThai').value = row.dataset.nameThai || row.dataset.nameThaiPrefill || '';
       document.getElementById('documentEditTaxId').value = row.dataset.taxId || '';
       document.getElementById('documentEditAddress').value = row.dataset.address || '';
@@ -751,6 +846,52 @@
         textEl.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
       } catch (e) {}
     }
+    // Documents tab: select all + export selected to Excel
+    (function() {
+      var selectAll = document.getElementById('doc-select-all');
+      var checkboxes = document.querySelectorAll('.doc-export-checkbox');
+      var countEl = document.getElementById('doc-selected-count');
+      var exportForm = document.getElementById('doc-export-form');
+      var attendeeIdsContainer = document.getElementById('doc-export-attendee-ids');
+      function updateCount() {
+        var n = document.querySelectorAll('.doc-export-checkbox:checked').length;
+        if (countEl) countEl.textContent = n + ' selected';
+        if (selectAll) selectAll.checked = n > 0 && n === checkboxes.length;
+      }
+      if (selectAll && checkboxes.length) {
+        selectAll.addEventListener('change', function() {
+          checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+          updateCount();
+        });
+      }
+      checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateCount);
+      });
+      updateCount();
+      if (exportForm && attendeeIdsContainer) {
+        exportForm.addEventListener('submit', function(e) {
+          var ids = Array.prototype.slice.call(document.querySelectorAll('.doc-export-checkbox:checked')).map(function(cb) { return cb.value; });
+          if (ids.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one person to export.');
+            return false;
+          }
+          attendeeIdsContainer.innerHTML = '';
+          ids.forEach(function(id) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'attendee_ids[]';
+            input.value = id;
+            attendeeIdsContainer.appendChild(input);
+          });
+          var cols = document.querySelectorAll('.doc-column-cb:checked');
+          if (cols.length === 0) {
+            document.querySelectorAll('.doc-column-cb').forEach(function(cb) { cb.checked = true; });
+          }
+        });
+      }
+    })();
+
     const docEditForm = document.getElementById('documentEditForm');
     const docEditModalEl = document.getElementById('documentEditModal');
     if (docEditForm && docEditModalEl) {

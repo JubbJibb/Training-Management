@@ -1,27 +1,35 @@
 <section class="customer-360-section" aria-labelledby="class-history-heading">
   <h2 class="customer-360-section__title" id="class-history-heading"><i class="bi bi-calendar-event" aria-hidden="true"></i> Class History</h2>
   <div class="customer-360-section__body">
-    <div class="table-responsive table-modern-wrap">
-      <table class="table table-hover mb-0">
+    <div class="table-wrap table-responsive table-modern-wrap">
+      <table class="table data-table table-hover table-sortable-filterable mb-0" aria-label="Class history">
+        <colgroup>
+          <col style="width: 28%;">
+          <col style="width: 14%; min-width: 82px;">
+          <col style="width: 10%;">
+          <col style="width: 12%;">
+          <col style="width: 14%; min-width: 85px;">
+          <col style="width: 10%;">
+        </colgroup>
         <thead>
           <tr>
-            <th>Class</th>
-            <th>Date</th>
-            <th>Seats</th>
-            <th>Status</th>
-            <th class="text-end">Amount</th>
-            <th aria-label="View class"></th>
+            <th><span class="th-inner">Class</span></th>
+            <th><span class="th-inner">Date</span></th>
+            <th><span class="th-inner">Seats</span></th>
+            <th><span class="th-inner">Status</span></th>
+            <th class="text-end num"><span class="th-inner">Amount</span></th>
+            <th class="icon-col" aria-label="View class"><span class="th-inner"></span></th>
           </tr>
         </thead>
         <tbody>
           <% class_history_items.each do |a| %>
             <tr>
-              <td><%= a.training_class&.title.presence || "—" %></td>
-              <td><%= a.training_class&.date&.strftime("%d %b %Y") || "—" %></td>
+              <td class="truncate"><%= a.training_class&.title.presence || "—" %></td>
+              <td class="no-wrap"><%= a.training_class&.date&.strftime("%d %b %Y") || "—" %></td>
               <td><%= a.seats.to_i %></td>
               <td><span class="badge badge-modern <%= a.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= a.payment_status.presence || "—" %></span></td>
-              <td class="text-end amount-cell">฿<%= number_with_delimiter(a.total_final_price.to_f.round(2), delimiter: ",") %></td>
-              <td class="action-cell">
+              <td class="num text-end amount-cell">฿<%= number_with_delimiter(a.total_final_price.to_f.round(2), delimiter: ",") %></td>
+              <td class="action-cell actions-col">
                 <% if a.training_class %>
                   <%= link_to admin_training_class_path(a.training_class), class: "odt-icon-btn odt-icon-btn--ghost", title: "View class", aria: { label: "View class" } do %>
                     <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>

@@ -5,7 +5,7 @@
 # values so every record gets complete information (company, phone, billing_*, tax_id, etc.).
 # Email and name are not changed (each record keeps its own).
 class CustomerSyncService
-  SYNC_ATTRS = %w[company phone billing_address billing_name tax_id participant_type].freeze
+  SYNC_ATTRS = %w[company phone billing_address billing_name tax_id participant_type name_thai address].freeze
 
   def initialize(dry_run: false)
     @dry_run = dry_run

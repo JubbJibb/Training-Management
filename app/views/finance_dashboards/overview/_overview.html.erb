@@ -1,0 +1,28 @@
+<%# Redesigned Financial Dashboard — Overview tab %>
+<% overview = local_assigns[:overview] || @overview %>
+<% return unless overview %>
+
+<div class="foh">
+  <%= render "finance_dashboards/overview/key_metrics", overview: overview %>
+
+  <div class="foh-payment-row">
+    <div class="foh-payment-row__left">
+      <%= render "finance_dashboards/overview/payment_status", overview: overview %>
+    </div>
+    <div class="foh-payment-row__right">
+      <%= render "finance_dashboards/overview/payment_timeline", overview: overview %>
+    </div>
+  </div>
+
+  <div class="foh-main">
+    <div class="foh-main__left">
+      <%= render "finance_dashboards/overview/financial_breakdown", overview: overview %>
+    </div>
+    <div class="foh-main__right">
+      <%= render "finance_dashboards/overview/chart", overview: overview %>
+    </div>
+  </div>
+
+  <%= render "finance_dashboards/overview/ar_aging", overview: overview %>
+  <%= render "finance_dashboards/overview/quick_actions" %>
+</div>

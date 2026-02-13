@@ -1,0 +1,125 @@
+/*
+ * Data Table System – shared layout rules for all data tables.
+ * Use .table-wrap + .data-table on every table. Add colgroup for column widths.
+ * Headers: .th-inner (nowrap + sort icon). Dates: .no-wrap. Numbers: .num.
+ */
+
+/* ---- Wrapper: horizontal scroll only when necessary ---- */
+.table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---- Base table ---- */
+.table-wrap .data-table,
+.data-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* ---- Consistent cell sizing ---- */
+.table-wrap .data-table thead th,
+.table-wrap .data-table tbody td,
+.data-table thead th,
+.data-table tbody td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.table-wrap .data-table thead th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Header inner: sort label + icon on one line ---- */
+.th-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ---- Truncation ---- */
+.data-table .truncate,
+.table-wrap .data-table .truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table .truncate-2,
+.table-wrap .data-table .truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* ---- Dates: never wrap ---- */
+.data-table .no-wrap,
+.table-wrap .data-table .no-wrap,
+.no-wrap {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Numeric columns ---- */
+.data-table .num,
+.table-wrap .data-table .num,
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Action / icon columns ---- */
+.data-table .actions-col,
+.table-wrap .data-table .actions-col,
+.actions-col {
+  white-space: nowrap;
+}
+
+.data-table .icon-col,
+.table-wrap .data-table .icon-col,
+.icon-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* ---- Sticky header (optional: add .data-table--sticky to table) ---- */
+.table-wrap.data-table-wrap--sticky {
+  overflow: auto;
+  max-height: 70vh;
+}
+
+.table-wrap.data-table-wrap--sticky .data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #eef2f8;
+  box-shadow: 0 1px 0 rgba(41, 41, 41, 0.1);
+}
+
+/* ---- Prevent content spill ---- */
+.table-wrap .data-table td,
+.table-wrap .data-table th,
+.data-table td,
+.data-table th {
+  min-width: 0;
+}
+
+.table-wrap .data-table tbody td {
+  overflow: hidden;
+}

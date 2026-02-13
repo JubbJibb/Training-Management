@@ -2,26 +2,37 @@
   <%= odt_section_header title: "Revenue breakdown" %>
   <div class="cfo-dash-section-container__body">
   <% if summary[:breakdown_by_course].any? %>
-    <div class="cfo-dash-table-wrap">
-      <table class="cfo-dash-table">
+    <div class="table-wrap cfo-dash-table-wrap">
+      <table class="table data-table cfo-dash-table table-sortable-filterable" aria-label="Revenue by course">
+        <colgroup>
+          <col style="width: 20%;">
+          <col style="width: 8%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 12%;">
+        </colgroup>
         <thead>
           <tr>
-            <th>Course</th>
-            <th class="cfo-dash-table-num">Seats</th>
-            <th class="cfo-dash-table-num">Gross</th>
-            <th class="cfo-dash-table-num">Discount</th>
-            <th class="cfo-dash-table-num">Net</th>
-            <th class="cfo-dash-table-num">Cash</th>
-            <th class="cfo-dash-table-num">Outstanding</th>
-            <th class="cfo-dash-table-num">Profit</th>
-            <th class="cfo-dash-table-num">Margin</th>
+            <th><span class="th-inner">Course</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Seats</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Gross</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Discount</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Net</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Cash</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Outstanding</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Profit</span></th>
+            <th class="cfo-dash-table-num num"><span class="th-inner">Margin</span></th>
           </tr>
         </thead>
         <tbody>
           <% summary[:breakdown_by_course].each do |row| %>
             <tr>
-              <td><%= row[:course] %></td>
-              <td class="cfo-dash-table-num"><%= row[:seats_sold] %></td>
+              <td class="truncate"><%= row[:course] %></td>
+              <td class="cfo-dash-table-num num"><%= row[:seats_sold] %></td>
               <td class="cfo-dash-table-num"><%= number_to_thb(row[:gross]) %></td>
               <td class="cfo-dash-table-num"><%= number_to_thb(row[:discount]) %></td>
               <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_before_vat]) %></td>
@@ -41,21 +52,26 @@
     <% if summary[:breakdown_by_segment].any? %>
       <div class="cfo-dash-ar-cash__block">
         <h3 class="cfo-dash-block-title">By segment</h3>
-        <div class="cfo-dash-table-wrap">
-          <table class="cfo-dash-table">
+        <div class="table-wrap cfo-dash-table-wrap">
+          <table class="table data-table cfo-dash-table table-sortable-filterable" aria-label="Revenue by segment">
+            <colgroup>
+              <col style="width: 40%;">
+              <col style="width: 25%;">
+              <col style="width: 35%;">
+            </colgroup>
             <thead>
               <tr>
-                <th>Segment</th>
-                <th class="cfo-dash-table-num">Seats</th>
-                <th class="cfo-dash-table-num">Net</th>
+                <th><span class="th-inner">Segment</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Seats</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Net</span></th>
               </tr>
             </thead>
             <tbody>
               <% summary[:breakdown_by_segment].each do |row| %>
                 <tr>
-                  <td><%= row[:segment] %></td>
-                  <td class="cfo-dash-table-num"><%= row[:seats] %></td>
-                  <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_before_vat]) %></td>
+                  <td class="truncate"><%= row[:segment] %></td>
+                  <td class="cfo-dash-table-num num"><%= row[:seats] %></td>
+                  <td class="cfo-dash-table-num num"><%= number_to_thb(row[:net_before_vat]) %></td>
                 </tr>
               <% end %>
             </tbody>
@@ -66,27 +82,35 @@
     <% if summary[:breakdown_by_channel].any? %>
       <div class="cfo-dash-ar-cash__block">
         <h3 class="cfo-dash-block-title">By channel</h3>
-        <div class="cfo-dash-table-wrap">
-          <table class="cfo-dash-table">
+        <div class="table-wrap cfo-dash-table-wrap">
+          <table class="table data-table cfo-dash-table table-sortable-filterable" aria-label="Revenue by channel">
+            <colgroup>
+              <col style="width: 18%;">
+              <col style="width: 12%;">
+              <col style="width: 14%;">
+              <col style="width: 14%;">
+              <col style="width: 14%;">
+              <col style="width: 28%;">
+            </colgroup>
             <thead>
               <tr>
-                <th>Channel</th>
-                <th>Leads</th>
-                <th class="cfo-dash-table-num">Attendees</th>
-                <th class="cfo-dash-table-num">Paid</th>
-                <th class="cfo-dash-table-num">Conv %</th>
-                <th class="cfo-dash-table-num">Net</th>
+                <th><span class="th-inner">Channel</span></th>
+                <th><span class="th-inner">Leads</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Attendees</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Paid</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Conv %</span></th>
+                <th class="cfo-dash-table-num num"><span class="th-inner">Net</span></th>
               </tr>
             </thead>
             <tbody>
               <% summary[:breakdown_by_channel].each do |row| %>
                 <tr>
-                  <td><%= row[:channel] %></td>
-                  <td><%= row[:leads] %></td>
-                  <td class="cfo-dash-table-num"><%= row[:attendees] %></td>
-                  <td class="cfo-dash-table-num"><%= row[:paid] %></td>
-                  <td class="cfo-dash-table-num"><%= row[:conversion_pct].nil? ? "—" : "#{row[:conversion_pct]}%" %></td>
-                  <td class="cfo-dash-table-num"><%= number_to_thb(row[:net_revenue]) %></td>
+                  <td class="truncate"><%= row[:channel] %></td>
+                  <td class="num"><%= row[:leads] %></td>
+                  <td class="cfo-dash-table-num num"><%= row[:attendees] %></td>
+                  <td class="cfo-dash-table-num num"><%= row[:paid] %></td>
+                  <td class="cfo-dash-table-num num"><%= row[:conversion_pct].nil? ? "—" : "#{row[:conversion_pct]}%" %></td>
+                  <td class="cfo-dash-table-num num"><%= number_to_thb(row[:net_revenue]) %></td>
                 </tr>
               <% end %>
             </tbody>

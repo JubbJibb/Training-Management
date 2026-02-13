@@ -1,5 +1,6 @@
 <li class="export-row" id="<%= dom_id(export_job) %>">
-  <span class="export-row__type"><%= export_job.export_type.humanize %> (<%= export_job.format %>)</span>
+  <span class="export-row__type"><%= export_job.label %></span>
+  <span class="export-row__filters" title="<%= export_job.filters_summary %>"><%= truncate(export_job.filters_summary, length: 40) %></span>
   <span class="export-row__state">
     <% if export_job.queued? %>
       <i class="bi bi-hourglass-split" aria-hidden="true"></i> Queued

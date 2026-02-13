@@ -1,0 +1,63 @@
+<% content_for :title, "Edit Course" %>
+
+<%= render "components/odt/page_header", title: "Edit Course", subtitle: @course.title, icon: "pencil" do %>
+  <%= link_to admin_course_path(@course), class: "odt-btn odt-btn--ghost odt-btn--sm" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back
+  <% end %>
+<% end %>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <%= form_with model: [:admin, @course], local: true do |f| %>
+          <% if @course.errors.any? %>
+            <div class="alert alert-danger">
+              <h5>Please fix the following errors:</h5>
+              <ul class="mb-0">
+                <% @course.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="mb-3">
+            <%= f.label :title, class: "form-label" %>
+            <%= f.text_field :title, class: "form-control", required: true %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :description, class: "form-label" %>
+            <%= f.text_area :description, class: "form-control", rows: 4 %>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <%= f.label :capacity, class: "form-label" %>
+              <%= f.number_field :capacity, class: "form-control", min: 0, placeholder: "จำนวนที่นั่ง" %>
+            </div>
+            <div class="col-md-6 mb-3">
+              <%= f.label :duration_text, "Duration (e.g. 1 Day)", class: "form-label" %>
+              <%= f.text_field :duration_text, class: "form-control", placeholder: "1 Day, 2 Days" %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :category, class: "form-label" %>
+            <%= f.text_field :category, class: "form-control", placeholder: "Agile, UX/UI Design, ..." %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :source_url, "Link (ODT course page)", class: "form-label" %>
+            <%= f.url_field :source_url, class: "form-control", placeholder: "https://training.odds.team/courses/..." %>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <%= f.submit "Save", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

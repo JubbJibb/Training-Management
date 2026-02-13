@@ -1,0 +1,22 @@
+<%# Payment Intelligence: Collection Rate %, Avg Days to Pay, % Paid <7 days, % Late %>
+<%
+  pi = local_assigns[:payment_intelligence] || {}
+%>
+<div class="class-finance-payment-intelligence cfo-metric-strip" role="region" aria-label="Payment intelligence">
+  <div class="cfo-metric-strip__cell">
+    <span class="cfo-metric-strip__label">Collection Rate</span>
+    <span class="cfo-metric-strip__value"><%= pi[:collection_rate_pct].nil? ? "—" : number_to_percent(pi[:collection_rate_pct]) %></span>
+  </div>
+  <div class="cfo-metric-strip__cell">
+    <span class="cfo-metric-strip__label">Avg Days to Pay</span>
+    <span class="cfo-metric-strip__value"><%= pi[:avg_days_to_pay].nil? ? "—" : "#{pi[:avg_days_to_pay]} days" %></span>
+  </div>
+  <div class="cfo-metric-strip__cell">
+    <span class="cfo-metric-strip__label">% Paid &lt;7 days</span>
+    <span class="cfo-metric-strip__value"><%= pi[:pct_paid_under_7_days].nil? ? "—" : number_to_percent(pi[:pct_paid_under_7_days]) %></span>
+  </div>
+  <div class="cfo-metric-strip__cell">
+    <span class="cfo-metric-strip__label">% Late</span>
+    <span class="cfo-metric-strip__value cfo-metric-strip__value--<%= pi[:pct_late].to_f > 0 ? 'danger' : 'default' %>"><%= pi[:pct_late].nil? ? "—" : number_to_percent(pi[:pct_late]) %></span>
+  </div>
+</div>

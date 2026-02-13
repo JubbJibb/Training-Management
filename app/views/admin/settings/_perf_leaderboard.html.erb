@@ -5,26 +5,37 @@
 <section class="perf-leaderboard" aria-labelledby="perf-leaderboard-title">
   <h3 id="perf-leaderboard-title" class="perf-section-title">Leaderboard</h3>
   <% if rows.any? %>
-    <div class="perf-leaderboard__wrap">
-      <table class="perf-leaderboard__table" aria-label="Promotion ranking">
+    <div class="table-wrap perf-leaderboard__wrap">
+      <table class="table data-table perf-leaderboard__table table-sortable-filterable" aria-label="Promotion ranking">
+        <colgroup>
+          <col style="width: 4%;">
+          <col style="width: 18%;">
+          <col style="width: 10%;">
+          <col style="width: 12%;">
+          <col style="width: 8%;">
+          <col style="width: 10%;">
+          <col style="width: 12%;">
+          <col style="width: 12%;">
+          <col style="width: 14%;">
+        </colgroup>
         <thead>
           <tr>
-            <th scope="col" class="perf-leaderboard__rank">#</th>
-            <th scope="col">Promotion</th>
-            <th scope="col">Type</th>
-            <th scope="col" class="perf-num">Revenue</th>
-            <th scope="col" class="perf-num">Seats</th>
-            <th scope="col" class="perf-num">Margin %</th>
-            <th scope="col" class="perf-num">Discount</th>
-            <th scope="col">Impact</th>
-            <th scope="col"><span class="visually-hidden">Actions</span></th>
+            <th scope="col" class="perf-leaderboard__rank icon-col"><span class="th-inner">#</span></th>
+            <th scope="col"><span class="th-inner">Promotion</span></th>
+            <th scope="col"><span class="th-inner">Type</span></th>
+            <th scope="col" class="perf-num num"><span class="th-inner">Revenue</span></th>
+            <th scope="col" class="perf-num num"><span class="th-inner">Seats</span></th>
+            <th scope="col" class="perf-num num"><span class="th-inner">Margin %</span></th>
+            <th scope="col" class="perf-num num"><span class="th-inner">Discount</span></th>
+            <th scope="col"><span class="th-inner">Impact</span></th>
+            <th scope="col" class="actions-col"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           <% rows.each_with_index do |r, i| %>
             <tr class="perf-leaderboard__row">
               <td class="perf-leaderboard__rank"><%= medals[i] || (i + 1) %></td>
-              <td><strong><%= r[:name] %></strong></td>
+              <td class="truncate"><strong><%= r[:name] %></strong></td>
               <td><%= odt_badge(r[:type_label], variant: :neutral, size: :sm) %></td>
               <td class="perf-num"><%= number_to_thb(r[:revenue].to_f) %></td>
               <td class="perf-num"><%= r[:seats] %></td>

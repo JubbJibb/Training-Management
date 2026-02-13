@@ -48,10 +48,14 @@ gem "image_processing", "~> 1.2"
 # CSV parsing for data import
 gem "csv"
 
+# Fetch and parse ODT courses page (HTML)
+gem "nokogiri"
+
 # Export system: PDF, Excel, authorization, background jobs
 gem "pundit"
 gem "prawn"
 gem "prawn-table"
+gem "combine_pdf"
 gem "caxlsx"
 gem "caxlsx_rails"
 

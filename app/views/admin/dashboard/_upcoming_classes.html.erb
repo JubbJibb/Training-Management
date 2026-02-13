@@ -1,18 +1,24 @@
 <%= turbo_frame_tag "dashboard_upcoming_classes" do %>
-  <div class="dashboard-section-container">
+  <div class="dashboard-section-container sj">
     <%= render "shared/section_header", title: "Upcoming Classes", actions: odt_button("View All", variant: :primary, size: :sm, href: admin_training_classes_path, icon_left: "list-ul") %>
     <div class="dashboard-section-container__body">
       <% if @upcoming_classes.any? %>
-        <div class="dashboard-table-wrap">
-          <table class="dashboard-table" aria-label="Upcoming classes">
+        <div class="sj-table-wrap table-wrap dashboard-table-wrap">
+          <table class="table data-table dashboard-table" aria-label="Upcoming classes">
+            <colgroup>
+              <col class="col-class" style="width: 26%;">
+              <col class="col-date" style="width: 18%;">
+              <col class="col-enrollment" style="width: 24%;">
+              <col class="col-payment" style="width: 16%;">
+              <col class="col-amount" style="width: 16%;">
+            </colgroup>
             <thead>
               <tr>
-                <th>Class</th>
-                <th>Date</th>
-                <th>Duration</th>
-                <th>Seats</th>
-                <th>Paid / Pending</th>
-                <th class="dashboard-table-num">Revenue</th>
+                <th class="col-class"><span class="th-inner">Class</span></th>
+                <th class="col-date"><span class="th-inner">Date</span></th>
+                <th class="col-enrollment"><span class="th-inner">Enrollment</span></th>
+                <th class="col-payment"><span class="th-inner">Payment</span></th>
+                <th class="col-amount text-end num"><span class="th-inner">Amount</span></th>
               </tr>
             </thead>
             <tbody>
@@ -24,20 +30,27 @@
                 <% max_seats = tc.max_attendees || filled %>
                 <% fill_pct = max_seats.positive? ? (filled.to_f / max_seats * 100).round(0) : 0 %>
                 <tr>
-                  <td><strong><%= link_to tc.title, admin_training_class_path(tc), class: "dashboard-link" %></strong></td>
-                  <td><%= tc.date.strftime("%b %d, %Y") %></td>
-                  <td><%= tc.duration || "—" %></td>
-                  <td>
+                  <td class="col-class"><strong><%= link_to tc.title, admin_training_class_path(tc), class: "dashboard-link" %></strong></td>
+                  <td class="col-date no-wrap"><%= tc.date.strftime("%b %d, %Y") %></td>
+                  <td class="col-enrollment">
                     <div class="dashboard-seats-cell">
                       <%= render "shared/progress_bar", percent: fill_pct, extra_class: "dashboard-seats-bar" %>
-                      <span class="dashboard-seats-text"><%= filled %> / <%= max_seats %></span>
+                      <span class="dashboard-seats-text no-wrap"><%= filled %> / <%= max_seats %></span>
                     </div>
                   </td>
-                  <td>
-                    <%= odt_badge("#{paid_count} Paid", status: :paid, size: :sm) %>
-                    <%= odt_badge("#{pending_count} Pending", status: :pending, size: :sm) %>
+                  <td class="col-payment dashboard-payment-cell">
+                    <div class="dashboard-payment-stack">
+                      <div class="dashboard-payment-stack__row dashboard-payment-stack__row--paid" title="Paid">
+                        <i class="bi bi-check-circle-fill dashboard-payment-stack__icon" aria-hidden="true"></i>
+                        <span class="odt-badge odt-badge--paid odt-badge--sm odt-badge--pill"><%= paid_count %> Paid</span>
+                      </div>
+                      <div class="dashboard-payment-stack__row dashboard-payment-stack__row--pending" title="Pending">
+                        <i class="bi bi-clock-fill dashboard-payment-stack__icon" aria-hidden="true"></i>
+                        <span class="odt-badge odt-badge--pending odt-badge--sm odt-badge--pill"><%= pending_count %> Pending</span>
+                      </div>
+                    </div>
                   </td>
-                  <td class="dashboard-table-num">฿<%= number_with_delimiter(revenue.round(2), delimiter: ",") %></td>
+                  <td class="col-amount num text-end dashboard-table-num">฿<%= number_with_delimiter(revenue.round(2), delimiter: ",") %></td>
                 </tr>
               <% end %>
             </tbody>

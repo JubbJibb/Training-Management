@@ -1,0 +1,49 @@
+<%# Key metrics: Total Revenue | Paid | Outstanding AR | Avg Per Seat — color-coded cards with trend %>
+<% m = overview[:metrics] %>
+<% trend = overview[:metrics_trend] || {} %>
+<div class="foh-metrics" role="region" aria-label="Key metrics">
+  <div class="foh-metrics__card foh-metrics__card--revenue">
+    <span class="foh-metrics__icon" aria-hidden="true"><i class="bi bi-currency-exchange"></i></span>
+    <span class="foh-metrics__label">Total Revenue</span>
+    <span class="foh-metrics__value"><%= number_to_thb(m[:total_revenue]) %></span>
+    <% if trend[:total_revenue].present? %>
+      <span class="foh-metrics__trend foh-metrics__trend--<%= trend[:total_revenue] >= 0 ? 'up' : 'down' %>">
+        <%= trend[:total_revenue] >= 0 ? "↑" : "↓" %> <%= trend[:total_revenue].abs %>%
+      </span>
+    <% end %>
+    <span class="foh-metrics__sub">vs last period</span>
+  </div>
+  <div class="foh-metrics__card foh-metrics__card--paid">
+    <span class="foh-metrics__icon" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+    <span class="foh-metrics__label">Paid Amount</span>
+    <span class="foh-metrics__value"><%= number_to_thb(m[:paid]) %></span>
+    <% if trend[:paid].present? %>
+      <span class="foh-metrics__trend foh-metrics__trend--<%= trend[:paid] >= 0 ? 'up' : 'down' %>">
+        <%= trend[:paid] >= 0 ? "↑" : "↓" %> <%= trend[:paid].abs %>%
+      </span>
+    <% end %>
+    <span class="foh-metrics__sub">vs last period</span>
+  </div>
+  <div class="foh-metrics__card foh-metrics__card--outstanding">
+    <span class="foh-metrics__icon" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
+    <span class="foh-metrics__label">Outstanding AR</span>
+    <span class="foh-metrics__value"><%= number_to_thb(m[:outstanding]) %></span>
+    <% if trend[:outstanding].present? %>
+      <span class="foh-metrics__trend foh-metrics__trend--<%= trend[:outstanding] <= 0 ? 'up' : 'down' %>">
+        <%= trend[:outstanding] <= 0 ? "↓" : "↑" %> <%= trend[:outstanding].abs %>%
+      </span>
+    <% end %>
+    <span class="foh-metrics__sub">vs last period</span>
+  </div>
+  <div class="foh-metrics__card foh-metrics__card--avg">
+    <span class="foh-metrics__icon" aria-hidden="true"><i class="bi bi-graph-up"></i></span>
+    <span class="foh-metrics__label">Avg Per Seat</span>
+    <span class="foh-metrics__value"><%= number_to_thb(m[:avg_per_seat]) %></span>
+    <% if trend[:avg_per_seat].present? %>
+      <span class="foh-metrics__trend foh-metrics__trend--<%= trend[:avg_per_seat] >= 0 ? 'up' : 'down' %>">
+        <%= trend[:avg_per_seat] >= 0 ? "↑" : "↓" %> <%= trend[:avg_per_seat].abs %>%
+      </span>
+    <% end %>
+    <span class="foh-metrics__sub">vs last period</span>
+  </div>
+</div>

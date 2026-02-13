@@ -1,0 +1,33 @@
+<%# KPI Summary: 5-6 cards %>
+<%
+  k = kpis
+  w = local_assigns[:waterfall] || {}
+  prof = local_assigns[:profitability] || {}
+  pending_count = (local_assigns[:payment_status_list] || []).count { |r| r[:status] != "Paid" }
+  total_inv = (local_assigns[:payment_status_list] || []).size
+  discount_rate = w[:discount_rate_pct].to_f
+  margin_pct = k[:profit_margin_pct].to_f
+  collection_pct = k[:collection_rate_pct].to_f
+  tone_for_margin = margin_pct >= 20 ? "success" : (margin_pct >= 0 ? "default" : "danger")
+  tone_for_collection = collection_pct >= 90 ? "success" : (collection_pct >= 60 ? "warning" : "danger")
+  tone_for_outstanding = k[:outstanding].to_f.zero? ? "default" : "warning"
+  metrics = [
+    { label: "Gross Sales", value: number_to_thb(k[:gross_sales]), subtext: "Discount " + number_to_percent(discount_rate), tone: "primary" },
+    { label: "Net Revenue (before VAT)", value: number_to_thb(k[:net_revenue_before_vat]), subtext: "VAT " + number_to_thb(w[:vat_amount] || 0), tone: "default" },
+    { label: "Cash Received", value: number_to_thb(k[:cash_received]), subtext: "#{total_inv} invoices · " + number_to_percent(collection_pct), tone: tone_for_collection },
+    { label: "Outstanding (AR)", value: number_to_thb(k[:outstanding]), subtext: "#{pending_count} pending", tone: tone_for_outstanding },
+    { label: "Total Cost", value: number_to_thb(prof[:total_cost].to_f), subtext: "Base + expenses", tone: "default" },
+    { label: "Net Profit", value: number_to_thb(k[:net_profit]), subtext: k[:profit_margin_pct].nil? ? "—" : "Margin " + number_to_percent(k[:profit_margin_pct]), tone: tone_for_margin }
+  ]
+%>
+<div class="class-finance-kpi-row cfo-metric-strip" role="region" aria-label="Finance KPI summary">
+  <% metrics.each do |m| %>
+    <div class="cfo-metric-strip__cell">
+      <span class="cfo-metric-strip__label"><%= m[:label] %></span>
+      <span class="cfo-metric-strip__value cfo-metric-strip__value--<%= m[:tone] %>"><%= m[:value] %></span>
+      <% if m[:subtext].present? %>
+        <span class="cfo-metric-strip__sub"><%= m[:subtext] %></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,16 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="billing-tax-modal" role="dialog" aria-labelledby="billing_tax_modal_title" aria-modal="true">
+    <%= link_to "", edit_billing_tax_admin_customer_path(customer, close: 1, segment: params[:segment], sort: params[:sort], direction: params[:direction], q: params[:q], top_n: params[:top_n]), class: "billing-tax-modal__backdrop", data: { turbo_frame: "modal" }, aria: { label: "Close" } %>
+    <div class="billing-tax-modal__content">
+      <header class="billing-tax-modal__header">
+        <h2 id="billing_tax_modal_title" class="billing-tax-modal__title">
+          <i class="bi bi-receipt" aria-hidden="true"></i> Billing &amp; Tax
+        </h2>
+        <%= link_to "×", edit_billing_tax_admin_customer_path(customer, close: 1, segment: params[:segment], sort: params[:sort], direction: params[:direction], q: params[:q], top_n: params[:top_n]), class: "billing-tax-modal__close", data: { turbo_frame: "modal" }, aria: { label: "Close" } %>
+      </header>
+      <div class="billing-tax-modal__body">
+        <%= render "admin/customers/billing_tax_form", customer: customer %>
+      </div>
+    </div>
+  </div>
+<% end %>

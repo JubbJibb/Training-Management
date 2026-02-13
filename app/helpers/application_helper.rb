@@ -1,20 +1,8 @@
 module ApplicationHelper
   include Odt::UiHelper
 
-  # Current nav section for accent styling (dashboard | operations | finance | settings)
-  def nav_section
-    case controller.controller_path
-    when "admin/dashboard" then "dashboard"
-    when "admin/finance" then "finance"
-    when "finance_dashboards" then "finance"
-    when "admin/training_classes", "admin/attendees", "admin/class_expenses" then "operations"
-    when "admin/customers" then "operations"
-    when "admin/settings" then "settings"
-    else "dashboard"
-    end
-  end
-
-  # Returns "nav-link active" or "nav-link" for navbar (tab_name: admin, finance, cfo, training_classes, customers, settings)
+  # Returns "nav-link active" or "nav-link" for navbar.
+  # tab_name: admin | finance | cfo | training_classes | customers | courses | exports | settings
   def nav_class(tab_name)
     base = "nav-link"
     active = case tab_name.to_s
@@ -23,6 +11,8 @@ module ApplicationHelper
     when "cfo" then controller.controller_path == "finance_dashboards"
     when "training_classes" then %w[admin/training_classes admin/attendees admin/class_expenses].include?(controller.controller_path)
     when "customers" then controller.controller_path == "admin/customers"
+    when "courses" then controller.controller_path == "admin/courses"
+    when "exports" then controller.controller_path == "admin/exports"
     when "settings" then controller.controller_path == "admin/settings"
     else false
     end

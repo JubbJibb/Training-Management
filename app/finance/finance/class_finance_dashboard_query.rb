@@ -20,8 +20,12 @@ class Finance::ClassFinanceDashboardQuery
       cost_by_category: cost_by_category,
       action_required: action_required,
       expense_list: expense_list,
-      payment_status_list: payment_status_list,
-      corporate_billing_overview: corporate_billing_overview
+      payment_status_list: payment_status_list_with_derived,
+      corporate_billing_overview: corporate_billing_overview,
+      segment_split: segment_split,
+      promotions_performance: promotions_performance,
+      payment_intelligence: payment_intelligence,
+      insights: insights
     }
   end
 
@@ -216,18 +220,135 @@ class Finance::ClassFinanceDashboardQuery
 
   def payment_status_list
     @attendees.map do |a|
+      due = a.due_date
+      paid_at = a.display_payment_date
+      status = a.payment_status.presence || "Pending"
+      status = "Overdue" if status == "Pending" && due.present? && due < Date.current
+      days_to_pay = (paid_at.present? && due.present?) ? (paid_at.to_date - due).to_i : nil
       {
         company: a.participant_type == "Corp" ? (a.company.presence || "—") : "—",
         contact: a.name,
+        email: a.email.presence || "—",
+        segment: a.participant_type.presence || "Indi",
         quotation_no: a.quotation_no.presence || "—",
         invoice_no: a.invoice_no.presence || "—",
         receipt_no: a.receipt_no.presence || "—",
         amount: a.total_final_price,
-        due_date: a.due_date,
-        status: a.payment_status.presence || "Pending",
+        due_date: due,
+        payment_date: paid_at,
+        status: status,
+        days_to_pay: days_to_pay,
         attendee: a
       }
     end
+  end
+
+  def payment_status_list_with_derived
+    payment_status_list
+  end
+
+  def segment_split
+    indi = @attendees.select { |a| a.participant_type != "Corp" }
+    corp = @attendees.select { |a| a.participant_type == "Corp" }
+    {
+      indi: {
+        amount: indi.sum(&:total_final_price).round(2),
+        count: indi.size,
+        seats: indi.sum(&:seats).to_i
+      },
+      corp: {
+        amount: corp.sum(&:total_final_price).round(2),
+        count: corp.size,
+        seats: corp.sum(&:seats).to_i
+      }
+    }
+  end
+
+  def promotions_performance
+    promo_hash = {}
+    @attendees.each do |a|
+      base = a.base_price
+      seats = (a.seats || 1).to_i
+      a.active_promotions.each do |promo|
+        key = promo.id
+        promo_hash[key] ||= { promotion: promo, promotion_name: promo.display_name, seats_used: 0, discount_cost: 0, revenue: 0 }
+        disc = promo.calculate_discount(base) * seats
+        rev = a.total_price_before_vat
+        promo_hash[key][:seats_used] += seats
+        promo_hash[key][:discount_cost] += disc
+        promo_hash[key][:revenue] += rev
+      end
+    end
+    rows = promo_hash.values.map do |h|
+      rev = h[:revenue].round(2)
+      cost = h[:discount_cost].round(2)
+      seats = h[:seats_used]
+      avg = seats.positive? ? (rev / seats).round(2) : 0
+      margin_pct = rev.positive? ? (((rev - cost) / rev) * 100).round(1) : nil
+      h.merge(
+        discount_cost: cost,
+        revenue: rev,
+        avg_per_seat: avg,
+        margin_impact_pct: margin_pct
+      ).except(:promotion)
+    end
+    return [] if rows.empty?
+    max_seats = rows.map { |r| r[:seats_used] }.max
+    max_rev = rows.map { |r| r[:revenue] }.max
+    max_cost = rows.map { |r| r[:discount_cost] }.max
+    rows.each do |r|
+      r[:chips] = []
+      r[:chips] << "Most Used" if max_seats.positive? && r[:seats_used] == max_seats
+      r[:chips] << "Highest Revenue" if max_rev.positive? && r[:revenue] == max_rev
+      r[:chips] << "Most Costly" if max_cost.positive? && r[:discount_cost] == max_cost
+    end
+    rows.sort_by { |r| -r[:revenue] }
+  end
+
+  def payment_intelligence
+    paid = @attendees.select { |a| a.payment_status == "Paid" }
+    paid_with_due = paid.select { |a| a.due_date.present? && a.display_payment_date.present? }
+    days_list = paid_with_due.map { |a| (a.display_payment_date.to_date - a.due_date).to_i }
+    avg_days = days_list.any? ? (days_list.sum.to_f / days_list.size).round(0) : nil
+    under_7 = paid_with_due.count { |a| (a.display_payment_date.to_date - a.due_date).to_i <= 7 }
+    pct_under_7 = paid.any? ? ((under_7.to_f / paid.size) * 100).round(1) : nil
+    overdue_count = @attendees.count { |a| a.payment_status == "Pending" && a.due_date.present? && a.due_date < Date.current }
+    pct_late = @attendees.any? ? ((overdue_count.to_f / @attendees.size) * 100).round(1) : nil
+    {
+      collection_rate_pct: collection_rate_pct,
+      avg_days_to_pay: avg_days,
+      pct_paid_under_7_days: pct_under_7,
+      pct_late: pct_late
+    }
+  end
+
+  def insights
+    list = []
+    seg = segment_split
+    pay_int = payment_intelligence
+    if seg[:corp][:count].positive? && pay_int[:avg_days_to_pay].present?
+      list << "Corporate payments average #{pay_int[:avg_days_to_pay]} days to pay."
+    end
+    promo_rows = promotions_performance
+    if promo_rows.any?
+      most_costly = promo_rows.max_by { |r| r[:discount_cost] }
+      if most_costly && discount_total.positive?
+        pct = ((most_costly[:discount_cost] / discount_total) * 100).round(0)
+        list << "#{most_costly[:promotion_name]} accounts for #{pct}% of discount cost."
+      end
+    end
+    if gross_margin_pct.present? && gross_margin_pct >= 0
+      list << "Margin is #{format('%.1f', gross_margin_pct)}%."
+    end
+    if collection_rate_pct >= 90
+      list << "Collection rate is strong (#{format('%.1f', collection_rate_pct)}%)."
+    elsif outstanding.positive?
+      list << "#{format('%.2f', outstanding)} THB outstanding (AR)."
+    end
+    if profit.positive? && seats_total.positive?
+      list << "Profit per seat: #{format('%.2f', profit / seats_total)} THB."
+    end
+    list.first(5)
   end
 
   def corporate_billing_overview

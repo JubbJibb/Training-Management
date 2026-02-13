@@ -1,0 +1,26 @@
+<%= form_with model: [:admin, customer], url: update_billing_tax_admin_customer_path(customer), method: :patch, class: "billing-tax-form" do |f| %>
+  <%= hidden_field_tag :segment, params[:segment] %>
+  <%= hidden_field_tag :sort, params[:sort] %>
+  <%= hidden_field_tag :direction, params[:direction] %>
+  <%= hidden_field_tag :q, params[:q] %>
+  <%= hidden_field_tag :top_n, params[:top_n] %>
+  <div class="billing-tax-form__field">
+    <%= f.label :tax_id, "Tax ID", class: "form-label" %>
+    <%= f.text_field :tax_id, class: "form-control" %>
+    <%= inline_error_for(customer, :tax_id) %>
+  </div>
+  <div class="billing-tax-form__field">
+    <%= f.label :billing_name, "Billing Name", class: "form-label" %>
+    <%= f.text_field :billing_name, class: "form-control" %>
+    <%= inline_error_for(customer, :billing_name) %>
+  </div>
+  <div class="billing-tax-form__field">
+    <%= f.label :billing_address, "Billing Address", class: "form-label" %>
+    <%= f.text_area :billing_address, class: "form-control", rows: 3 %>
+    <%= inline_error_for(customer, :billing_address) %>
+  </div>
+  <div class="billing-tax-form__actions">
+    <%= link_to "Cancel", edit_billing_tax_admin_customer_path(customer, close: 1, segment: params[:segment], sort: params[:sort], direction: params[:direction], q: params[:q], top_n: params[:top_n]), class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo_frame: "modal" } %>
+    <%= f.submit "Save", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+  </div>
+<% end %>

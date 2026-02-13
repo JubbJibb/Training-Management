@@ -1,0 +1,34 @@
+<% content_for :title, "สมัครเรียน - #{@customer.company_name}" %>
+
+<%= render "components/odt/page_header", title: "สมัครเรียน", subtitle: "เลือกคลาสที่ลูกค้า #{@customer.company_name} จะสมัคร", icon: "person-plus" do %>
+  <%= link_to admin_customers_path, class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> กลับรายการลูกค้า
+  <% end %>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <% if @upcoming_classes.any? %>
+      <p class="text-muted mb-3">เลือกคลาสด้านล่าง เพื่อไปหน้าลงทะเบียนผู้เข้าร่วม (ข้อมูลลูกค้าจะถูกนำไปใส่ในฟอร์ม)</p>
+      <ul class="list-group list-group-flush">
+        <% @upcoming_classes.each do |tc| %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong><%= tc.title %></strong>
+              <span class="text-muted ms-2"><%= tc.date.strftime("%d %b %Y") %></span>
+              <% if tc.instructor.present? %>
+                <span class="text-muted"> · <%= tc.instructor %></span>
+              <% end %>
+            </div>
+            <%= link_to new_admin_training_class_attendee_path(tc, customer_id: @customer.id), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+              <i class="bi bi-person-plus" aria-hidden="true"></i> สมัครเรียน
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-muted mb-0">ยังไม่มีคลาสที่เปิดรับสมัครในขณะนี้</p>
+      <%= link_to "ดูรายการคลาส", admin_training_classes_path, class: "odt-btn odt-btn--secondary odt-btn--sm mt-3" %>
+    <% end %>
+  </div>
+</div>

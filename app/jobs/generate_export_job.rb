@@ -32,6 +32,11 @@ class GenerateExportJob < ApplicationJob
     when ["class_attendees", "xlsx"] then Exports::ClassAttendeesXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
     when ["customer_master", "xlsx"] then Exports::CustomerMasterXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
     when ["customer_for_accounting", "xlsx"] then Exports::CustomerForAccountingXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
+    when ["overall_revenue_summary", "xlsx"] then Exports::OverallRevenueSummaryXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
+    when ["class_financial_report", "xlsx"] then Exports::ClassFinancialReportXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
+    when ["attendee_master_editable", "xlsx"] then Exports::AttendeeMasterEditableXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
+    when ["pending_receipt", "xlsx"] then Exports::PendingReceiptXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
+    when ["attendee_complete", "xlsx"] then Exports::AttendeeCompleteXlsx.new(filters: filters, include_sections: sections, include_custom_fields: include_custom)
     else
       raise ArgumentError, "Unsupported export: #{job.export_type} / #{job.format}"
     end

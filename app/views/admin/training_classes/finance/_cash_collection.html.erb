@@ -35,24 +35,31 @@
       </svg>
     </div>
     <% if ts.present? %>
-      <table class="table table-sm" style="font-size: 0.8125rem;">
-        <thead>
-          <tr>
-            <th>Period</th>
-            <th class="text-end">Net Revenue</th>
-            <th class="text-end">Cash Received</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% ts.each do |r| %>
+      <div class="table-wrap">
+        <table class="table data-table table-sm table-sortable-filterable" style="font-size: 0.8125rem;" aria-label="Revenue vs cash">
+          <colgroup>
+            <col style="width: 40%;">
+            <col style="width: 30%;">
+            <col style="width: 30%;">
+          </colgroup>
+          <thead>
             <tr>
-              <td><%= r[:label] %></td>
-              <td class="text-end"><%= number_to_thb(r[:net_revenue]) %></td>
-              <td class="text-end"><%= number_to_thb(r[:cash_received]) %></td>
+              <th><span class="th-inner">Period</span></th>
+              <th class="text-end num"><span class="th-inner">Net Revenue</span></th>
+              <th class="text-end num"><span class="th-inner">Cash Received</span></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% ts.each do |r| %>
+              <tr>
+                <td class="no-wrap"><%= r[:label] %></td>
+                <td class="num text-end"><%= number_to_thb(r[:net_revenue]) %></td>
+                <td class="num text-end"><%= number_to_thb(r[:cash_received]) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     <% else %>
       <p class="cfo-empty">No time series data.</p>
     <% end %>

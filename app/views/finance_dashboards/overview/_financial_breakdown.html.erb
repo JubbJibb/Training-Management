@@ -1,0 +1,38 @@
+<%# Financial breakdown: donut (Gross, Discount, VAT, Total) + details list %>
+<% fb = overview[:financial_breakdown] %>
+<% gross = fb[:gross].to_f %>
+<% total = fb[:total].to_f %>
+<% gross = 1 if gross.zero? %>
+<% discount_pct = ((fb[:discount] / gross) * 100).round(1) %>
+<% vat_pct = ((fb[:vat] / gross) * 100).round(1) %>
+<div class="foh-breakdown" role="region" aria-label="Financial breakdown">
+  <div class="foh-card-header">
+    <h3 class="foh-breakdown__title">Financial Breakdown</h3>
+  </div>
+  <div class="foh-card-body">
+  <% circ = 2 * Math::PI * 40 %>
+  <div class="foh-breakdown__donut-wrap">
+    <svg class="foh-breakdown__donut" viewBox="0 0 100 100" aria-hidden="true" style="transform: rotate(-90deg);">
+      <% d_angle = gross.positive? ? (fb[:discount] / gross * 360).round(1) : 0 %>
+      <% v_angle = gross.positive? ? (fb[:vat] / gross * 360).round(1) : 0 %>
+      <% n_angle = [360 - d_angle - v_angle, 0].max %>
+      <% if n_angle > 0 %>
+        <circle class="foh-breakdown__donut-seg foh-breakdown__donut-seg--net" cx="50" cy="50" r="40" fill="none" stroke-width="12" stroke-dasharray="<%= n_angle / 360.0 * circ %> <%= circ %>" stroke-dashoffset="0" />
+      <% end %>
+      <% if d_angle > 0 %>
+        <circle class="foh-breakdown__donut-seg foh-breakdown__donut-seg--discount" cx="50" cy="50" r="40" fill="none" stroke-width="12" stroke-dasharray="<%= d_angle / 360.0 * circ %> <%= circ %>" stroke-dashoffset="<%= -n_angle / 360.0 * circ %>" />
+      <% end %>
+      <% if v_angle > 0 %>
+        <circle class="foh-breakdown__donut-seg foh-breakdown__donut-seg--vat" cx="50" cy="50" r="40" fill="none" stroke-width="12" stroke-dasharray="<%= v_angle / 360.0 * circ %> <%= circ %>" stroke-dashoffset="<%= -(n_angle + d_angle) / 360.0 * circ %>" />
+      <% end %>
+    </svg>
+    <span class="foh-breakdown__donut-total"><%= number_to_thb(total) %></span>
+  </div>
+  <ul class="foh-breakdown__list">
+    <li class="foh-breakdown__item"><span class="foh-breakdown__item-label">Gross</span><span class="foh-breakdown__item-val"><%= number_to_thb(fb[:gross]) %> (100%)</span></li>
+    <li class="foh-breakdown__item foh-breakdown__item--discount"><span class="foh-breakdown__item-label">Discount</span><span class="foh-breakdown__item-val">−<%= number_to_thb(fb[:discount]) %> (<%= discount_pct %>%)</span></li>
+    <li class="foh-breakdown__item"><span class="foh-breakdown__item-label">VAT</span><span class="foh-breakdown__item-val">+<%= number_to_thb(fb[:vat]) %> (<%= vat_pct %>%)</span></li>
+    <li class="foh-breakdown__item foh-breakdown__item--total"><span class="foh-breakdown__item-label">Total</span><span class="foh-breakdown__item-val"><%= number_to_thb(fb[:total]) %></span></li>
+  </ul>
+  </div>
+</div>

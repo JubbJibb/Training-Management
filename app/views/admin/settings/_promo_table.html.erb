@@ -3,19 +3,30 @@
 
   <div class="promo-mgmt-section__body">
     <% if @promotions.any? %>
-      <div class="promo-mgmt-table-wrap">
-        <table class="promo-mgmt-table promo-mgmt-table--zebra" aria-label="Promotions">
+      <div class="table-wrap promo-mgmt-table-wrap">
+        <table class="table data-table promo-mgmt-table promo-mgmt-table--zebra table-sortable-filterable" aria-label="Promotions">
+          <colgroup>
+            <col style="width: 14%;">
+            <col style="width: 10%;">
+            <col style="width: 20%;">
+            <col style="width: 8%;">
+            <col style="width: 12%;">
+            <col style="width: 12%;">
+            <col style="width: 6%;">
+            <col style="width: 10%;">
+            <col style="width: 8%;">
+          </colgroup>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Discount logic</th>
-              <th class="promo-mgmt-table-num">Usage</th>
-              <th class="promo-mgmt-table-num">Revenue impact</th>
-              <th class="promo-mgmt-table-num">Discount cost</th>
-              <th>Segment</th>
-              <th>Status</th>
-              <th class="promo-mgmt-table-actions">Actions</th>
+              <th><span class="th-inner">Name</span></th>
+              <th><span class="th-inner">Type</span></th>
+              <th><span class="th-inner">Discount logic</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Usage</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Revenue impact</span></th>
+              <th class="promo-mgmt-table-num num"><span class="th-inner">Discount cost</span></th>
+              <th><span class="th-inner">Segment</span></th>
+              <th><span class="th-inner">Status</span></th>
+              <th class="promo-mgmt-table-actions actions-col"><span class="th-inner">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -23,10 +34,10 @@
               <% perf = (@promo_performance || []).find { |r| r[:id] == p.id } %>
               <% usage = (@promo_usage || {}).fetch(p.id, 0) %>
               <tr class="promo-mgmt-table__row">
-                <td><strong><%= p.name %></strong></td>
+                <td class="truncate"><strong><%= p.name %></strong></td>
                 <td><%= p.discount_type.humanize %></td>
-                <td><%= p.discount_description %></td>
-                <td class="promo-mgmt-table-num"><%= usage %></td>
+                <td class="truncate"><%= p.discount_description %></td>
+                <td class="promo-mgmt-table-num num"><%= usage %></td>
                 <td class="promo-mgmt-table-num"><%= perf ? number_to_thb(perf[:revenue_generated].to_f) : "—" %></td>
                 <td class="promo-mgmt-table-num"><%= perf ? number_to_thb(perf[:total_discount_cost].to_f) : "—" %></td>
                 <td>All</td>

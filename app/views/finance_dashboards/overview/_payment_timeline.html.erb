@@ -1,0 +1,45 @@
+<%# Timeline การจ่ายเงิน – กราฟเส้น แกน X = วันที่จ่าย, แกน Y = เงิน (฿) %>
+<% items = overview[:payment_timeline] || [] %>
+<% max_amount = items.map { |i| i[:amount].to_f }.max.to_f %>
+<% max_amount = 1 if max_amount <= 0 %>
+<% n = items.size %>
+<% w = 520; h = 220; pad = { t: 24, r: 16, b: 44, l: 72 } %>
+<% chart_w = w - pad[:l] - pad[:r]; chart_h = h - pad[:t] - pad[:b] %>
+<% step_x = n > 1 ? chart_w.to_f / (n - 1) : 0 %>
+<div class="foh-timeline foh-timeline--line-chart" role="region" aria-label="Payment timeline by payment date">
+  <div class="foh-card-header">
+    <h3 class="foh-timeline__title">Timeline การจ่ายเงิน (Payment Date)</h3>
+  </div>
+  <div class="foh-card-body">
+  <% if items.any? %>
+    <div class="foh-timeline-line-chart">
+      <svg class="foh-timeline-line-chart__svg" viewBox="0 0 <%= w %> <%= h %>" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <% [0.25, 0.5, 0.75].each do |p| %>
+          <% y_line = pad[:t] + chart_h * (1 - p) %>
+          <line x1="<%= pad[:l] %>" y1="<%= y_line %>" x2="<%= w - pad[:r] %>" y2="<%= y_line %>" class="foh-timeline-line-chart__grid" />
+        <% end %>
+        <% items.each_with_index do |item, i| %>
+          <% x_line = n > 1 ? pad[:l] + i * step_x : pad[:l] + chart_w * 0.5 %>
+          <line x1="<%= x_line %>" y1="<%= pad[:t] %>" x2="<%= x_line %>" y2="<%= pad[:t] + chart_h %>" class="foh-timeline-line-chart__grid-y" />
+        <% end %>
+        <% pts = items.each_with_index.map { |item, i| x = n > 1 ? pad[:l] + i * step_x : pad[:l] + chart_w * 0.5; y = pad[:t] + chart_h - (item[:amount].to_f / max_amount) * chart_h; "#{x},#{y}" }.join(" ") %>
+        <polyline points="<%= pts %>" class="foh-timeline-line-chart__line" fill="none" />
+        <% items.each_with_index do |item, i| %>
+          <% cx = n > 1 ? pad[:l] + i * step_x : pad[:l] + chart_w * 0.5 %>
+          <% cy = pad[:t] + chart_h - (item[:amount].to_f / max_amount) * chart_h %>
+          <circle cx="<%= cx %>" cy="<%= cy %>" r="4" class="foh-timeline-line-chart__point" />
+        <% end %>
+        <text x="<%= pad[:l] - 6 %>" y="<%= pad[:t] + chart_h %>" text-anchor="end" dominant-baseline="middle" class="foh-timeline-line-chart__y-text">0</text>
+        <text x="<%= pad[:l] - 6 %>" y="<%= pad[:t] %>" text-anchor="end" dominant-baseline="middle" class="foh-timeline-line-chart__y-text"><%= number_to_thb(max_amount) %></text>
+        <% items.each_with_index do |item, i| %>
+          <% x_txt = n > 1 ? pad[:l] + i * step_x : pad[:l] + chart_w * 0.5 %>
+          <text x="<%= x_txt %>" y="<%= h - 8 %>" text-anchor="middle" dominant-baseline="hanging" class="foh-timeline-line-chart__x-text"><%= item[:date_label] %></text>
+        <% end %>
+      </svg>
+      <p class="foh-timeline-line-chart__hint">แกน Y = เงิน (฿) · แกน X = วันที่จ่าย</p>
+    </div>
+  <% else %>
+    <p class="foh-timeline__empty">ไม่มีข้อมูลการจ่ายเงินในช่วงนี้ (หรือยังไม่มี Payment Date)</p>
+  <% end %>
+  </div>
+</div>

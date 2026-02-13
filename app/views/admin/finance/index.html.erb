@@ -180,6 +180,7 @@
               <th>Company</th>
               <th class="odt-table-numeric">Amount</th>
               <th>Due</th>
+              <th>Payment Date</th>
               <th>Doc</th>
             </tr>
           </thead>
@@ -191,6 +192,7 @@
                 <td><%= a.customer&.company_name || a.company || "—" %></td>
                 <td class="odt-table-numeric">฿<%= number_with_delimiter(a.total_final_price.round(2), delimiter: ",") %></td>
                 <td><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
+                <td><%= a.display_payment_date.present? ? a.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
                 <td><%= a.document_status || "—" %></td>
               </tr>
             <% end %>

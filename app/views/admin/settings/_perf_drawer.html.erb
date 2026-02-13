@@ -33,14 +33,31 @@
             <script type="application/json" data-perf-line-source><%= raw time_series.to_json %></script>
             <canvas id="perfLineCanvas" width="300" height="120" aria-label="Revenue and discount over time"></canvas>
           </div>
-          <table class="perf-drawer__table" aria-label="Time series fallback">
-            <thead><tr><th>Date</th><th class="perf-num">Revenue</th><th class="perf-num">Discount</th></tr></thead>
+          <div class="table-wrap">
+          <table class="table data-table perf-drawer__table table-sortable-filterable" aria-label="Time series fallback">
+            <colgroup>
+              <col style="width: 34%; min-width: 85px;">
+              <col style="width: 33%;">
+              <col style="width: 33%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th><span class="th-inner">Date</span></th>
+                <th class="perf-num num"><span class="th-inner">Revenue</span></th>
+                <th class="perf-num num"><span class="th-inner">Discount</span></th>
+              </tr>
+            </thead>
             <tbody>
               <% time_series.each do |pt| %>
-                <tr><td><%= pt[:date] %></td><td class="perf-num"><%= number_to_thb(pt[:revenue].to_f) %></td><td class="perf-num"><%= number_to_thb(pt[:discount].to_f) %></td></tr>
+                <tr>
+                  <td class="no-wrap"><%= pt[:date] %></td>
+                  <td class="perf-num num"><%= number_to_thb(pt[:revenue].to_f) %></td>
+                  <td class="perf-num num"><%= number_to_thb(pt[:discount].to_f) %></td>
+                </tr>
               <% end %>
             </tbody>
           </table>
+        </div>
         <% end %>
       </div>
     <% else %>

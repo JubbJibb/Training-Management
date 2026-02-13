@@ -1,0 +1,23 @@
+<%
+  # Expects document_summary hash from DocumentSummaryService#summary
+  document_summary ||= {}
+  items = document_summary.values_at(:quotations, :invoices, :receipts, :other_documents).compact
+%>
+<div class="doc-summary-simple" data-controller="document-summary">
+  <% items.each do |item| %>
+    <div class="doc-summary-simple__row" data-document-summary-target="row">
+      <span class="doc-summary-simple__icon" aria-hidden="true"><%= item[:icon] %></span>
+      <span class="doc-summary-simple__label"><%= item[:label] %></span>
+      <span class="doc-summary-simple__spacer"></span>
+      <span class="doc-summary-simple__count"><%= item[:count] %></span>
+      <button type="button"
+              class="doc-summary-simple__btn"
+              data-action="click->document-summary#handleAction"
+              data-document-summary-type-param="<%= item[:type] %>"
+              data-document-summary-action-param="<%= item[:action] %>"
+              <%= "disabled" if item[:action] == "none" %>>
+        <%= item[:action_label] %>
+      </button>
+    </div>
+  <% end %>
+</div>

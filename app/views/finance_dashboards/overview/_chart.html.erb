@@ -1,0 +1,44 @@
+<%# Revenue & Cash line chart: Total Revenue (blue), Cash (green), Outstanding AR (orange), Collection % (purple) %>
+<% rows = overview[:chart_data] || [] %>
+<% max_val = rows.flat_map { |r| [r[:revenue].to_f, r[:cash_received].to_f, r[:outstanding].to_f] }.max.to_f %>
+<% max_val = 1 if max_val <= 0 %>
+<% max_rate = rows.map { |r| r[:collection_rate].to_f }.max.to_f %>
+<% max_rate = 100 if max_rate <= 0 %>
+<% w = 600; h = 220; pad = { t: 20, r: 20, b: 32, l: 56 } %>
+<% chart_w = w - pad[:l] - pad[:r]; chart_h = h - pad[:t] - pad[:b] %>
+<% n = rows.size; step_x = n > 1 ? chart_w.to_f / (n - 1) : chart_w %>
+<div class="foh-chart" role="region" aria-label="Revenue and cash over time">
+  <div class="foh-card-header">
+    <h3 class="foh-chart__title">Revenue & Cash (6 months)</h3>
+  </div>
+  <div class="foh-card-body">
+  <% if rows.any? %>
+    <svg class="foh-chart__svg" viewBox="0 0 <%= w %> <%= h %>" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <% [0.25, 0.5, 0.75].each do |p| %>
+        <line x1="<%= pad[:l] %>" y1="<%= pad[:t] + chart_h * (1 - p) %>" x2="<%= w - pad[:r] %>" y2="<%= pad[:t] + chart_h * (1 - p) %>" class="foh-chart__grid" />
+      <% end %>
+      <% rev_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:revenue].to_f / max_val) * chart_h}" }.join(" ") %>
+      <% cash_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:cash_received].to_f / max_val) * chart_h}" }.join(" ") %>
+      <% ar_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:outstanding].to_f / max_val) * chart_h}" }.join(" ") %>
+      <% rate_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:collection_rate].to_f / max_rate) * chart_h}" }.join(" ") %>
+      <polyline points="<%= rev_pts %>" class="foh-chart__line foh-chart__line--revenue" fill="none" />
+      <polyline points="<%= cash_pts %>" class="foh-chart__line foh-chart__line--cash" fill="none" />
+      <polyline points="<%= ar_pts %>" class="foh-chart__line foh-chart__line--ar" fill="none" />
+      <polyline points="<%= rate_pts %>" class="foh-chart__line foh-chart__line--rate" fill="none" stroke-dasharray="4 2" />
+    </svg>
+    <div class="foh-chart__legend">
+      <span class="foh-chart__legend-item foh-chart__legend-item--revenue">Total Revenue</span>
+      <span class="foh-chart__legend-item foh-chart__legend-item--cash">Cash Received</span>
+      <span class="foh-chart__legend-item foh-chart__legend-item--ar">Outstanding AR</span>
+      <span class="foh-chart__legend-item foh-chart__legend-item--rate">Collection %</span>
+    </div>
+    <div class="foh-chart__labels">
+      <% rows.each_with_index do |r, i| %>
+        <span class="foh-chart__label" style="left: <%= pad[:l] + i * step_x %>%;"><%= r[:date_bucket] %></span>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="foh-chart__empty">No chart data for this period.</p>
+  <% end %>
+  </div>
+</div>

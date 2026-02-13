@@ -1,26 +1,34 @@
 <% attendees = Attendee.where(id: row[:attendee_ids]).includes(:training_class, :customer).order("training_classes.date") %>
 <div class="cfo-dash-ledger-detail">
   <h4 class="cfo-dash-ledger-detail__heading">Invoices / Receipts</h4>
-  <table class="cfo-dash-table cfo-dash-table--sm">
+  <div class="table-wrap">
+  <table class="table data-table cfo-dash-table cfo-dash-table--sm table-sortable-filterable" aria-label="Invoices and receipts">
+    <colgroup>
+      <col style="width: 40%;">
+      <col style="width: 22%;">
+      <col style="width: 18%;">
+      <col style="width: 20%; min-width: 78px;">
+    </colgroup>
     <thead>
       <tr>
-        <th>Class</th>
-        <th class="cfo-dash-table-num">Amount (incl VAT)</th>
-        <th>Doc</th>
-        <th>Due</th>
+        <th><span class="th-inner">Class</span></th>
+        <th class="cfo-dash-table-num num"><span class="th-inner">Amount (incl VAT)</span></th>
+        <th><span class="th-inner">Doc</span></th>
+        <th><span class="th-inner">Due</span></th>
       </tr>
     </thead>
     <tbody>
       <% attendees.each do |a| %>
         <tr>
-          <td><%= a.training_class.title %> (<%= a.training_class.date.strftime("%d/%m/%y") %>)</td>
-          <td class="cfo-dash-table-num"><%= number_to_thb(a.total_final_price) %></td>
+          <td class="truncate"><%= a.training_class.title %> (<span class="no-wrap"><%= a.training_class.date.strftime("%d/%m/%y") %></span>)</td>
+          <td class="cfo-dash-table-num num"><%= number_to_thb(a.total_final_price) %></td>
           <td><%= a.document_status || "—" %></td>
-          <td><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
+          <td class="no-wrap"><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
+</div>
   <p class="cfo-dash-ledger-detail__meta">Paid: <%= number_to_thb(row[:cash_received]) %> · Outstanding: <%= number_to_thb(row[:outstanding]) %></p>
   <% if attendees.any? { |a| a.notes.present? } %>
     <h4 class="cfo-dash-ledger-detail__heading">Notes</h4>

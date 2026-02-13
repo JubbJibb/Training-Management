@@ -23,5 +23,8 @@ module TrainingManagement
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Payment Summary Card: company tax ID. Override with ENV["COMPANY_TAX_ID"] if needed.
+    config.x.company_tax_id = ENV.fetch("COMPANY_TAX_ID", "0-1055-56110-71-8")
   end
 end

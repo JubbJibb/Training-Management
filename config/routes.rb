@@ -18,20 +18,29 @@ Rails.application.routes.draw do
     get "data/attendee_list", to: "data#attendee_list", as: :data_attendee_list
     get "data/upload", to: "data#upload", as: :data_upload
     post "data/upload", to: "data#upload_customers", as: :data_upload_customers
+    resources :courses, only: [:index, :show, :edit, :update] do
+      collection do
+        post :sync
+      end
+    end
     resources :exports, only: [:index, :new, :create, :show]
     resources :settings, only: [:index, :new, :create, :edit, :update, :destroy] do
       get "promotion_drilldown/:id", action: :promotion_drilldown, as: :promotion_drilldown, on: :collection
       get "promotion_export", action: :promotion_export, on: :collection
     end
-    resources :customers, only: [:index, :show, :edit, :update] do
+    resources :customers, only: [:index, :show, :new, :create, :edit, :update] do
       collection do
         post :sync_duplicates
+        post :merge
       end
       member do
-        post :sync_document_info
+        match :sync_document_info, via: [:get, :post]
         get :export_customer_info
         get :export_billing_accounting
         get :export_customer_template
+        get :edit_billing_tax
+        patch :update_billing_tax
+        get :register_for_class
       end
     end
     resources :training_classes do
@@ -39,6 +48,7 @@ Rails.application.routes.draw do
       resources :attendees do
         collection do
           get :export
+          get :export_documents
         end
         member do
           get :move_to_potential
@@ -46,6 +56,7 @@ Rails.application.routes.draw do
           get :move_to_attendee
           patch :move_to_attendee
           post :send_email
+          post :sync_tax_from_customer
         end
       end
       resources :class_expenses, except: [:show, :index]

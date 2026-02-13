@@ -5,6 +5,7 @@ module Admin
 
     def index
       @promotions = Promotion.order(:name)
+      @filter_training_classes = TrainingClass.order(date: :desc).limit(50)
       metrics = Promotions::MetricsService.new(period: :this_month)
       @promo_kpi = metrics.kpi_strip
       @promo_performance = metrics.performance_rows

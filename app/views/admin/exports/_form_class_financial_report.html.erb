@@ -1,0 +1,42 @@
+<%
+  export_job = export_job
+  filters = export_job.filters_hash.symbolize_keys
+  classes = @filter_training_classes || TrainingClass.order(date: :desc).limit(80)
+%>
+<%= form_with model: export_job, url: admin_exports_path, method: :post, local: false, class: "export-form", data: { turbo_frame: "_top" } do |f| %>
+  <%= f.hidden_field :export_type, value: "class_financial_report" %>
+  <%= f.hidden_field :format, value: "xlsx" %>
+
+  <p class="export-form__hint mb-3">Export revenue, discounts, VAT, net per class. Select one or more classes.</p>
+
+  <div class="export-form__row">
+    <label class="export-form__label">Classes</label>
+    <select name="export_job[filters][class_ids][]" id="export_class_fin_class_ids" class="export-form__select" multiple size="5">
+      <% classes.each do |tc| %>
+        <option value="<%= tc.id %>" <%= "selected" if Array(filters[:class_ids]).include?(tc.id.to_s) %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+      <% end %>
+    </select>
+    <small class="export-form__help">Hold Ctrl/Cmd to select multiple. Empty = all classes in date range.</small>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Start date</label>
+    <%= date_field_tag "export_job[filters][start_date]", filters[:start_date].presence || Date.current.beginning_of_month, class: "export-form__input" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">End date</label>
+    <%= date_field_tag "export_job[filters][end_date]", filters[:end_date].presence || Date.current.end_of_month, class: "export-form__input" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Payment status</label>
+    <select name="export_job[filters][payment_status]" class="export-form__select">
+      <option value="">All</option>
+      <option value="Paid" <%= "selected" if filters[:payment_status] == "Paid" %>>Paid</option>
+      <option value="Pending" <%= "selected" if filters[:payment_status] == "Pending" %>>Pending</option>
+    </select>
+  </div>
+
+  <div class="export-form__actions">
+    <%= link_to "Cancel", admin_exports_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+    <%= f.submit "Generate", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+  </div>
+<% end %>

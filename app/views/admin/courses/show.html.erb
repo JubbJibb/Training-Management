@@ -1,0 +1,48 @@
+<% content_for :title, @course.title %>
+
+<%= render "components/odt/page_header", title: @course.title, subtitle: "Course information", icon: "journal-bookmark" do %>
+  <%= link_to admin_courses_path, class: "odt-btn odt-btn--ghost odt-btn--sm" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Courses
+  <% end %>
+  <%= link_to edit_admin_course_path(@course), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+  <% end %>
+  <%= link_to new_admin_training_class_path(course_id: @course.id), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+    <i class="bi bi-plus-circle" aria-hidden="true"></i> Create Class
+  <% end %>
+<% end %>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-body">
+        <% if @course.description.present? %>
+          <h6 class="text-muted text-uppercase small mb-2">Description</h6>
+          <p class="mb-0"><%= simple_format(@course.description) %></p>
+        <% end %>
+        <dl class="row mt-3 mb-0">
+          <dt class="col-sm-3">Capacity</dt>
+          <dd class="col-sm-9"><%= @course.capacity.presence || "—" %></dd>
+          <dt class="col-sm-3">Duration</dt>
+          <dd class="col-sm-9"><%= @course.duration_text.presence || "—" %></dd>
+          <dt class="col-sm-3">Category</dt>
+          <dd class="col-sm-9"><%= @course.category.presence || "—" %></dd>
+          <% if @course.source_url.present? %>
+            <dt class="col-sm-3">Link</dt>
+            <dd class="col-sm-9">
+              <%= link_to @course.source_url, @course.source_url, target: "_blank", rel: "noopener" %>
+            </dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="text-muted small">
+  <% if @course.synced_at %>
+    Last synced from ODT: <%= l(@course.synced_at, format: :long) %>
+  <% else %>
+    Manually created or not yet synced.
+  <% end %>
+</p>

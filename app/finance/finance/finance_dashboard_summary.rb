@@ -78,6 +78,8 @@ class Finance::FinanceDashboardSummary
       case @filters[:preset]
       when "this_month" then Date.current.beginning_of_month
       when "last_month" then Date.current.prev_month.beginning_of_month
+      when "this_quarter" then Date.current.beginning_of_quarter
+      when "this_year" then Date.current.beginning_of_year
       else nil
       end
     end
@@ -87,6 +89,8 @@ class Finance::FinanceDashboardSummary
       case @filters[:preset]
       when "this_month" then Date.current.end_of_month
       when "last_month" then Date.current.prev_month.end_of_month
+      when "this_quarter" then Date.current.end_of_quarter
+      when "this_year" then Date.current.end_of_year
       else nil
       end
     end

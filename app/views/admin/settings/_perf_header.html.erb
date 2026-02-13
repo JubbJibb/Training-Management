@@ -16,12 +16,4 @@
       <% end %>
     </p>
   </div>
-  <div class="perf-hero__actions" aria-label="Page actions">
-    <%= link_to promotion_export_admin_settings_path(params.permit(:period, :date_from, :date_to, :course_id, :segment, :channel, :payment_status).to_h), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
-      <i class="bi bi-download odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i> Export CSV
-    <% end %>
-    <%= link_to new_admin_setting_path, class: "odt-btn odt-btn--primary odt-btn--sm" do %>
-      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i> Create Promotion
-    <% end %>
-  </div>
 </header>

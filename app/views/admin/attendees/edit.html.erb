@@ -19,15 +19,28 @@
       </div>
     <% end %>
 
-    <div class="attendee-edit-columns">
-      <div class="attendee-edit-column attendee-edit-column--form">
-        <%= render "admin/attendees/attendee_info", f: f %>
-        <%= render "admin/attendees/registration_details", f: f %>
-        <%= render "admin/attendees/promotions", f: f %>
-        <%= render "admin/attendees/finance_documents", f: f %>
+    <nav class="customer-tabs attendee-edit-tabs" aria-label="Edit sections">
+      <div class="customer-tabs__inner" id="attendeeEditTabs" role="tablist">
+        <button class="customer-tabs__tab active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#attendee-edit-form" type="button" role="tab" aria-selected="true">
+          <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit
+        </button>
+        <button class="customer-tabs__tab" id="summary-tab" data-bs-toggle="tab" data-bs-target="#attendee-payment-summary" type="button" role="tab" aria-selected="false">
+          <i class="bi bi-receipt" aria-hidden="true"></i> Payment Summary
+        </button>
       </div>
-      <div class="attendee-edit-column attendee-edit-column--summary">
-        <div class="attendee-edit-summary-sticky">
+    </nav>
+
+    <div class="tab-content attendee-edit-tab-content" id="attendeeEditTabsContent">
+      <div class="tab-pane fade show active" id="attendee-edit-form" role="tabpanel" aria-labelledby="edit-tab">
+        <div class="attendee-edit-column attendee-edit-column--form">
+          <%= render "admin/attendees/attendee_info", f: f %>
+          <%= render "admin/attendees/registration_details", f: f %>
+          <%= render "admin/attendees/promotions", f: f %>
+          <%= render "admin/attendees/finance_documents", f: f %>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="attendee-payment-summary" role="tabpanel" aria-labelledby="summary-tab">
+        <div class="attendee-edit-summary-wrap">
           <%= render "admin/attendees/summary_sidebar", f: f %>
         </div>
       </div>

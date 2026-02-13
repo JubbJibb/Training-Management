@@ -1,0 +1,38 @@
+<%
+  export_job = export_job
+  filters = export_job.filters_hash.symbolize_keys
+%>
+<%= form_with model: export_job, url: admin_exports_path, method: :post, local: false, class: "export-form", data: { turbo_frame: "_top" } do |f| %>
+  <%= f.hidden_field :export_type, value: "overall_revenue_summary" %>
+  <%= f.hidden_field :format, value: "xlsx" %>
+
+  <div class="export-form__row">
+    <label class="export-form__label">Breakdown by</label>
+    <select name="export_job[filters][breakdown]" id="export_overall_breakdown" class="export-form__select">
+      <option value="by_class" <%= "selected" if (filters[:breakdown] || "by_class") == "by_class" %>>By class</option>
+      <option value="by_month" <%= "selected" if filters[:breakdown] == "by_month" %>>By month</option>
+      <option value="by_payment_status" <%= "selected" if filters[:breakdown] == "by_payment_status" %>>By payment status</option>
+    </select>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Start date</label>
+    <%= date_field_tag "export_job[filters][start_date]", filters[:start_date].presence || Date.current.beginning_of_month, class: "export-form__input" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">End date</label>
+    <%= date_field_tag "export_job[filters][end_date]", filters[:end_date].presence || Date.current.end_of_month, class: "export-form__input" %>
+  </div>
+  <div class="export-form__row">
+    <label class="export-form__label">Payment status</label>
+    <select name="export_job[filters][status]" class="export-form__select">
+      <option value="">All</option>
+      <option value="Paid" <%= "selected" if filters[:status] == "Paid" %>>Paid</option>
+      <option value="Pending" <%= "selected" if filters[:status] == "Pending" %>>Pending</option>
+    </select>
+  </div>
+
+  <div class="export-form__actions">
+    <%= link_to "Cancel", admin_exports_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+    <%= f.submit "Generate", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+  </div>
+<% end %>

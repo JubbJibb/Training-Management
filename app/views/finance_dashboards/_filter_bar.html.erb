@@ -7,9 +7,11 @@
       <div class="cfo-dash-filters__field">
         <label class="cfo-dash-filters__label">Period</label>
         <select name="preset" class="cfo-dash-filters__input">
-          <option value="">Custom</option>
+          <option value="">Custom range</option>
           <option value="this_month" <%= "selected" if params[:preset] == "this_month" %>>This month</option>
           <option value="last_month" <%= "selected" if params[:preset] == "last_month" %>>Last month</option>
+          <option value="this_quarter" <%= "selected" if params[:preset] == "this_quarter" %>>This quarter</option>
+          <option value="this_year" <%= "selected" if params[:preset] == "this_year" %>>This year</option>
         </select>
       </div>
       <div class="cfo-dash-filters__field">

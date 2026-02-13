@@ -1,0 +1,54 @@
+<% content_for :title, "Create new Customer" %>
+
+<div id="customer_edit_flash" class="customer-edit-flash-wrap" aria-live="polite">
+  <% if flash[:notice].present? %>
+    <%= render "admin/customers/flash_message", type: :notice, message: flash[:notice] %>
+  <% end %>
+  <% if @customer.errors.any? %>
+    <div class="alert alert-danger">
+      <h5>Please fix the following errors:</h5>
+      <ul class="mb-0">
+        <% @customer.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>
+
+<%= render "admin/customers/new_header" %>
+
+<div id="customer_edit_form_wrapper">
+  <%= render "admin/customers/form", customer: @customer %>
+</div>
+
+<% content_for :footer_scripts do %>
+<script>
+(function() {
+  function update(form) {
+    if (!form) return;
+    var typeSelect = form.querySelector("[name='customer[participant_type]']");
+    var isCorp = typeSelect && typeSelect.value === "Corp";
+    var tipsIndi = form.querySelector("[data-customer-edit-target='tipsIndi']");
+    var tipsCorp = form.querySelector("[data-customer-edit-target='tipsCorp']");
+    var hintIndi = form.querySelector("[data-customer-edit-target='companyHintIndi']");
+    var hintCorp = form.querySelector("[data-customer-edit-target='companyHintCorp']");
+    var companyWarning = form.querySelector("[data-customer-edit-target='companyWarning']");
+    var companyInput = form.querySelector("[name='customer[company]']");
+    if (tipsIndi) tipsIndi.hidden = isCorp;
+    if (tipsCorp) tipsCorp.hidden = !isCorp;
+    if (hintIndi) hintIndi.hidden = isCorp;
+    if (hintCorp) hintCorp.hidden = !isCorp;
+    if (companyWarning) companyWarning.hidden = !(isCorp && (!companyInput || !companyInput.value.trim()));
+  }
+  document.addEventListener("change", function(e) {
+    if (e.target.matches("[name='customer[participant_type]']")) update(e.target.closest("form"));
+  });
+  document.addEventListener("input", function(e) {
+    if (e.target.matches("[name='customer[company]']")) update(e.target.closest("form"));
+  });
+  var form = document.getElementById("customer_edit_form");
+  if (form) update(form);
+})();
+</script>
+<% end %>

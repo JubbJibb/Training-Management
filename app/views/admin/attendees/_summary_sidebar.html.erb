@@ -1,5 +1,5 @@
-<%# Sticky summary card: pricing breakdown + status badges %>
-<%= odt_card(title: "Summary", icon: "calculator", extra_class: "attendee-edit-summary") do %>
+<%# Payment Summary Card: client-facing layout with company header, pricing breakdown, bank details, Copy/PDF %>
+<%= odt_card(title: "Payment Summary", icon: "receipt", extra_class: "attendee-edit-summary payment-summary-card") do %>
   <input type="hidden" id="base_price_input" value="<%= @training_class.price.to_f || 0 %>">
   <%= f.hidden_field :price, value: 0 %>
 
@@ -14,31 +14,152 @@
     <% end %>
   </div>
 
-    <h6 class="attendee-edit-summary__panel-title">Pricing Breakdown</h6>
-    <div class="odt-panel attendee-edit-summary__panel">
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">ราคาเริ่มต้น</span>
-        <strong id="display_base_price">0.00</strong>
+  <div class="payment-summary-card__inner" id="payment-summary-content">
+    <%# Company header %>
+    <div class="payment-summary-card__header">
+      <div class="payment-summary-card__logo">
+        <%= image_tag "odt_logo.svg", alt: "ODT", class: "payment-summary-card__logo-img" %>
       </div>
-      <div class="mb-2">
-        <div class="d-flex justify-content-between text-success">
-          <span>ส่วนลดรวม</span>
-          <strong id="display_discount">0.00</strong>
+      <div class="payment-summary-card__company">
+        <div class="payment-summary-card__company-name">บริษัท ออด-อี (ประเทศไทย) จำกัด</div>
+        <div class="payment-summary-card__company-address">2549/41-43 ถนนพหลโยธิน แขวงลาดยาว เขตจตุจักร กรุงเทพมหานคร 10900</div>
+        <div class="payment-summary-card__company-tax">เลขประจำตัวผู้เสียภาษี : <%= Rails.application.config.x.company_tax_id.presence || "0-1055-56110-71-8" %></div>
+      </div>
+    </div>
+
+    <%# Class & customer info %>
+    <div class="payment-summary-card__block">
+      <div class="payment-summary-card__block-title">รายละเอียดการอบรม</div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">หลักสูตร</span>
+        <span class="payment-summary-card__info-value"><%= @training_class.title %></span>
+      </div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">วันที่</span>
+        <span class="payment-summary-card__info-value"><%= @training_class.date&.strftime("%d/%m/%Y") || "—" %></span>
+      </div>
+    </div>
+    <div class="payment-summary-card__block">
+      <div class="payment-summary-card__block-title">ผู้ลงทะเบียน</div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">ชื่อ</span>
+        <span class="payment-summary-card__info-value"><%= @attendee.name.presence || "—" %></span>
+      </div>
+      <% if @attendee.company.present? %>
+        <div class="payment-summary-card__info-row">
+          <span class="payment-summary-card__info-label">บริษัท</span>
+          <span class="payment-summary-card__info-value"><%= @attendee.company %></span>
         </div>
-        <div id="discount_details" class="small text-muted mt-1"></div>
+      <% end %>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">อีเมล</span>
+        <span class="payment-summary-card__info-value"><%= @attendee.email.presence || "—" %></span>
       </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted">ก่อน VAT</span>
-        <strong id="display_price_before_vat">0.00</strong>
+    </div>
+
+    <%# Pricing breakdown – 2-column, right-aligned currency, same IDs for existing JS %>
+    <div class="payment-summary-card__block payment-summary-card__pricing">
+      <div class="payment-summary-card__block-title">สรุปยอดชำระ</div>
+      <div class="payment-summary-card__pricing-grid">
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">ราคาเริ่มต้น</span>
+          <span class="payment-summary-card__pricing-amount" id="display_base_price">0.00</span>
+        </div>
+        <div class="payment-summary-card__pricing-row payment-summary-card__pricing-row--discount">
+          <span class="payment-summary-card__pricing-label">ส่วนลดรวม</span>
+          <span class="payment-summary-card__pricing-amount payment-summary-card__pricing-amount--discount" id="display_discount">0.00</span>
+        </div>
+        <div id="discount_details" class="payment-summary-card__discount-details"></div>
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">ก่อน VAT</span>
+          <span class="payment-summary-card__pricing-amount" id="display_price_before_vat">0.00</span>
+        </div>
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">VAT (7%)</span>
+          <span class="payment-summary-card__pricing-amount" id="display_vat">0.00</span>
+        </div>
+        <div class="payment-summary-card__pricing-row payment-summary-card__pricing-row--total">
+          <span class="payment-summary-card__pricing-label">ราคาสุทธิ (รวม VAT)</span>
+          <span class="payment-summary-card__pricing-total" id="display_final_price">0.00</span>
+        </div>
       </div>
-      <div class="d-flex justify-content-between mb-2 text-info">
-        <span>VAT (7%)</span>
-        <strong id="display_vat">0.00</strong>
+    </div>
+
+    <%# Payment information %>
+    <div class="payment-summary-card__block payment-summary-card__bank">
+      <div class="payment-summary-card__block-title">ช่องทางชำระเงิน</div>
+      <div class="payment-summary-card__bank-details">
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">ธนาคาร</span>
+          <span class="payment-summary-card__bank-value">ธ.กรุงไทย</span>
+        </div>
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">ประเภทบัญชี</span>
+          <span class="payment-summary-card__bank-value">ออมทรัพย์ 981-7-61590-1</span>
+        </div>
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">ชื่อบัญชี</span>
+          <span class="payment-summary-card__bank-value">บริษัท ออด-อี (ประเทศไทย) จำกัด</span>
+        </div>
       </div>
-      <hr class="my-2">
-      <div class="d-flex justify-content-between align-items-center">
-        <strong>ราคาสุทธิ (รวม VAT)</strong>
-        <strong class="attendee-edit-summary__total" id="display_final_price">0.00</strong> ฿
+      <p class="payment-summary-card__instruction">
+        เมื่อชำระเงินเสร็จแล้ว กรุณานำส่งหลักฐานการชำระเงินมาที่ ODTTraining@odds.team
+      </p>
     </div>
   </div>
+
+  <%# Actions %>
+  <div class="payment-summary-card__actions">
+    <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm payment-summary-card__btn" id="payment-summary-copy" title="Copy summary to clipboard">
+      <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary
+    </button>
+    <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm payment-summary-card__btn" id="payment-summary-pdf" title="Download as PDF (optional)">
+      <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
+    </button>
+  </div>
 <% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var copyBtn = document.getElementById('payment-summary-copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var el = document.getElementById('payment-summary-content');
+        if (!el) return;
+        var text = el.innerText || el.textContent || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            copyBtn.innerHTML = '<i class="bi bi-check2" aria-hidden="true"></i> Copied';
+            copyBtn.classList.add('payment-summary-card__btn--copied');
+            setTimeout(function() {
+              copyBtn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary';
+              copyBtn.classList.remove('payment-summary-card__btn--copied');
+            }, 2000);
+          });
+        } else {
+          var range = document.createRange();
+          range.selectNodeContents(el);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          try {
+            document.execCommand('copy');
+            copyBtn.innerHTML = '<i class="bi bi-check2" aria-hidden="true"></i> Copied';
+            copyBtn.classList.add('payment-summary-card__btn--copied');
+            setTimeout(function() {
+              copyBtn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary';
+              copyBtn.classList.remove('payment-summary-card__btn--copied');
+            }, 2000);
+          } catch (e) {}
+          sel.removeAllRanges();
+        }
+      });
+    }
+    var pdfBtn = document.getElementById('payment-summary-pdf');
+    if (pdfBtn) {
+      pdfBtn.addEventListener('click', function() {
+        window.print();
+      });
+    }
+  });
+</script>

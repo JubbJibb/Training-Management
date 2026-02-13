@@ -1,0 +1,52 @@
+<%# Payment Status – design ไปในแนวเดียวกับ Timeline (vertical line + dots + bar ต่อท้าย) %>
+<% ps = overview[:payment_status] %>
+<% total = overview[:financial_breakdown][:total].to_f %>
+<% total = 1 if total.zero? %>
+<% paid_pct = ps[:paid][:percentage].to_f %>
+<% pending_pct = ps[:pending][:percentage].to_f %>
+<% overdue_pct = ps[:overdue][:percentage].to_f %>
+<% max_pct = [paid_pct, pending_pct, overdue_pct].max.to_f %>
+<% max_pct = 1 if max_pct <= 0 %>
+<div class="foh-payment foh-payment--timeline-style" role="region" aria-label="Payment status">
+  <div class="foh-card-header">
+    <h3 class="foh-payment__title">Payment Status</h3>
+  </div>
+  <div class="foh-card-body">
+  <ul class="foh-payment__list">
+    <li class="foh-payment__item">
+      <span class="foh-payment__dot foh-payment__dot--paid" aria-hidden="true"></span>
+      <div class="foh-payment__content">
+        <span class="foh-payment__label">Paid</span>
+        <span class="foh-payment__meta"><%= number_to_thb(ps[:paid][:amount]) %> · <%= paid_pct %>%</span>
+        <%= link_to "View Receipts", finance_dashboard_path(status: "paid"), class: "foh-payment__link", data: { turbo_frame: "finance_dashboard" } %>
+      </div>
+      <div class="foh-payment__bar-wrap" title="<%= paid_pct %>%">
+        <span class="foh-payment__bar foh-payment__bar--paid" style="width: <%= [(paid_pct / max_pct * 100).round(1), 100].min %>%;"></span>
+      </div>
+    </li>
+    <li class="foh-payment__item">
+      <span class="foh-payment__dot foh-payment__dot--pending" aria-hidden="true"></span>
+      <div class="foh-payment__content">
+        <span class="foh-payment__label">Pending</span>
+        <span class="foh-payment__meta"><%= number_to_thb(ps[:pending][:amount]) %> · <%= pending_pct %>%</span>
+        <%= link_to "Send Reminder", finance_dashboard_path(status: "pending"), class: "foh-payment__link", data: { turbo_frame: "finance_dashboard" } %>
+      </div>
+      <div class="foh-payment__bar-wrap" title="<%= pending_pct %>%">
+        <span class="foh-payment__bar foh-payment__bar--pending" style="width: <%= [(pending_pct / max_pct * 100).round(1), 100].min %>%;"></span>
+      </div>
+    </li>
+    <li class="foh-payment__item">
+      <span class="foh-payment__dot foh-payment__dot--overdue" aria-hidden="true"></span>
+      <div class="foh-payment__content">
+        <span class="foh-payment__label">Overdue</span>
+        <span class="foh-payment__meta"><%= number_to_thb(ps[:overdue][:amount]) %> · <%= overdue_pct %>%</span>
+        <%= link_to "Collect Now", finance_dashboard_path(status: "overdue"), class: "foh-payment__link", data: { turbo_frame: "finance_dashboard" } %>
+      </div>
+      <div class="foh-payment__bar-wrap" title="<%= overdue_pct %>%">
+        <span class="foh-payment__bar foh-payment__bar--overdue" style="width: <%= [(overdue_pct / max_pct * 100).round(1), 100].min %>%;"></span>
+      </div>
+    </li>
+  </ul>
+  <p class="foh-payment__total-ar">Total AR = <%= number_to_thb(ps[:total_ar]) %> (Pending + Overdue)</p>
+  </div>
+</div>

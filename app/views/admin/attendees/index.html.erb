@@ -15,25 +15,36 @@
 <div class="card">
   <div class="card-body">
     <% if @attendees.any? %>
-      <div class="table-responsive attendees-table-wrap">
-        <table class="table table-hover table-sortable-filterable">
+      <div class="table-wrap table-responsive attendees-table-wrap">
+        <table class="table data-table table-hover table-sortable-filterable" aria-label="Attendees">
+          <colgroup>
+            <col style="width: 14%;">
+            <col style="width: 12%;">
+            <col style="width: 6%;">
+            <col style="width: 5%;">
+            <col style="width: 10%;">
+            <col style="width: 8%;">
+            <col style="width: 8%;">
+            <col style="width: 12%; min-width: 90px;">
+            <col style="width: 14%; min-width: 120px;">
+          </colgroup>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Company</th>
-              <th>Type</th>
-              <th class="text-center">Seats</th>
-              <th>Channel</th>
-              <th>Payment</th>
-              <th>Document</th>
-              <th class="text-end">Amount</th>
-              <th class="text-end" style="width: 140px;">Actions</th>
+              <th><span class="th-inner">Name</span></th>
+              <th><span class="th-inner">Company</span></th>
+              <th><span class="th-inner">Type</span></th>
+              <th class="text-center"><span class="th-inner">Seats</span></th>
+              <th><span class="th-inner">Channel</span></th>
+              <th><span class="th-inner">Payment</span></th>
+              <th><span class="th-inner">Document</span></th>
+              <th class="text-end num"><span class="th-inner">Amount</span></th>
+              <th class="text-end actions-col"><span class="th-inner">Actions</span></th>
             </tr>
           </thead>
           <tbody>
             <% @attendees.each do |attendee| %>
               <tr>
-                <td><strong><%= attendee.name %></strong></td>
+                <td class="truncate"><strong><%= attendee.name %></strong></td>
                 <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
                 <td>
                   <span class="badge badge-attendees <%= attendee.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi" %>">
@@ -54,11 +65,11 @@
                     <span class="badge badge-attendees badge-doc-empty">—</span>
                   <% end %>
                 </td>
-                <td class="text-end amount-cell" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
+                <td class="num text-end amount-cell" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
                   ฿<%= number_with_delimiter(attendee.total_final_price, delimiter: ",") %>
                   <span class="amount-incl">incl. VAT</span>
                 </td>
-                <td class="text-end action-cell">
+                <td class="text-end action-cell actions-col">
                   <%= link_to mailto_class_info_link(attendee), class: "btn btn-action", title: "Email", target: "_blank" do %>
                     <i class="bi bi-envelope"></i>
                   <% end %>

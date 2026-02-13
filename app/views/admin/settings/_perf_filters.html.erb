@@ -1,4 +1,5 @@
 <%= turbo_frame_tag "promotion_performance_filters", class: "perf-filters-wrap" do %>
+  <div class="perf-filters-box">
   <%= form_with url: admin_settings_path, method: :get, local: true, data: { turbo_frame: "_top" }, class: "perf-filters" do |f| %>
     <%= hidden_field_tag :period, params[:period] || "this_month" %>
     <div class="perf-filters__row">
@@ -12,18 +13,18 @@
         </select>
       </div>
       <div class="perf-filters__group perf-filters__group--date" data-perf-dates-visible="<%= params[:period] == 'custom' %>">
-        <label for="perf_date_from" class="perf-filters__label">From</label>
+        <label for="perf_date_from" class="perf-filters__label">Start</label>
         <%= text_field_tag :date_from, params[:date_from], type: "date", id: "perf_date_from", class: "perf-filters__input" %>
       </div>
       <div class="perf-filters__group perf-filters__group--date" data-perf-dates-visible="<%= params[:period] == 'custom' %>">
-        <label for="perf_date_to" class="perf-filters__label">To</label>
+        <label for="perf_date_to" class="perf-filters__label">End</label>
         <%= text_field_tag :date_to, params[:date_to], type: "date", id: "perf_date_to", class: "perf-filters__input" %>
       </div>
       <div class="perf-filters__group">
         <label for="perf_course_id" class="perf-filters__label">Course</label>
         <select name="course_id" id="perf_course_id" class="perf-filters__select">
           <option value="">All</option>
-          <% TrainingClass.order(date: :desc).limit(50).each do |tc| %>
+          <% (@filter_training_classes || TrainingClass.order(date: :desc).limit(50)).each do |tc| %>
             <option value="<%= tc.id %>" <%= "selected" if params[:course_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
           <% end %>
         </select>
@@ -48,9 +49,11 @@
           <option value="Pending" <%= "selected" if params[:payment_status] == "Pending" %>>Pending</option>
         </select>
       </div>
-      <div class="perf-filters__submit">
-        <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+      <div class="perf-filters__actions">
+        <button type="submit" class="perf-filters__btn perf-filters__btn--primary">Apply</button>
+        <%= link_to "Clear", admin_settings_path, class: "perf-filters__btn perf-filters__btn--secondary", data: { turbo_frame: "_top" } %>
       </div>
     </div>
   <% end %>
+  </div>
 <% end %>

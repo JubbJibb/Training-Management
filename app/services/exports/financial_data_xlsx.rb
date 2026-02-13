@@ -10,7 +10,6 @@ module Exports
       require "caxlsx"
       attendees = scope_attendees.includes(:training_class).find_each
 
-      io = StringIO.new
       p = Axlsx::Package.new
       p.workbook.add_worksheet(name: "Financial Data") do |sheet|
         sheet.add_row %w[Date Course Segment Channel Gross Discount Net VAT Total Cash_Received Outstanding Overdue Profit Margin], style: sheet.workbook.styles.add_style(b: true)
@@ -29,14 +28,13 @@ module Exports
           margin = net.positive? ? (profit / net * 100).round(1) : 0
           sheet.add_row [tc.date, tc.title, a.participant_type, a.source_channel.to_s, gross, disc, net, vat, total, cash, out, over, profit.round(2), margin]
         end
-        sheet.sheet_view.pane_state = :frozen
         sheet.sheet_view.pane do |pane|
           pane.top_left_cell = "A2"
-          pane.state = :frozen
+          pane.state = :frozen_split
           pane.y_split = 1
         end
       end
-      p.serialize(io)
+      io = p.to_stream
       io.rewind
       io
     end

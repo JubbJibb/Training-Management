@@ -168,17 +168,19 @@ class PromotionPerformanceQuery
   end
 
   def kpi_for_range(range)
-    scope = base_scope(range).select("attendees.id, attendees.seats, attendees.total_amount, attendees.participant_type")
-    scope = scope.distinct
-    attendee_ids = scope.pluck(:id).uniq
-    attendees = Attendee.where(id: attendee_ids).includes(:promotions, :training_class)
+    scope = base_scope(range).select("DISTINCT attendees.id")
+    attendee_ids = scope.pluck(:id)
+    return { promo_revenue: 0, seats: 0, total_discount: 0, avg_margin: 0 } if attendee_ids.empty?
 
-    promo_revenue = attendees.sum(&:total_final_price).round(2)
-    seats = attendees.sum(:seats).to_i
+    # Use SQL aggregates to avoid loading all records
+    base = Attendee.where(id: attendee_ids)
+    promo_revenue = base.sum(:total_amount).to_f.round(2)
+    seats = base.sum(:seats).to_i
+    # Discount requires per-attendee promotion logic; load once with includes to avoid N+1
+    attendees = Attendee.where(id: attendee_ids).includes(:promotions)
     total_discount = attendees.sum do |a|
-      a.promotions.where(active: true).sum { |p| p.calculate_discount(a.base_price) * (a.seats || 1) }
+      a.promotions.select(&:active?).sum { |p| p.calculate_discount(a.base_price) * (a.seats || 1) }
     end.round(2)
-    gross = attendees.sum { |a| a.base_price * (a.seats || 1) }.round(2)
     avg_margin = promo_revenue.positive? ? (((promo_revenue - total_discount) / promo_revenue) * 100).round(1) : 0
 
     {
@@ -191,27 +193,22 @@ class PromotionPerformanceQuery
 
   def build_leaderboard
     range = @current_range
-    promotions = Promotion.order(:name)
+    promotions = Promotion.order(:name).to_a
     result = []
 
     promotions.each do |promo|
-      attendee_ids = AttendeePromotion.where(promotion_id: promo.id)
-                                      .joins(attendee: :training_class)
-                                      .where("training_classes.date >= ? AND training_classes.date <= ?", range.begin, range.end)
-      attendee_ids = attendee_ids.where(attendees: { training_class_id: @params[:course_id] }) if @params[:course_id].present?
-      attendee_ids = attendee_ids.where(attendees: { participant_type: @params[:segment] }) if @params[:segment].present? && %w[Indi Corp].include?(@params[:segment])
-      attendee_ids = attendee_ids.where(attendees: { source_channel: @params[:channel] }) if @params[:channel].present?
-      attendee_ids = attendee_ids.where(attendees: { payment_status: @params[:payment_status] }) if @params[:payment_status].present?
-      ids = attendee_ids.pluck(:attendee_id).uniq
-      attendees = Attendee.where(id: ids)
+      ids = attendee_ids_for_promo(promo.id, range)
+      next result << empty_leaderboard_row(promo) if ids.empty?
 
-      revenue = attendees.sum(&:total_final_price).round(2)
-      seats = attendees.sum(:seats).to_i
+      # Use SQL sum for revenue and seats; load attendees with training_class only for discount (base_price)
+      base = Attendee.where(id: ids)
+      revenue = base.sum(:total_amount).to_f.round(2)
+      seats = base.sum(:seats).to_i
+      attendees = base.includes(:training_class)
       discount_cost = attendees.sum { |a| promo.calculate_discount(a.base_price) * (a.seats || 1) }.round(2)
       margin_pct = revenue.positive? ? (((revenue - discount_cost) / revenue) * 100).round(1) : 0
       gross = attendees.sum { |a| a.base_price * (a.seats || 1) }.round(2)
       discount_pct = gross.positive? ? ((discount_cost / gross) * 100).round(0) : 0
-
       impact_tag = impact_tag_for(revenue: revenue, margin_pct: margin_pct, seats: seats, discount_cost: discount_cost)
 
       result << {
@@ -229,6 +226,32 @@ class PromotionPerformanceQuery
     end
 
     result.sort_by { |r| -r[:revenue].to_f }
+  end
+
+  def attendee_ids_for_promo(promotion_id, range)
+    scope = AttendeePromotion.where(promotion_id: promotion_id)
+                             .joins(attendee: :training_class)
+                             .where("training_classes.date >= ? AND training_classes.date <= ?", range.begin, range.end)
+    scope = scope.where(attendees: { training_class_id: @params[:course_id] }) if @params[:course_id].present?
+    scope = scope.where(attendees: { participant_type: @params[:segment] }) if @params[:segment].present? && %w[Indi Corp].include?(@params[:segment])
+    scope = scope.where(attendees: { source_channel: @params[:channel] }) if @params[:channel].present?
+    scope = scope.where(attendees: { payment_status: @params[:payment_status] }) if @params[:payment_status].present?
+    scope.distinct.pluck(:attendee_id)
+  end
+
+  def empty_leaderboard_row(promo)
+    {
+      id: promo.id,
+      name: promo.name,
+      type: promo.discount_type,
+      type_label: promo.discount_type.humanize,
+      revenue: 0,
+      seats: 0,
+      margin_pct: 0,
+      discount_cost: 0,
+      discount_pct: 0,
+      impact_tag: "Underperforming"
+    }
   end
 
   def impact_tag_for(revenue:, margin_pct:, seats:, discount_cost:)

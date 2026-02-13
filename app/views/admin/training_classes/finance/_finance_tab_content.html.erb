@@ -2,18 +2,36 @@
 <% k = d[:kpis] %>
 <% w = d[:waterfall] %>
 <% p = d[:profitability] %>
-<% expense_list = d[:expense_list] %>
+<% payment_list = d[:payment_status_list] %>
 
-<div class="cfo-finance-page">
+<div class="cfo-finance-page class-finance-dashboard">
   <%= render "admin/training_classes/finance/cfo_header", training_class: training_class %>
 
-  <%= render "admin/training_classes/finance/kpi_strip", kpis: k, waterfall: w, ar_aging: d[:ar_aging], pending_count: d[:payment_status_list].count { |r| r[:status] == "Pending" }, profitability: p %>
+  <div class="class-finance-card class-finance-dashboard-container">
+    <div class="class-finance-card__header">
+      <h2 class="class-finance-card__title">ภาพรวมการเงิน</h2>
+    </div>
+    <div class="class-finance-card__body">
+      <%= render "admin/training_classes/finance/class_finance_kpi_cards", kpis: k, waterfall: w, profitability: p, payment_status_list: payment_list %>
 
-  <%= render "admin/training_classes/finance/pricing_funnel", waterfall: w %>
+      <div class="class-finance-two-col cfo-two-col">
+        <%= render "admin/training_classes/finance/class_finance_pl_breakdown", waterfall: w, profitability: p, cost_by_category: d[:cost_by_category] %>
+        <%= render "admin/training_classes/finance/class_finance_revenue_discounts", segment_split: d[:segment_split], promotions_performance: d[:promotions_performance] %>
+      </div>
 
-  <%= render "admin/training_classes/finance/cash_collection", dashboard: d %>
+      <div class="class-finance-cash-section">
+        <%= render "admin/training_classes/finance/class_finance_payment_intelligence", payment_intelligence: d[:payment_intelligence] %>
+        <%= render "admin/training_classes/finance/class_finance_payment_table", payment_status_list: payment_list, training_class: training_class %>
+      </div>
 
-  <%= render "admin/training_classes/finance/profit_cost", profitability: p, cost_by_category: d[:cost_by_category], expense_list: expense_list, training_class: training_class %>
-
-  <%= render "admin/training_classes/finance/tables", dashboard: d, expense_list: expense_list, training_class: training_class %>
+      <div class="class-finance-main-with-sidebar">
+        <div class="class-finance-main">
+          <%= render "admin/training_classes/finance/class_finance_expenses", expense_list: d[:expense_list], cost_by_category: d[:cost_by_category], training_class: training_class %>
+        </div>
+        <aside class="class-finance-sidebar">
+          <%= render "admin/training_classes/finance/class_finance_insights", insights: d[:insights] %>
+        </aside>
+      </div>
+    </div>
+  </div>
 </div>

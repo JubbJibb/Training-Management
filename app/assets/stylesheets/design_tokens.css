@@ -34,6 +34,10 @@
   --color-accent: #ffc700;
   --color-accent-2: #f5bf00;
   --color-surface: #f9f9fe;
+  /* Semantic – use for success/warning/danger across app */
+  --color-success: #059669;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
 
   /* ODT brand – use for CFO dashboard and nav accents */
   --odt-blue: #13139c;

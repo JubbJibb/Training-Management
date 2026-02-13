@@ -97,7 +97,7 @@ module Promotions
     end
 
     def avg_discount_pct
-      atts = base_attendees_with_promo.includes(:promotions)
+      atts = base_attendees_with_promo.includes(:promotions, :training_class)
       return 0 if atts.empty?
       total_pct = 0
       count = 0

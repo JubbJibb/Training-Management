@@ -1,0 +1,22 @@
+<%
+  customer = local_assigns[:customer]
+  status = customer.billing_tax_status
+  short = customer.billing_tax_present_values_short
+  segment = local_assigns[:segment].to_s.presence || "all"
+  sort = local_assigns[:sort].to_s.presence
+  direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
+  base_params = local_assigns[:base_params] || {}
+  edit_path = edit_billing_tax_admin_customer_path(customer, segment: segment, sort: sort, direction: direction, q: base_params[:q], top_n: base_params[:top_n])
+%>
+<%= link_to edit_path, class: "customer-table__billing-tax-icons", data: { turbo_frame: "modal" }, title: "แก้ไข Tax ID, Billing Name, Billing Address" do %>
+  <span class="customer-table__billing-tax-icon <%= status[:tax_id] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:tax_id] ? "Tax ID: present (#{h(short[:tax_id])})" : "Tax ID: missing" %>">
+    <i class="bi bi-receipt" aria-hidden="true"></i>
+  </span>
+  <span class="customer-table__billing-tax-icon <%= status[:billing_name] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:billing_name] ? "Billing Name: present" : "Billing Name: missing" %>">
+    <i class="bi bi-person-vcard" aria-hidden="true"></i>
+  </span>
+  <span class="customer-table__billing-tax-icon <%= status[:billing_address] ? 'customer-table__billing-tax-icon--ok' : 'customer-table__billing-tax-icon--missing' %>" title="<%= status[:billing_address] ? "Billing Address: present (#{h(short[:billing_address])})" : "Billing Address: missing" %>">
+    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+  </span>
+  <i class="bi bi-pencil customer-table__billing-tax-edit-icon" aria-hidden="true"></i>
+<% end %>

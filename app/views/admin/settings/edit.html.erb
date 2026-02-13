@@ -10,7 +10,7 @@
   <div class="col-md-8 offset-md-2">
     <div class="card">
       <div class="card-body">
-        <%= form_with model: [:admin, @promotion], local: true do |f| %>
+        <%= form_with model: @promotion, url: admin_setting_path(@promotion), scope: :promotion, local: true do |f| %>
           <% if @promotion.errors.any? %>
             <div class="alert alert-danger">
               <h5>Please fix the following errors:</h5>
@@ -66,43 +66,12 @@
             </div>
           </div>
           
-          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <%= link_to "Cancel", admin_settings_path, class: "btn btn-outline-secondary" %>
-            <%= f.submit "Update Promotion", class: "btn btn-primary" %>
+          <div class="d-flex gap-2 justify-content-end">
+            <%= f.submit "Save", class: "odt-btn odt-btn--primary odt-btn--sm" %>
           </div>
         <% end %>
       </div>
     </div>
   </div>
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const discountTypeSelect = document.getElementById('discount_type_select');
-    const discountValueHelp = document.getElementById('discount_value_help');
-    const discountValueInput = document.querySelector('input[name="promotion[discount_value]"]');
-    
-    function updateHelpText() {
-      const type = discountTypeSelect.value;
-      switch(type) {
-        case 'percentage':
-          discountValueHelp.textContent = 'กรอกเป็นเปอร์เซ็นต์ (เช่น 10 สำหรับ 10%, 5 สำหรับ 5%)';
-          discountValueInput.placeholder = 'เช่น 10 (สำหรับ 10%)';
-          break;
-        case 'fixed':
-          discountValueHelp.textContent = 'กรอกเป็นจำนวนเงิน (เช่น 500 สำหรับลด 500 บาท)';
-          discountValueInput.placeholder = 'เช่น 500 (สำหรับลด 500 บาท)';
-          break;
-        case 'buy_x_get_y':
-          discountValueHelp.textContent = 'กรอกจำนวนคนที่ต้องจ่าย (เช่น 3 สำหรับ "มา 4 จ่าย 3")';
-          discountValueInput.placeholder = 'เช่น 3 (สำหรับ มา 4 จ่าย 3)';
-          break;
-      }
-    }
-    
-    if (discountTypeSelect) {
-      discountTypeSelect.addEventListener('change', updateHelpText);
-      updateHelpText(); // Initialize on page load
-    }
-  });
-</script>
+<%= render "admin/settings/promotion_form_script" %>

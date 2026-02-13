@@ -73,7 +73,10 @@
                   { selected: @attendee.payment_status || "Pending" }, 
                   { class: "form-select" } %>
             </div>
-            
+            <div class="col-md-6 mb-3">
+              <%= f.label :payment_date, "วันที่ชำระเงิน", class: "form-label" %>
+              <%= f.date_field :payment_date, class: "form-control", value: @attendee.payment_date&.strftime("%Y-%m-%d") %>
+            </div>
             <div class="col-md-6 mb-3">
               <%= f.label :document_status, "สถานะเอกสาร", class: "form-label" %>
               <%= f.select :document_status, [["", ""], ["QT", "QT"], ["INV", "INV"], ["Receipt", "Receipt"]], 
@@ -197,9 +200,8 @@
             <%= f.text_area :notes, class: "form-control", rows: 3 %>
           </div>
           
-          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <%= link_to "Cancel", admin_training_class_attendees_path(@training_class), class: "btn btn-outline-secondary" %>
-            <%= f.submit "Add Attendee", class: "btn btn-primary" %>
+          <div class="d-flex gap-2 justify-content-end">
+            <%= f.submit "Add Attendee", class: "odt-btn odt-btn--primary odt-btn--sm" %>
           </div>
         <% end %>
       </div>

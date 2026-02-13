@@ -6,6 +6,7 @@ class FinanceDashboardsController < ApplicationController
   def index
     filters = dashboard_filters
     @summary = ::Finance::FinanceDashboardSummary.new(filters).call
+    @overview = FinancialOverviewService.new(filters).summary
     @training_classes = TrainingClass.order(date: :desc).limit(200)
     @channels = Attendee.attendees.where.not(source_channel: [nil, ""]).distinct.pluck(:source_channel).sort
 
