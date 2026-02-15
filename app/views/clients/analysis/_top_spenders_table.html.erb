@@ -1,0 +1,35 @@
+<%# ODT Card System v1 — Table header: #f9f9fe, navy text, 2px gold bottom border. %>
+<% top = local_assigns[:top_spenders] || [] %>
+<% total_rev = top.sum { |t| t[:revenue].to_f } %>
+<%= render "shared/odt_card", title: "Top Spenders" do %>
+  <div class="odt-table-v1-wrap">
+    <table class="odt-table-v1 odt-premium-table" aria-label="Top spenders">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th class="odt-table-v1__num">Revenue</th>
+          <th class="odt-table-v1__num">Share</th>
+          <th class="odt-table-v1__num">Profit</th>
+          <th>Last activity</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% top.each do |t| %>
+          <% share_pct = total_rev.positive? ? (t[:revenue].to_f / total_rev * 100).round(1) : 0 %>
+          <tr>
+            <td><%= t[:name] %></td>
+            <td class="odt-table-v1__num"><%= number_to_thb(t[:revenue]) %></td>
+            <td class="odt-table-v1__num"><%= share_pct %>%</td>
+            <td class="odt-table-v1__num"><%= number_to_thb(t[:profit]) %></td>
+            <td><%= t[:last_activity].respond_to?(:strftime) ? t[:last_activity].strftime("%d %b %Y") : t[:last_activity] %></td>
+            <td><%= t[:client_type] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% if top.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">No spenders in period.</p>
+  <% end %>
+<% end %>

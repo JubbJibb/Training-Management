@@ -1,0 +1,74 @@
+<%
+  # Executive IA: Operations (first) | Insights | Clients | Financials | Strategy | Settings
+  # Each top-level has optional title (tooltip). Dropdowns use Bootstrap 5.
+%>
+<div class="nav-right" id="nav-menu">
+  <%# Operations: manage program delivery and enrollment (first tab) %>
+  <div class="nav-dropdown <%= nav_active?("operations") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navOperations" data-bs-toggle="dropdown" aria-expanded="false" title="Manage program delivery and enrollment">
+      <i class="bi bi-calendar-event nav-link-icon" aria-hidden="true"></i> Operations
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navOperations">
+      <li><%= link_to "Training Classes", admin_training_classes_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Courses", admin_courses_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Instructors", instructors_path, class: "dropdown-item" %></li>
+    </ul>
+  </div>
+
+  <%# Insights: consolidated performance & decision support %>
+  <div class="nav-dropdown <%= nav_active?("insights") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navInsights" data-bs-toggle="dropdown" aria-expanded="false" title="Consolidated performance & decision support">
+      <i class="bi bi-graph-up-arrow nav-link-icon" aria-hidden="true"></i> Insights
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navInsights">
+      <li><%= link_to "Business Insights", insights_business_path, class: "dropdown-item #{'active' if request.path == insights_business_path}" %></li>
+      <li><%= link_to "Financial Insights", insights_financial_path, class: "dropdown-item #{'active' if request.path == insights_financial_path}" %></li>
+      <li><%= link_to "Strategy Insights", insights_strategy_path, class: "dropdown-item #{'active' if request.path == insights_strategy_path}" %></li>
+      <li><%= link_to "Action Center", insights_actions_path, class: "dropdown-item #{'active' if request.path == insights_actions_path}" %></li>
+    </ul>
+  </div>
+
+  <%# Clients: 360° client portfolio and history %>
+  <div class="nav-dropdown <%= nav_active?("clients") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navClients" data-bs-toggle="dropdown" aria-expanded="false" title="360° client portfolio and history">
+      <i class="bi bi-people nav-link-icon" aria-hidden="true"></i> Clients
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navClients">
+      <li><%= link_to "Client Directory", admin_customers_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Corporate Accounts", clients_corporate_accounts_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Client Analysis", clients_analysis_path, class: "dropdown-item" %></li>
+    </ul>
+  </div>
+
+  <%# Financials: revenue, receivables, expenses, compliance %>
+  <div class="nav-dropdown <%= nav_active?("financials") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navFinancials" data-bs-toggle="dropdown" aria-expanded="false" title="Revenue, receivables, expenses, compliance">
+      <i class="bi bi-currency-dollar nav-link-icon" aria-hidden="true"></i> Financials
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navFinancials">
+      <li><%= link_to "Financial Overview", financial_overview_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Accounts Receivable", finance_ar_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Payment Tracking", finance_payments_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Expense Control", finance_expenses_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Compliance", finance_compliance_path, class: "dropdown-item" %></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><%= link_to "Export History", finance_export_jobs_path, class: "dropdown-item" %></li>
+    </ul>
+  </div>
+
+  <%# Strategy: campaigns/promotions and growth optimization %>
+  <div class="nav-dropdown <%= nav_active?("strategy") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navStrategy" data-bs-toggle="dropdown" aria-expanded="false" title="Campaigns, promotions and growth optimization">
+      <i class="bi bi-tag nav-link-icon" aria-hidden="true"></i> Strategy
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navStrategy">
+      <li><%= link_to "Promotions", admin_settings_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Promotion Performance", admin_settings_path, class: "dropdown-item" %></li>
+      <li><%= link_to "Opportunities", admin_dashboard_index_path, class: "dropdown-item" %></li>
+    </ul>
+  </div>
+
+  <%= link_to admin_settings_path, class: "nav-link #{nav_active?("settings")}", title: "Promotion & system settings" do %>
+    <i class="bi bi-gear nav-link-icon" aria-hidden="true"></i> Settings
+  <% end %>
+</div>

@@ -1,0 +1,138 @@
+<%
+  d = local_assigns[:finance_dashboard] || {}
+  training_class = local_assigns[:training_class]
+  cost_by_category = d[:cost_by_category] || []
+  profitability = d[:profitability] || {}
+  total_cost = profitability[:total_cost].to_f
+  top_category = cost_by_category.first
+  expense_list = (d[:expense_list] || []).first(20)
+  expense_categories = ClassExpense::CATEGORIES rescue ["อื่นๆ"]
+%>
+<div class="finance-sub-content finance-sub-content--costs">
+  <div class="grid-2">
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-pie-chart" aria-hidden="true"></i> Cost Breakdown by Category</h3>
+      </div>
+      <div class="card__body">
+        <% if cost_by_category.any? %>
+          <div class="cost-breakdown">
+            <% cost_by_category.each do |row| %>
+              <div class="meter-bar-row">
+                <span class="meter-bar-row__label cell--truncate" title="<%= row[:category] %>"><%= row[:category] %></span>
+                <span class="meter-bar-row__bar" role="presentation">
+                  <span class="meter-bar-row__fill" style="width: <%= [row[:pct].to_f, 100].min %>%;"></span>
+                </span>
+                <span class="meter-bar-row__value cell--num"><%= number_to_thb(row[:amount]) %> (<%= row[:pct] %>%)</span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="empty-state empty-state--sm">No cost data.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-currency-dollar" aria-hidden="true"></i> Cost Summary</h3>
+      </div>
+      <div class="card__body">
+        <div class="mini-metrics">
+          <div class="mini-metrics__row">
+            <span class="mini-metrics__label">Total Cost</span>
+            <span class="mini-metrics__value cell--num"><%= number_to_thb(total_cost) %></span>
+          </div>
+          <div class="mini-metrics__row">
+            <span class="mini-metrics__label">Top category</span>
+            <span class="mini-metrics__value"><%= top_category ? top_category[:category] : "—" %></span>
+          </div>
+          <% if profitability[:cost_per_seat].present? %>
+            <div class="mini-metrics__row">
+              <span class="mini-metrics__label">Cost per seat</span>
+              <span class="mini-metrics__value cell--num"><%= number_to_thb(profitability[:cost_per_seat]) %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card--accent-left">
+    <div class="card__header">
+      <h3 class="card__title"><i class="bi bi-wallet2" aria-hidden="true"></i> Expenses</h3>
+    </div>
+    <div class="card__body">
+      <%= form_with url: finance_admin_training_class_path(training_class), method: :get, local: false, data: { turbo_frame: "class_finance_tab" }, class: "filters filters--compact" do %>
+        <%= hidden_field_tag :sub, "costs" %>
+        <%= hidden_field_tag :type, params[:type] %>
+        <%= hidden_field_tag :status, params[:status] %>
+        <div class="filters__row">
+          <div class="filters__group">
+            <label class="filters__label" for="expense_category">Category</label>
+            <%= select_tag :expense_category, options_for_select([["All", ""]] + expense_categories.map { |c| [c, c] }, params[:expense_category]), id: "expense_category", class: "filters__input", aria: { label: "Filter by category" } %>
+          </div>
+          <div class="filters__group">
+            <label class="filters__label" for="expense_date_from">From</label>
+            <%= date_field_tag :expense_date_from, params[:expense_date_from], id: "expense_date_from", class: "filters__input", aria: { label: "Date from" } %>
+          </div>
+          <div class="filters__group">
+            <label class="filters__label" for="expense_date_to">To</label>
+            <%= date_field_tag :expense_date_to, params[:expense_date_to], id: "expense_date_to", class: "filters__input", aria: { label: "Date to" } %>
+          </div>
+          <div class="filters__actions">
+            <button type="submit" class="btn btn--secondary btn--sm">Apply</button>
+            <%= link_to "Clear", finance_admin_training_class_path(training_class, sub: "costs", type: params[:type], status: params[:status]), class: "btn btn--ghost btn--sm", data: { turbo_frame: "class_finance_tab" }, aria: { label: "Clear filters" } %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if expense_list.any? %>
+        <div class="data-table-wrap data-table-wrap--accent">
+          <table class="data-table" role="table" aria-label="Expenses">
+            <colgroup>
+              <col class="col-md">
+              <col class="col-md">
+              <col class="col-xl">
+              <col class="col-md">
+              <col class="col-sm">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Category</th>
+                <th scope="col">Item</th>
+                <th scope="col" class="cell--num">Amount</th>
+                <th scope="col" class="cell--center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% expense_list.each do |expense| %>
+                <tr>
+                  <td><%= expense.created_at.strftime("%d/%m/%y") %></td>
+                  <td class="cell--truncate" title="<%= expense.category %>"><%= expense.category.presence || "—" %></td>
+                  <td class="cell--truncate" title="<%= expense.description %>"><%= expense.description %></td>
+                  <td class="cell--num"><%= number_to_thb(expense.amount) %></td>
+                  <td class="cell--center">
+                    <%= link_to edit_admin_training_class_class_expense_path(training_class, expense), class: "icon-btn", aria: { label: "Edit expense" }, title: "Edit" do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                    <%= link_to admin_training_class_class_expense_path(training_class, expense), data: { turbo_method: :delete, turbo_confirm: "Delete this expense?" }, class: "icon-btn icon-btn--danger", aria: { label: "Delete expense" }, title: "Delete" do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <% if (d[:expense_list] || []).size > 20 %>
+          <p class="finance-costs__hint">Showing first 20 of <%= (d[:expense_list] || []).size %> expenses.</p>
+        <% end %>
+      <% else %>
+        <div class="empty-state empty-state--sm">
+          <p class="empty-state__hint">No expenses yet. Add expenses to track costs.</p>
+          <%= link_to new_admin_training_class_class_expense_path(training_class), class: "btn btn--secondary btn--sm", data: { turbo_frame: "_top" }, aria: { label: "Add expense" } do %>
+            <i class="bi bi-plus-lg" aria-hidden="true"></i><span>Add expense</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

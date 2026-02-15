@@ -1,0 +1,23 @@
+<%# ODT Card System v1 — Risk card: subtle gold left accent, KPI + top 5. %>
+<% list = local_assigns[:risk_outstanding] || [] %>
+<% top5 = list.first(5) %>
+<% total_amount = list.sum { |r| r[:amount].to_f } %>
+<%= render "shared/odt_card", title: "Outstanding / Overdue", accent: :gold do %>
+  <div class="odt-risk-v1">
+    <div class="odt-risk-v1__kpi">
+      <%= render "shared/odt_kpi_card", label: "Accounts", value: list.size %>
+      <%= render "shared/odt_kpi_card", label: "Total outstanding", value: number_to_thb(total_amount) %>
+    </div>
+    <ul class="odt-risk-v1__list">
+      <% top5.each do |r| %>
+        <li class="odt-risk-v1__row">
+          <span class="odt-risk-v1__name"><%= r[:customer] %></span>
+          <span class="odt-risk-v1__amount"><%= number_to_thb(r[:amount]) %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <% if list.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">No outstanding.</p>
+  <% end %>
+<% end %>

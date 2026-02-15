@@ -1,0 +1,9 @@
+<%# ODT Card System v1 — Revenue concentration (Pareto). %>
+<% conc = local_assigns[:revenue_concentration] || {} %>
+<%= render "shared/odt_card", title: "Revenue concentration (Pareto)" do %>
+  <ul class="odt-list-simple-v1">
+    <li><span>Top 10% of clients</span><span class="odt-list-simple-v1__val"><%= conc[:top_10_pct].to_f %>% of revenue</span></li>
+    <li><span>Top 20% of clients</span><span class="odt-list-simple-v1__val"><%= conc[:top_20_pct].to_f %>% of revenue</span></li>
+    <li><span>Top 50% of clients</span><span class="odt-list-simple-v1__val"><%= conc[:top_50_pct].to_f %>% of revenue</span></li>
+  </ul>
+<% end %>

@@ -39,17 +39,17 @@
     <%= odt_table(extra_class: "odt-table--sm mb-4") do %>
       <thead>
         <tr>
-          <th>Category</th>
-          <th class="odt-table-numeric">Amount</th>
-          <th class="odt-table-numeric">% of total cost</th>
+          <th class="col-lg">Category</th>
+          <th class="col-sm odt-table-numeric">Amount</th>
+          <th class="col-sm odt-table-numeric">% of total cost</th>
         </tr>
       </thead>
       <tbody>
         <% cost_by_category.each do |row| %>
           <tr>
-            <td><%= row[:category] %></td>
-            <td class="odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
-            <td class="odt-table-numeric"><%= number_to_percent(row[:pct]) %></td>
+            <td class="col-lg truncate"><%= row[:category] %></td>
+            <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
+            <td class="col-sm odt-table-numeric"><%= number_to_percent(row[:pct]) %></td>
           </tr>
         <% end %>
       </tbody>

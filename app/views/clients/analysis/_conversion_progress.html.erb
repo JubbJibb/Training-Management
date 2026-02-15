@@ -1,0 +1,29 @@
+<%# ODT Card System v1 — Progress: <30% opacity, 30-70% full, >70% gold % text; best gets "Best" gold pill. %>
+<% rows = local_assigns[:conversion_by_channel] || [] %>
+<% best_pct = rows.map { |r| r[:conversion_pct].to_f }.max.to_f %>
+<%= render "shared/odt_card", title: "Conversion by Channel" do %>
+  <div class="odt-pb-v1">
+    <% rows.each do |r| %>
+      <% pct = (r[:conversion_pct].to_f * 1).clamp(0, 100) %>
+      <% is_low = pct < 30 %>
+      <% is_high = pct >= 70 %>
+      <% is_best = pct == best_pct && best_pct.positive? %>
+      <div class="odt-pb-v1__row <%= 'odt-pb-v1__row--low' if is_low %>">
+        <div class="odt-pb-v1__meta">
+          <span class="odt-pb-v1__label">
+            <%= r[:channel] %>
+            <% if is_best %><span class="odt-pb-v1__best">Best</span><% end %>
+          </span>
+          <span class="odt-pb-v1__stats"><%= r[:leads] %> leads → <%= r[:enrolled] %> enrolled</span>
+        </div>
+        <div class="odt-pb-v1__bar-wrap">
+          <span class="odt-pb-v1__bar <%= 'odt-pb-v1__bar--low' if is_low %>" style="width: <%= pct %>%"></span>
+        </div>
+        <span class="odt-pb-v1__pct <%= 'odt-pb-v1__pct--gold' if is_high %>"><%= r[:conversion_pct] %>%</span>
+      </div>
+    <% end %>
+  </div>
+  <% if rows.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">No conversion data.</p>
+  <% end %>
+<% end %>

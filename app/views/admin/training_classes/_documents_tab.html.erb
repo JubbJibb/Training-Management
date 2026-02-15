@@ -1,0 +1,52 @@
+<%
+  mode = params[:mode].to_s.presence || "queue"
+  is_queue = (mode == "queue")
+  doc_filter = params[:doc_filter].to_s.presence
+  queue_url = admin_training_class_path(@training_class, tab: "documents", mode: "queue")
+  register_url = admin_training_class_path(@training_class, tab: "documents", mode: "register")
+
+  # Queue counts from @attendees
+  need_qt = @attendees.select { |a| a.quotation_no.blank? }
+  need_invoice = @attendees.select { |a| a.quotation_no.present? && a.invoice_no.blank? }
+  paid_missing_receipt = @attendees.select { |a| a.payment_status == "Paid" && a.receipt_no.blank? }
+  missing_slip = @attendees.select { |a| !a.payment_slips.attached? || a.payment_slips.empty? }
+%>
+<div class="documents-tab">
+  <% export_cta = capture do %>
+    <button type="button" class="btn btn--primary" data-bs-toggle="modal" data-bs-target="#exportExcelModal" aria-label="Export to Excel (Accounting)" id="doc-export-primary-cta">
+      <i class="bi bi-download" aria-hidden="true"></i>
+      Export to Excel (Accounting)
+    </button>
+  <% end %>
+  <%= render "shared/section_header",
+      title: "Financial Documents",
+      subtitle: "เอกสาร + ส่งบัญชี",
+      actions: export_cta,
+      extra_class: "documents-tab__header" %>
+
+  <nav class="tabs tabs--sub" role="tablist" aria-label="Document view mode">
+    <%= link_to queue_url, class: "tabs__tab #{'active' if is_queue}", role: "tab", aria_selected: is_queue do %>
+      <i class="bi bi-list-check" aria-hidden="true"></i>
+      Document Queue
+    <% end %>
+    <%= link_to register_url, class: "tabs__tab #{'active' unless is_queue}", role: "tab", aria_selected: !is_queue do %>
+      <i class="bi bi-table" aria-hidden="true"></i>
+      Document Register
+    <% end %>
+  </nav>
+
+  <% if is_queue %>
+    <%= render "admin/training_classes/documents_queue",
+        need_qt: need_qt,
+        need_invoice: need_invoice,
+        paid_missing_receipt: paid_missing_receipt,
+        missing_slip: missing_slip,
+        register_url: register_url %>
+  <% else %>
+    <%= render "admin/training_classes/documents_register",
+        register_url: register_url,
+        doc_filter: doc_filter %>
+  <% end %>
+</div>
+
+<%= render "admin/training_classes/export_excel_modal", training_class: @training_class %>

@@ -15,93 +15,60 @@
 <div class="card">
   <div class="card-body">
     <% if @attendees.any? %>
-      <div class="table-wrap table-responsive attendees-table-wrap">
-        <table class="table data-table table-hover table-sortable-filterable" aria-label="Attendees">
-          <colgroup>
-            <col style="width: 14%;">
-            <col style="width: 12%;">
-            <col style="width: 6%;">
-            <col style="width: 5%;">
-            <col style="width: 10%;">
-            <col style="width: 8%;">
-            <col style="width: 8%;">
-            <col style="width: 12%; min-width: 90px;">
-            <col style="width: 14%; min-width: 120px;">
-          </colgroup>
-          <thead>
-            <tr>
-              <th><span class="th-inner">Name</span></th>
-              <th><span class="th-inner">Company</span></th>
-              <th><span class="th-inner">Type</span></th>
-              <th class="text-center"><span class="th-inner">Seats</span></th>
-              <th><span class="th-inner">Channel</span></th>
-              <th><span class="th-inner">Payment</span></th>
-              <th><span class="th-inner">Document</span></th>
-              <th class="text-end num"><span class="th-inner">Amount</span></th>
-              <th class="text-end actions-col"><span class="th-inner">Actions</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @attendees.each do |attendee| %>
-              <tr>
-                <td class="truncate"><strong><%= attendee.name %></strong></td>
-                <td><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
-                <td>
-                  <span class="badge badge-attendees <%= attendee.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi" %>">
-                    <%= attendee.participant_type || "Indi" %>
-                  </span>
-                </td>
-                <td class="text-center"><%= attendee.seats || 1 %></td>
-                <td><%= attendee.source_channel || "—" %></td>
-                <td>
-                  <span class="badge badge-attendees <%= attendee.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending" %>">
-                    <%= attendee.payment_status || "Pending" %>
-                  </span>
-                </td>
-                <td>
-                  <% if attendee.document_status.present? %>
-                    <span class="badge badge-attendees badge-doc-<%= attendee.document_status.downcase %>"><%= attendee.document_status %></span>
-                  <% else %>
-                    <span class="badge badge-attendees badge-doc-empty">—</span>
-                  <% end %>
-                </td>
-                <td class="num text-end amount-cell" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
-                  ฿<%= number_with_delimiter(attendee.total_final_price, delimiter: ",") %>
-                  <span class="amount-incl">incl. VAT</span>
-                </td>
-                <td class="text-end action-cell actions-col">
-                  <%= link_to mailto_class_info_link(attendee), class: "btn btn-action", title: "Email", target: "_blank" do %>
-                    <i class="bi bi-envelope"></i>
-                  <% end %>
-                  <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "btn btn-action", title: "Edit" do %>
-                    <i class="bi bi-pencil"></i>
-                  <% end %>
-                  <%= link_to admin_training_class_attendee_path(@training_class, attendee), data: { turbo_method: :delete, turbo_confirm: "Remove #{attendee.name}?" }, class: "btn btn-action btn-action-danger", title: "Delete" do %>
-                    <i class="bi bi-trash"></i>
-                  <% end %>
-                  <div class="dropdown d-inline-block">
-                    <button class="btn btn-action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More">
-                      <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <% if attendee.payment_slips.attached? %>
-                        <% attendee.payment_slips.each do |slip| %>
-                          <%= link_to rails_blob_path(slip, disposition: "inline"), target: "_blank", class: "dropdown-item" do %>
-                            <i class="bi bi-file-earmark-image"></i> View: <%= slip.filename %>
-                          <% end %>
-                        <% end %>
-                      <% end %>
-                      <% if attendee.notes.present? %>
-                        <li><span class="dropdown-item-text text-muted small" title="<%= attendee.notes %>"><%= truncate(attendee.notes, length: 40) %></span></li>
-                      <% end %>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
+      <%
+        attendee_columns = [
+          { key: :name, label: "Name", type: "stack", width: "lg" },
+          { key: :company, label: "Company", type: "text", width: "md" },
+          { key: :type, label: "Type", type: "badge", width: "fit" },
+          { key: :seats, label: "Seats", type: "text", width: "fit" },
+          { key: :channel, label: "Channel", type: "text", width: "sm" },
+          { key: :payment, label: "Payment", type: "badge", width: "fit" },
+          { key: :document, label: "Document", type: "badge", width: "fit" },
+          { key: :amount, label: "Amount", type: "num", width: "md" },
+          { key: :_actions, label: "Actions", type: "actions", width: "fit" }
+        ]
+        attendee_rows = @attendees.map do |a|
+          {
+            name: a.name,
+            name_secondary: a.email.presence,
+            company: a.participant_type == "Corp" ? (a.company || "—") : "—",
+            type: a.participant_type || "Indi",
+            type_badge_class: a.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi",
+            seats: a.seats || 1,
+            channel: a.source_channel || "—",
+            payment: a.payment_status || "Pending",
+            payment_badge_class: a.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending",
+            document: a.document_status.presence || "—",
+            document_badge_class: a.document_status.present? ? "badge-doc-#{a.document_status.downcase}" : "badge-doc-empty",
+            amount: "฿#{number_with_delimiter(a.total_final_price, delimiter: ',')}",
+            amount_meta: "incl. VAT",
+            amount_title: "Before VAT: ฿#{number_with_delimiter(a.total_price_before_vat, delimiter: ',')} · VAT 7%: ฿#{number_with_delimiter(a.total_vat_amount, delimiter: ',')}"
+          }
+        end
+        attendee_row_actions = @attendees.map do |attendee|
+          capture do
+            concat link_to(mailto_class_info_link(attendee), class: "btn btn-action", title: "Email", target: "_blank") { tag.i("", class: "bi bi-envelope") }
+            concat link_to(edit_admin_training_class_attendee_path(@training_class, attendee), class: "btn btn-action", title: "Edit") { tag.i("", class: "bi bi-pencil") }
+            concat link_to(admin_training_class_attendee_path(@training_class, attendee), data: { turbo_method: :delete, turbo_confirm: "Remove #{attendee.name}?" }, class: "btn btn-action btn-action-danger", title: "Delete") { tag.i("", class: "bi bi-trash") }
+            concat content_tag(:div, class: "dropdown d-inline-block") do
+              content_tag(:button, tag.i("", class: "bi bi-three-dots-vertical"), class: "btn btn-action dropdown-toggle", type: "button", "data-bs-toggle": "dropdown", "aria-expanded": "false", title: "More") +
+              content_tag(:ul, class: "dropdown-menu dropdown-menu-end") do
+                out = "".html_safe
+                if attendee.payment_slips.attached?
+                  attendee.payment_slips.each do |slip|
+                    out += link_to(rails_blob_path(slip, disposition: "inline"), target: "_blank", class: "dropdown-item") { tag.i("", class: "bi bi-file-earmark-image") + " View: #{slip.filename}".html_safe }
+                  end
+                end
+                if attendee.notes.present?
+                  out += content_tag(:li, content_tag(:span, truncate(attendee.notes, length: 40), class: "dropdown-item-text text-muted small", title: attendee.notes))
+                end
+                out
+              end
+            end
+          end
+        end
+      %>
+      <%= odt_grid_table(columns: attendee_columns, rows: attendee_rows, row_actions: attendee_row_actions, extra_class: "attendees-table-wrap") %>
       <div class="mt-3">
         <p class="text-muted">
           <strong>Total:</strong> <%= @attendees.count %> attendee<%= "s" if @attendees.count != 1 %>

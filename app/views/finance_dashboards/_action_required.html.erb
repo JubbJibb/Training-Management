@@ -1,0 +1,23 @@
+<%
+  s = summary
+  pending_inv = s[:docs_missing_inv].to_i
+  missing_receipt = s[:docs_missing_receipt].to_i
+  overdue_follow = s[:overdue_count].to_i
+%>
+<section class="foh-action-required" aria-label="Action required">
+  <h2 class="foh-section-title">Action Required</h2>
+  <div class="foh-action-required__grid">
+    <%= link_to finance_dashboard_path(status: "pending"), class: "foh-action-card", data: { turbo_frame: "finance_dashboard" } do %>
+      <span class="foh-action-card__badge"><%= pending_inv %></span>
+      <span class="foh-action-card__label">Pending Invoices</span>
+    <% end %>
+    <%= link_to finance_dashboard_path(status: "paid"), class: "foh-action-card", data: { turbo_frame: "finance_dashboard" } do %>
+      <span class="foh-action-card__badge"><%= missing_receipt %></span>
+      <span class="foh-action-card__label">Missing Receipts</span>
+    <% end %>
+    <%= link_to finance_dashboard_path(status: "overdue"), class: "foh-action-card foh-action-card--danger", data: { turbo_frame: "finance_dashboard" } do %>
+      <span class="foh-action-card__badge"><%= overdue_follow %></span>
+      <span class="foh-action-card__label">Overdue Follow-up</span>
+    <% end %>
+  </div>
+</section>

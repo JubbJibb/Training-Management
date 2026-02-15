@@ -1,0 +1,46 @@
+<%
+  s = summary
+  seg = s[:breakdown_by_segment] || []
+  total_net = seg.sum { |r| r[:net_before_vat].to_f }
+  total_net = 1 if total_net <= 0
+%>
+<section class="foh-revenue-composition" aria-label="Revenue composition">
+  <div class="foh-revenue-composition__grid">
+    <div class="foh-revenue-composition__card">
+      <%= odt_card(title: "Revenue by Segment", icon: "pie-chart", extra_class: "foh-compact-card") do %>
+        <% if seg.any? %>
+          <ul class="foh-segment-list">
+            <% seg.each do |r| %>
+              <% pct = ((r[:net_before_vat].to_f / total_net) * 100).round(0) %>
+              <li class="foh-segment-list__item">
+                <span class="foh-segment-list__label"><%= r[:segment] %></span>
+                <span class="foh-segment-list__value"><%= number_to_thb(r[:net_before_vat]) %></span>
+                <span class="foh-segment-list__pct"><%= pct %>%</span>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="foh-compact-empty">No segment data.</p>
+        <% end %>
+      <% end %>
+    </div>
+    <div class="foh-revenue-composition__card">
+      <%= odt_card(title: "Discount Impact", icon: "tag", extra_class: "foh-compact-card") do %>
+        <div class="foh-discount-stack">
+          <div class="foh-discount-stack__row">
+            <span class="foh-discount-stack__label">Total discount</span>
+            <span class="foh-discount-stack__value"><%= number_to_thb(s[:discount_total]) %></span>
+          </div>
+          <div class="foh-discount-stack__row">
+            <span class="foh-discount-stack__label">% of gross</span>
+            <span class="foh-discount-stack__value"><%= number_to_percent(s[:discount_rate_pct]) %></span>
+          </div>
+          <div class="foh-discount-stack__row">
+            <span class="foh-discount-stack__label">Avg per seat</span>
+            <span class="foh-discount-stack__value"><%= number_to_thb(s[:avg_discount_per_seat]) %></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

@@ -1,1 +1,17 @@
-<%= render "components/odt/section_header", title: local_assigns[:title], subtitle: local_assigns[:subtitle], actions: local_assigns[:actions], extra_class: local_assigns[:extra_class] %>
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  actions = local_assigns[:actions]
+  extra_class = ["section-header", local_assigns[:extra_class]].compact.join(" ")
+%>
+<header class="<%= extra_class %>">
+  <div class="section-header__text">
+    <h2 class="section-header__title"><%= title %></h2>
+    <% if subtitle.present? %>
+      <p class="section-header__subtitle"><%= subtitle %></p>
+    <% end %>
+  </div>
+  <% if actions.present? %>
+    <div class="section-header__actions"><%= actions %></div>
+  <% end %>
+</header>

@@ -1,0 +1,11 @@
+<% content_for :title, "#{@event.title} – Class details" %>
+<div class="calendar-event-standalone" style="background: #f9f9fe; min-height: 60vh; padding: 1.5rem;">
+  <div class="calendar-event-standalone__back">
+    <%= link_to operations_calendar_path, class: "calendar-event-standalone__back-link" do %>
+      <i class="bi bi-arrow-left"></i> Back to Calendar
+    <% end %>
+  </div>
+  <div class="calendar-event-standalone__card">
+    <%= render "operations/calendar/event_sidebar", event: @event %>
+  </div>
+</div>

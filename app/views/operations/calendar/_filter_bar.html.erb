@@ -1,0 +1,71 @@
+<%
+  fp = local_assigns[:filter_params] || {}
+  form_url = operations_calendar_path
+  instructor_options = local_assigns[:instructor_options] || []
+  location_options = local_assigns[:location_options] || []
+%>
+<div class="calendar-filter-bar">
+  <%= form_with url: form_url, method: :get, class: "calendar-filter-bar__form", data: { turbo_frame: "_top" } do |f| %>
+    <%= hidden_field_tag :view, fp[:view], id: "calendar_view" %>
+    <div class="calendar-filter-bar__row">
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_view_toggle" class="calendar-filter-bar__label">Period</label>
+        <div class="calendar-filter-bar__toggle" id="calendar_view_toggle" role="group" aria-label="Month or Week">
+          <% q = { view: "month", start_date: fp[:start_date], instructor: fp[:instructor], location: fp[:location], status: fp[:status], type: fp[:type], nearly_full: fp[:nearly_full] }.compact %>
+          <%= link_to "Month", operations_calendar_path(q), class: "calendar-filter-bar__toggle-btn #{fp[:view] == 'month' ? 'is-active' : ''}", data: { turbo_frame: "_top" } %>
+          <%= link_to "Week", operations_calendar_path(q.merge(view: "week")), class: "calendar-filter-bar__toggle-btn #{fp[:view] == 'week' ? 'is-active' : ''}", data: { turbo_frame: "_top" } %>
+        </div>
+      </div>
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_start_date" class="calendar-filter-bar__label">Start date</label>
+        <input type="date" name="start_date" id="calendar_start_date" class="calendar-filter-bar__input" value="<%= fp[:start_date] %>">
+      </div>
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_instructor" class="calendar-filter-bar__label">Instructor</label>
+        <select name="instructor" id="calendar_instructor" class="calendar-filter-bar__input">
+          <option value="">All</option>
+          <% instructor_options.each do |opt| %>
+            <option value="<%= opt %>" <%= "selected" if fp[:instructor].to_s == opt %>><%= opt %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_location" class="calendar-filter-bar__label">Location</label>
+        <select name="location" id="calendar_location" class="calendar-filter-bar__input">
+          <option value="">All</option>
+          <% location_options.each do |opt| %>
+            <option value="<%= opt %>" <%= "selected" if fp[:location].to_s == opt %>><%= opt %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_status" class="calendar-filter-bar__label">Status</label>
+        <select name="status" id="calendar_status" class="calendar-filter-bar__input">
+          <option value="all" <%= "selected" if fp[:status].to_s == "all" %>>All</option>
+          <option value="upcoming" <%= "selected" if fp[:status].to_s == "upcoming" %>>Upcoming</option>
+          <option value="past" <%= "selected" if fp[:status].to_s == "past" %>>Past</option>
+          <option value="cancelled" <%= "selected" if fp[:status].to_s == "cancelled" %>>Cancelled</option>
+        </select>
+      </div>
+      <div class="calendar-filter-bar__field">
+        <label for="calendar_type" class="calendar-filter-bar__label">Type</label>
+        <select name="type" id="calendar_type" class="calendar-filter-bar__input">
+          <option value="all" <%= "selected" if fp[:type].to_s == "all" %>>All</option>
+          <option value="public" <%= "selected" if fp[:type].to_s == "public" %>>Public</option>
+          <option value="corporate" <%= "selected" if fp[:type].to_s == "corporate" %>>Corporate</option>
+        </select>
+      </div>
+      <div class="calendar-filter-bar__field calendar-filter-bar__field--checkbox">
+        <label class="calendar-filter-bar__label">&nbsp;</label>
+        <label class="calendar-filter-bar__checkbox-label">
+          <input type="checkbox" name="nearly_full" value="1" <%= "checked" if fp[:nearly_full] == "1" %> class="calendar-filter-bar__checkbox">
+          <span>Nearly full (≥80%)</span>
+        </label>
+      </div>
+      <div class="calendar-filter-bar__actions">
+        <button type="submit" class="btn btn--primary">Apply</button>
+        <%= link_to "Clear", operations_calendar_path, class: "btn btn--secondary", data: { turbo_frame: "_top" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

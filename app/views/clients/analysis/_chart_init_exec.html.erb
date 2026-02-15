@@ -1,0 +1,38 @@
+<script>
+(function() {
+  var colors = ['#13139c', '#F5C400', '#059669', '#6b7280'];
+  function initExecCharts() {
+    if (typeof Chart === 'undefined') return;
+    document.querySelectorAll('.ca-exec-donuts canvas[data-chart-type]').forEach(function(canvas) {
+      if (canvas.chart) { canvas.chart.destroy(); canvas.chart = null; }
+      var labels = [];
+      try { labels = JSON.parse(canvas.getAttribute('data-labels') || '[]'); } catch (e) {}
+      var datasets = [];
+      try { datasets = JSON.parse(canvas.getAttribute('data-datasets') || '[]'); } catch (e) {}
+      datasets.forEach(function(ds, i) {
+        if (!ds.backgroundColor) ds.backgroundColor = [colors[0], colors[1], colors[2], colors[3]];
+        if (!ds.borderColor) ds.borderColor = '#fff';
+        if (!ds.borderWidth) ds.borderWidth = 2;
+      });
+      new Chart(canvas, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '60%',
+          plugins: { legend: { display: false } },
+          scales: {}
+        }
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initExecCharts);
+  } else {
+    initExecCharts();
+  }
+  document.addEventListener('turbo:frame-render', function() { setTimeout(initExecCharts, 50); });
+  document.addEventListener('turbo:load', initExecCharts);
+})();
+</script>

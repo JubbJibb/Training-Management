@@ -1,0 +1,43 @@
+<%
+  # columns: [{ key:, label:, width: "col-xs"|"col-sm"|..., align: "left"|"right"|"center", truncate: true }]
+  # rows: array of hashes with keys matching column[:key]
+  columns = local_assigns[:columns] || []
+  rows = local_assigns[:rows] || []
+  empty_message = local_assigns[:empty_message] || "No data"
+  table_class = ["data-table", local_assigns[:table_class]].compact.join(" ")
+  aria_label = local_assigns[:aria_label] || "Data table"
+%>
+<div class="data-table-wrap">
+  <table class="<%= table_class %>" role="table" aria-label="<%= aria_label %>">
+    <colgroup>
+      <% columns.each do |col| %>
+        <col class="<%= col[:width] || 'col-md' %>">
+      <% end %>
+    </colgroup>
+    <thead>
+      <tr>
+        <% columns.each do |col| %>
+          <th class="<%= col[:width] || 'col-md' %> <%= 'cell--num' if col[:align] == 'right' %> <%= 'cell--center' if col[:align] == 'center' %>" scope="col"><%= col[:label] %></th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% if rows.any? %>
+        <% rows.each do |row| %>
+          <tr>
+            <% columns.each do |col| %>
+              <% cell_content = row[col[:key]] %>
+              <td class="<%= col[:width] || 'col-md' %> <%= 'cell--truncate' if col[:truncate] %> <%= 'cell--num' if col[:align] == 'right' %> <%= 'cell--center' if col[:align] == 'center' %>" <%= "title=\"#{cell_content}\"".html_safe if col[:truncate] && cell_content.present? %>>
+                <%= cell_content %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="<%= columns.size %>" style="text-align: center; padding: 1.5rem; color: var(--odt-muted);"><%= empty_message %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

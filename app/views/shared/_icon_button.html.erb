@@ -1,0 +1,20 @@
+<%
+  icon = local_assigns[:icon]
+  url = local_assigns[:url]
+  variant = local_assigns[:variant] # primary, danger, nil
+  title_attr = local_assigns[:title] || local_assigns[:aria_label]
+  extra_class = ["icon-btn", "icon-btn--#{variant}" if variant.present?].compact.join(" ")
+  method = local_assigns[:method]
+  data_attrs = local_assigns[:data] || {}
+  data_attrs[:turbo_method] = method if method.present?
+  data_attrs[:turbo_confirm] = local_assigns[:confirm] if local_assigns[:confirm].present?
+%>
+<% if url.present? %>
+  <%= link_to url, class: extra_class, title: title_attr, aria: { label: title_attr }, data: data_attrs do %>
+    <i class="bi bi-<%= icon %>" aria-hidden="true"></i>
+  <% end %>
+<% else %>
+  <button type="button" class="<%= extra_class %>" title="<%= title_attr %>" aria-label="<%= title_attr %>">
+    <i class="bi bi-<%= icon %>" aria-hidden="true"></i>
+  </button>
+<% end %>

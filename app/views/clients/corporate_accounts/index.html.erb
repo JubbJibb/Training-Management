@@ -1,0 +1,126 @@
+<% content_for :title, "Corporate Accounts" %>
+
+<div class="dashboard-page corporate-accounts-odt">
+  <div class="corporate-accounts-odt__page-header">
+    <%= render "components/odt/page_header", title: "Corporate Accounts", subtitle: "Account-based management for corporate clients", icon: "building" %>
+  </div>
+
+  <%= turbo_frame_tag "clients_main", data: { turbo_action: "advance" } do %>
+    <div class="corporate-accounts-odt__filter-section">
+      <%= render "clients/shared/date_filter" do %>
+        <div class="odt-filters-row__field">
+          <label for="filter_active" class="odt-filters-row__label">Status</label>
+          <select name="active" id="filter_active" class="odt-filters-row__input">
+            <option value="">All</option>
+            <option value="1" <%= "selected" if params[:active] == "1" %>>Active (90d)</option>
+            <option value="0" <%= "selected" if params[:active] == "0" %>>Inactive</option>
+          </select>
+        </div>
+        <div class="odt-filters-row__field">
+          <label for="filter_has_overdue" class="odt-filters-row__label">Overdue</label>
+          <select name="has_overdue" id="filter_has_overdue" class="odt-filters-row__input">
+            <option value="">All</option>
+            <option value="1" <%= "selected" if params[:has_overdue] == "1" %>>Has overdue</option>
+          </select>
+        </div>
+        <div class="odt-filters-row__field">
+          <label for="filter_min_revenue" class="odt-filters-row__label">Min revenue</label>
+          <input type="number" name="min_revenue" id="filter_min_revenue" class="odt-filters-row__input" value="<%= params[:min_revenue] %>" placeholder="0" step="0.01">
+        </div>
+      <% end %>
+    </div>
+
+    <%
+      kpis = @data[:kpis] || {}
+      cells = [
+        { icon: "cash-coin", label: "Corporate Revenue", value: number_to_thb(kpis[:corporate_revenue].to_f), sub: "collected" },
+        { icon: "receipt", label: "Booked Revenue", value: number_to_thb(kpis[:booked_revenue].to_f), sub: "invoiced/quoted" },
+        { icon: "hourglass-split", label: "Outstanding", value: number_to_thb(kpis[:outstanding].to_f), sub: "" },
+        { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(kpis[:overdue].to_f), sub: "", value_variant: (kpis[:overdue].to_f > 0 ? "danger" : nil) },
+        { icon: "building", label: "Active Accounts", value: kpis[:active_corporate_accounts].to_i, sub: "" },
+        { icon: "calendar-check", label: "Avg Payment Days", value: kpis[:avg_payment_days].nil? ? "—" : kpis[:avg_payment_days].to_s, sub: "" }
+      ]
+    %>
+    <section class="corporate-accounts-odt__kpi" aria-label="Key metrics">
+      <%= render "clients/corporate_accounts/kpi_strip", cells: cells %>
+    </section>
+
+    <div class="corporate-accounts-odt__stack odt-v1-card-gap">
+      <%
+        accounts = @data[:accounts] || []
+        cols = [
+          { key: :company_name, label: "Company / Account" },
+          { key: :revenue, label: "Revenue", format: :currency },
+          { key: :outstanding, label: "Outstanding", format: :currency },
+          { key: :overdue, label: "Overdue", format: :currency },
+          { key: :classes_attended, label: "Classes" },
+          { key: :last_activity, label: "Last activity" },
+          { key: :health, label: "Health" }
+        ]
+        rows = accounts.map do |r|
+          r.merge(last_activity: r[:last_activity]&.strftime("%d %b %Y"))
+        end
+      %>
+      <%= render "shared/odt_card", title: "Corporate Accounts" do %>
+        <div class="odt-table-v1-wrap corporate-accounts-odt__table-wrap">
+          <table class="odt-table-v1 odt-premium-table corporate-accounts-odt__table" aria-label="Corporate accounts">
+            <thead>
+              <tr>
+                <% cols.each do |col| %><th><%= col[:label] %></th><% end %>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rows.each do |row| %>
+                <tr>
+                  <td><%= link_to row[:company_name], clients_corporate_account_path(row[:account_id]), class: "corporate-accounts-odt__company-link" %></td>
+                  <td class="odt-table-v1__num"><%= number_to_thb(row[:revenue]) %></td>
+                  <td class="odt-table-v1__num"><%= number_to_thb(row[:outstanding]) %></td>
+                  <td class="odt-table-v1__num"><%= number_to_thb(row[:overdue]) %></td>
+                  <td><%= row[:classes_attended] %></td>
+                  <td><%= row[:last_activity] || "—" %></td>
+                  <td>
+                    <span class="corporate-accounts-odt__health corporate-accounts-odt__health--<%= row[:health].to_s.downcase %>"><%= row[:health] %></span>
+                  </td>
+                  <td class="text-end"><%= link_to "View", clients_corporate_account_path(row[:account_id]), class: "corporate-accounts-odt__action-btn" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+
+      <%= render "shared/odt_card", title: "At Risk Accounts", accent: :gold do %>
+        <% at_risk = @data[:at_risk_accounts] || [] %>
+        <% if at_risk.empty? %>
+          <p class="corporate-accounts-odt__empty">None.</p>
+        <% else %>
+          <ul class="corporate-accounts-odt__list">
+            <% at_risk.each do |r| %>
+              <li class="corporate-accounts-odt__list-row">
+                <%= link_to r[:company_name], clients_corporate_account_path(r[:account_id]), class: "corporate-accounts-odt__company-link" %>
+                <span class="corporate-accounts-odt__amount"><%= number_to_thb(r[:overdue]) %></span>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      <% end %>
+
+      <%= render "shared/odt_card", title: "Upcoming Unpaid (Corporate)", accent: :navy do %>
+        <% upcoming = @data[:upcoming_unpaid_corporate] || [] %>
+        <% if upcoming.empty? %>
+          <p class="corporate-accounts-odt__empty">None.</p>
+        <% else %>
+          <ul class="corporate-accounts-odt__list">
+            <% upcoming.first(10).each do |u| %>
+              <li class="corporate-accounts-odt__list-row corporate-accounts-odt__list-row--multi">
+                <span class="corporate-accounts-odt__list-label"><%= u[:training_class_title] %> (<%= u[:date] %>) — <%= u[:company] %></span>
+                <%= link_to number_to_thb(u[:amount]), admin_training_class_attendee_path(u[:training_class_id], u[:attendee_id]), class: "corporate-accounts-odt__action-btn" %>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

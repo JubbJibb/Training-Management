@@ -8,70 +8,59 @@
 <% end %>
 
 <% if @last_synced %>
-  <p class="text-muted small mb-3">
+  <p class="courses-index-synced">
     <i class="bi bi-clock" aria-hidden="true"></i> Last synced: <%= l(@last_synced, format: :long) %>
   </p>
 <% end %>
 
-<div class="courses-index-wrap">
-  <% if @courses.any? %>
-    <div class="table-wrap table-responsive">
-      <table class="table data-table table-hover table-sortable-filterable align-middle courses-table" aria-label="Courses from ODT">
-        <colgroup>
-          <col style="width: 18%;">
-          <col style="width: 28%;">
-          <col style="width: 8%;">
-          <col style="width: 10%;">
-          <col class="d-none d-lg-table-cell" style="width: 12%;">
-          <col style="width: 8%;">
-          <col style="width: 16%;">
-        </colgroup>
-        <thead class="table-light">
-          <tr>
-            <th class="courses-table__th-title"><span class="th-inner">Title</span></th>
-            <th class="courses-table__th-desc"><span class="th-inner">Description</span></th>
-            <th class="courses-table__th-num num"><span class="th-inner">Capacity</span></th>
-            <th class="courses-table__th-duration"><span class="th-inner">Duration</span></th>
-            <th class="courses-table__th-cat d-none d-lg-table-cell"><span class="th-inner">Category</span></th>
-            <th class="courses-table__th-link text-end"><span class="th-inner">Link</span></th>
-            <th class="courses-table__th-actions text-end actions-col"><span class="th-inner">Actions</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @courses.each do |course| %>
-            <tr>
-              <td class="courses-table__title truncate"><strong><%= link_to course.title, admin_course_path(course), class: "text-decoration-none" %></strong></td>
-              <td class="courses-table__desc text-muted truncate-2">
-                <%= course.description.presence || "—" %>
-              </td>
-              <td class="courses-table__num num"><%= course.capacity.presence || "—" %></td>
-              <td class="courses-table__duration no-wrap"><%= course.duration_text.presence || "—" %></td>
-              <td class="d-none d-lg-table-cell"><%= course.category.presence || "—" %></td>
-              <td class="text-end">
-                <% if course.source_url.present? %>
-                  <%= link_to course.source_url, target: "_blank", rel: "noopener", class: "odt-btn odt-btn--ghost odt-btn--sm", title: "Open on ODT" do %>
-                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
-                  <% end %>
-                <% else %>
-                  —
+<div class="courses-index-page">
+  <div class="courses-index-content">
+    <% if @courses.any? %>
+      <div class="courses-list">
+        <div class="courses-list__header" role="row">
+          <span class="courses-list__header-cell courses-list__header-cell--main">Course</span>
+          <span class="courses-list__header-cell courses-list__header-cell--actions">Actions</span>
+        </div>
+        <% @courses.each do |course| %>
+          <div class="courses-list__item" role="article">
+            <div class="courses-list__main">
+              <h3 class="courses-list__title">
+                <%= link_to course.title, admin_course_path(course), class: "courses-list__title-link" %>
+              </h3>
+              <p class="courses-list__description"><%= course.description.presence || "—" %></p>
+              <div class="courses-list__badges">
+                <% if course.capacity.present? %>
+                  <span class="courses-list__badge" title="Capacity"><i class="bi bi-people" aria-hidden="true"></i> <%= course.capacity %></span>
                 <% end %>
-              </td>
-              <td class="text-end">
-                <%= link_to edit_admin_course_path(course), class: "odt-btn odt-btn--ghost odt-btn--sm", title: "Edit" do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
-                <%= link_to new_admin_training_class_path(course_id: course.id), class: "odt-btn odt-btn--primary odt-btn--sm", title: "Create Class" do %><i class="bi bi-plus-circle" aria-hidden="true"></i> Class<% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% else %>
-    <div class="alert alert-info">
-      <p class="mb-0">
-        <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
-        ยังไม่มีรายการคอร์ส กด <strong>Sync from ODT</strong> เพื่อดึงรายการจาก
-        <a href="https://training.odds.team/courses" target="_blank" rel="noopener">training.odds.team/courses</a>
-      </p>
-    </div>
-  <% end %>
+                <% if course.duration_text.present? %>
+                  <span class="courses-list__badge" title="Duration"><i class="bi bi-clock" aria-hidden="true"></i> <%= course.duration_text %></span>
+                <% end %>
+                <% if course.category.present? %>
+                  <span class="courses-list__badge" title="Category"><i class="bi bi-tag" aria-hidden="true"></i> <%= course.category %></span>
+                <% end %>
+                <% if course.capacity.blank? && course.duration_text.blank? && course.category.blank? %>
+                  <span class="courses-list__badge courses-list__badge--muted">—</span>
+                <% end %>
+              </div>
+            </div>
+            <div class="courses-list__actions">
+              <% if course.source_url.present? %>
+                <%= link_to course.source_url, target: "_blank", rel: "noopener", class: "courses-list__btn courses-list__btn--icon", title: "Open on ODT", aria: { label: "Open on ODT" } do %><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><% end %>
+              <% end %>
+              <%= link_to edit_admin_course_path(course), class: "courses-list__btn courses-list__btn--icon", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+              <%= link_to new_admin_training_class_path(course_id: course.id), class: "courses-list__btn courses-list__btn--primary", title: "Create Class", aria: { label: "Create Class" } do %><i class="bi bi-plus-circle" aria-hidden="true"></i> Class<% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="courses-index-empty">
+        <p class="courses-index-empty__text">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          ยังไม่มีรายการคอร์ส กด <strong>Sync from ODT</strong> เพื่อดึงรายการจาก
+          <a href="https://training.odds.team/courses" target="_blank" rel="noopener">training.odds.team/courses</a>
+        </p>
+      </div>
+    <% end %>
+  </div>
 </div>

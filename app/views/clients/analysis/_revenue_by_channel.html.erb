@@ -1,0 +1,21 @@
+<%# ODT Card System v1 — Revenue by channel (horizontal bars, navy fill). %>
+<% by_channel = local_assigns[:revenue_by_channel] || [] %>
+<% max_val = by_channel.map { |c| c[1].to_f }.max.to_f %>
+<%= render "shared/odt_card", title: "Revenue by Channel" do %>
+  <div class="odt-lb-v1">
+    <% by_channel.each do |name, value| %>
+      <% pct_width = max_val.positive? ? (value.to_f / max_val * 100) : 0 %>
+      <div class="odt-lb-v1__row">
+        <span class="odt-lb-v1__rank"></span>
+        <span class="odt-lb-v1__name"><%= name.to_s %></span>
+        <span class="odt-lb-v1__bar-wrap">
+          <span class="odt-lb-v1__bar" style="width: <%= pct_width %>%"></span>
+        </span>
+        <span class="odt-lb-v1__value"><%= number_to_thb(value.to_f) %></span>
+      </div>
+    <% end %>
+  </div>
+  <% if by_channel.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">No channel data.</p>
+  <% end %>
+<% end %>

@@ -1,0 +1,104 @@
+<%
+  event = local_assigns[:event]
+  date_str = event.date.strftime("%b %d, %Y")
+  date_str += " – #{event.end_date.strftime("%b %d, %Y")}" if event.end_date.present? && event.end_date != event.date
+  time_str = if event.start_time.present? && event.end_time.present?
+    "#{event.start_time.strftime('%H:%M')} – #{event.end_time.strftime('%H:%M')}"
+  else
+    "All day"
+  end
+  fill_pct = event.fill_rate_percent
+  max_seats = event.max_attendees.to_i
+  registered = event.total_registered_seats
+  revenue = event.respond_to?(:net_revenue) ? event.net_revenue : nil
+  show_mark_cancelled = false
+  status_slug = event.status_label.parameterize
+%>
+<div class="calendar-event-panel" id="calendar_side_panel_content">
+  <header class="calendar-event-panel__header">
+    <div class="calendar-event-panel__header-accent"></div>
+    <div class="calendar-event-panel__header-inner">
+      <h3 class="calendar-event-panel__title"><%= event.title %></h3>
+      <span class="calendar-event-panel__badge calendar-event-panel__badge--<%= status_slug %>">
+        <i class="bi bi-<%= status_slug == 'upcoming' ? 'calendar-check' : status_slug == 'cancelled' ? 'x-circle' : 'calendar-event' %>"></i>
+        <%= event.status_label %>
+      </span>
+    </div>
+  </header>
+
+  <div class="calendar-event-panel__section">
+    <h4 class="calendar-event-panel__section-title">Details</h4>
+    <ul class="calendar-event-panel__meta">
+      <li class="calendar-event-panel__meta-row">
+        <span class="calendar-event-panel__meta-icon"><i class="bi bi-calendar3"></i></span>
+        <span class="calendar-event-panel__meta-label">Date</span>
+        <span class="calendar-event-panel__meta-value"><%= date_str %></span>
+      </li>
+      <li class="calendar-event-panel__meta-row">
+        <span class="calendar-event-panel__meta-icon"><i class="bi bi-clock"></i></span>
+        <span class="calendar-event-panel__meta-label">Time</span>
+        <span class="calendar-event-panel__meta-value"><%= time_str %></span>
+      </li>
+      <% if event.location.present? %>
+        <li class="calendar-event-panel__meta-row">
+          <span class="calendar-event-panel__meta-icon"><i class="bi bi-geo-alt"></i></span>
+          <span class="calendar-event-panel__meta-label">Location</span>
+          <span class="calendar-event-panel__meta-value"><%= event.location %></span>
+        </li>
+      <% end %>
+      <% if event.instructor.present? %>
+        <li class="calendar-event-panel__meta-row">
+          <span class="calendar-event-panel__meta-icon"><i class="bi bi-person"></i></span>
+          <span class="calendar-event-panel__meta-label">Instructor</span>
+          <span class="calendar-event-panel__meta-value"><%= event.instructor %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="calendar-event-panel__section">
+    <h4 class="calendar-event-panel__section-title">Capacity &amp; Revenue</h4>
+    <ul class="calendar-event-panel__meta">
+      <% if max_seats.positive? %>
+        <li class="calendar-event-panel__meta-row">
+          <span class="calendar-event-panel__meta-icon"><i class="bi bi-people"></i></span>
+          <span class="calendar-event-panel__meta-label">Seats sold</span>
+          <span class="calendar-event-panel__meta-value">
+            <%= registered %> / <%= max_seats %>
+            <% if fill_pct %>
+              <span class="calendar-event-panel__fill <%= 'calendar-event-panel__fill--high' if fill_pct >= 80 %>"><%= fill_pct %>% filled</span>
+            <% end %>
+          </span>
+        </li>
+      <% end %>
+      <% if revenue.present? && revenue.to_f.positive? %>
+        <li class="calendar-event-panel__meta-row">
+          <span class="calendar-event-panel__meta-icon"><i class="bi bi-currency-dollar"></i></span>
+          <span class="calendar-event-panel__meta-label">Revenue forecast</span>
+          <span class="calendar-event-panel__meta-value calendar-event-panel__meta-value--highlight"><%= number_to_currency(revenue) %></span>
+        </li>
+      <% end %>
+      <% if max_seats.zero? && (revenue.blank? || revenue.to_f.zero?) %>
+        <li class="calendar-event-panel__meta-row calendar-event-panel__meta-row--muted">
+          <span class="calendar-event-panel__meta-value">No capacity or revenue data</span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="calendar-event-panel__section">
+    <h4 class="calendar-event-panel__section-title">Quick actions</h4>
+    <div class="calendar-event-panel__actions">
+      <%= link_to admin_training_class_path(event), class: "calendar-event-panel__btn calendar-event-panel__btn--primary" do %>
+        <i class="bi bi-info-circle"></i> View class
+      <% end %>
+      <%= link_to edit_admin_training_class_path(event), class: "calendar-event-panel__btn calendar-event-panel__btn--secondary" do %>
+        <i class="bi bi-pencil"></i> Edit
+      <% end %>
+      <%= link_to new_admin_training_class_path(duplicate_from: event.id), class: "calendar-event-panel__btn calendar-event-panel__btn--secondary" do %>
+        <i class="bi bi-copy"></i> Duplicate
+      <% end %>
+      <button type="button" class="calendar-event-panel__btn calendar-event-panel__btn--danger" aria-label="Cancel class"><i class="bi bi-x-circle"></i> Cancel</button>
+    </div>
+  </div>
+</div>

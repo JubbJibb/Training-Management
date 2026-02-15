@@ -1,197 +1,256 @@
-# Training Management System
+# ODT Training Management System
 
-## Project Overview
-
-ระบบจัดการการอบรมสำหรับคลาสสาธารณะ (Public Training Classes) พัฒนาด้วย **Ruby on Rails** เพื่อทดแทนการจัดการด้วย Excel ด้วยเว็บอินเทอร์เฟซที่ทันสมัย ครอบคลุมการจัดการคลาส การลงทะเบียน ลูกค้า การเงิน โปรโมชั่น และการส่งออกรายงาน (PDF/Excel) พร้อมระบบ Export แบบ background job และ Design System แบบรวมศูนย์
+Internal Training Management System for managing public and corporate training classes, attendees, customers, promotions, finance, and exports. Built with **Ruby on Rails** and **Turbo** for a modern, responsive admin experience. Replaces spreadsheet-based workflows with a unified web UI, design system, and background export jobs.
 
 ---
 
-## Features
+## Table of Contents
 
-### Core
-- **Training Class Management** — สร้าง แก้ไข ลบคลาส (วันที่ สถานที่ ราคา ต้นทุน ผู้สอน)
-- **Attendee Management** — จัดการผู้เข้าร่วม (เพิ่ม/แก้ไข/ลบ), สถานะ Attendee / Potential, ย้ายระหว่างสองสถานะ
-- **Customer Management** — รายชื่อลูกค้า ค้นหา แก้ไข; **Customer 360°** ดูประวัติลงทะเบียน เอกสาร การชำระเงิน ไทม์ไลน์; Sync ข้อมูล billing จาก registration ล่าสุด
-- **Leads / Potential** — แยก Prospects จากผู้ลงทะเบียนจริง
-- **Promotion & Discount** — Percentage, Fixed Amount, Buy X Get Y; ใช้ได้หลายโปรโมชั่นต่อคน
-- **Payment & Documents** — สถานะ QT/INV/Receipt, อัปโหลดสลิป (PNG, JPG, GIF, PDF), Invoice No. / Due Date
-- **Class Expenses** — บันทึกค่าใช้จ่ายต่อคลาส (หมวดหมู่, จำนวนเงิน)
-- **VAT & Pricing** — ราคาก่อน VAT, VAT 7%, ราคารวม; Price per Head สำหรับ Corporate
-- **Email** — ส่งอีเมลแจ้งเตือนให้ผู้เข้าร่วม (รายคน / ทั้งคลาส)
-- **CSV** — ส่งออกรายชื่อผู้เข้าร่วม; นำเข้าข้อมูลจาก CSV (attendees, payments, quotations)
-- **Export System** — PDF (Financial Report, Class Report, Customer Summary), Excel (Financial Data, Class Attendees, Customer Master, Customer for Accounting); background jobs, audit (requested_by), optional custom fields
-
-### Dashboards & Pages
-- **Admin Dashboard** — KPIs (Upcoming Classes, Attendees, New Leads, Repeat Learners, Pending QT, Unpaid Inv, Missing Receipts, Almost Full), Action Required, Upcoming Classes, Leads by Channel, Repeat/Top Customers
-- **Finance Dashboard (admin)** — Revenue, Paid, Outstanding, Overdue; Invoice summary, Revenue breakdown, Payment list
-- **CFO Finance Dashboard** — Turbo-driven filters, Cash flow, AR aging, Corporate ledger, Documents compliance
-- **Training Classes Index** — รายการคลาส, KPI strip, filter, ตาราง
-- **Class Detail** — Tabs: Attendees, Potential, Documents, Finance (รวม Class Expenses)
-- **Customer Show (360°)** — Sticky header, Billing/Tax, Snapshot, Class history, Documents/Payments, Activity timeline, Export dropdown
-- **Customer Edit** — Basic info + Billing/Tax, Side panel (tips, document preview), Sync from latest registration
-- **Settings** — Promotions (CRUD), Promotion drilldown/export; Performance (Promo KPIs, Revenue share, Leaderboard)
+- [Business Features](#business-features)
+- [Technical Design](#technical-design)
+- [Design Principles](#design-principles)
+- [Design System](#design-system)
+- [Project Structure](#project-structure)
+- [Knowledge & Documentation](#knowledge--documentation)
+- [Setup & Development](#setup--development)
 
 ---
 
-## Tech Stack
+## Business Features
 
-| Layer | Technology |
-|-------|------------|
-| **Framework** | Ruby on Rails 8.1.x |
-| **Ruby** | 3.x |
-| **Database** | SQLite3 |
-| **Server** | Puma |
-| **Assets** | Propshaft, CSS Bundling (plain CSS) |
-| **Frontend** | Turbo (Turbo Frames, Turbo Streams), Stimulus, Importmap (ESM) |
-| **Auth** | Session-based admin (e.g. `session[:admin_user_id]`); bcrypt for password digest |
-| **Authorization** | Pundit (e.g. `ExportJobPolicy`) |
-| **Background Jobs** | Active Job + Solid Queue |
-| **File Storage** | Active Storage (local); image_processing for variants |
-| **Export** | Prawn + prawn-table (PDF), caxlsx + caxlsx_rails (Excel) |
-| **Data** | CSV gem for import |
-| **Deploy** | Kamal, Docker; Thruster (optional) |
+### Operations
+- **Training Classes** — Create, edit, delete classes (date, end_date, start_time, end_time, location, instructor, max_attendees, price, cost, description). List with filters and KPI strip.
+- **Training Calendar** — Month/week view at `/operations/calendar`; ODT-themed event cards, filters (instructor, location, status, type, nearly full), KPIs (total classes, seats sold, revenue forecast), side panel with class details and quick actions (View, Edit, Duplicate, Cancel). Logo in navbar links to Calendar.
+- **Courses** — Course catalog; sync from external source; link to classes.
+- **Instructors** — Index of instructors derived from training classes.
+- **Attendees** — Per-class: add/edit/remove attendees; status Attendee / Potential; move between statuses; export CSV/documents; send email (per attendee or whole class); sync tax from customer.
 
-*หมายเหตุ: ไม่ใช้ Bootstrap; UI ใช้ Design System ใน repo (design_tokens.css + application.css + ODT components).*
+### Insights
+- **Business Insights** — Performance and decision support (dashboard-style).
+- **Financial Insights** — Links to Financial Overview.
+- **Strategy Insights** — Links to Promotions / settings.
+- **Action Center** — Links to dashboard action-required and opportunities.
+
+### Clients
+- **Client Directory** — Customer list; search; edit; Customer 360° view (billing/tax, snapshot, class history, documents/payments, activity timeline); export (customer info, billing for accounting, template).
+- **Corporate Accounts** — Corporate segment view; company-level aggregation.
+- **Client Analysis** — Revenue by channel, segment donuts, top spenders, conversion, risk (no activity, concentration).
+
+### Financials
+- **Financial Overview** — CFO-style dashboard: Turbo filters, cash flow, AR aging, corporate ledger, documents compliance, revenue composition, expense summary.
+- **Accounts Receivable** — AR list and actions.
+- **Payment Tracking** — Payments list; payment show with PDF download and send summary.
+- **Expense Control** — Class expenses index.
+- **Compliance** — Compliance placeholder.
+- **Export History** — Audit of export jobs (requested_by, state, download when succeeded).
+
+### Strategy
+- **Promotions** — CRUD; percentage, fixed amount, buy-x-get-y; multiple promotions per attendee.
+- **Promotion Performance** — KPIs, revenue share (donut), leaderboard, drilldown/export.
+
+### Core Capabilities (cross-cutting)
+- **Customer 360° & Edit** — Sticky header, billing/tax, snapshot, class history, documents/payments, timeline; edit with “Sync from latest registration”; Turbo Streams for sync.
+- **Payment & Documents** — QT/INV/Receipt; upload payment slips (PNG, JPG, GIF, PDF); invoice_no, due_date.
+- **Class Expenses** — Per-class expenses (category, amount).
+- **VAT & Pricing** — Pre-VAT price, VAT 7%, total; price per head for corporate.
+- **Export System** — PDF (Financial Report, Class Report, Customer Summary), Excel (Financial, Class Attendees, Customer Master, etc.); background jobs (Solid Queue); audit (requested_by_id).
+- **Custom Fields** — Entity-based custom fields and values for exports and forms.
+- **Admin Auth** — Session-based (`session[:admin_user_id]`); bcrypt; Pundit for authorization (e.g. ExportJob).
 
 ---
 
 ## Technical Design
 
 ### High-level architecture
-- **Controllers** — Thin; filter/params ใน controller, โหลดข้อมูลสำหรับ view; Export สร้าง `ExportJob` แล้ว enqueue job
-- **Services** — Business logic และ side effects: `CustomerSyncService`, `Exports::*` (PDF/Excel), `PromotionPerformanceQuery`, `Promotions::MetricsService`, `Customers::DirectoryQuery`
-- **Jobs** — `GenerateExportJob`: อ่าน export_type/format, เรียก service ที่ตรงกัน, อัปเดต state ของ `ExportJob`
-- **Policies** — Pundit สำหรับ Export (และอื่นๆ ถ้ามี)
-- **Helpers** — `ApplicationHelper`, `Admin::CustomersHelper`, `Admin::SettingsHelper`, `Odt::UiHelper` (buttons, badges, KPI strip, page header, etc.)
-- **View structure** — Layouts: `application`, `admin`, mailer; Partials ใต้ `admin/`, `components/odt/`, `shared/`, `finance_dashboards/`; Turbo Frames สำหรับ modal และ partial updates (e.g. Customer sync, Export modal)
+- **Controllers** — Thin: params/filters in controller, load data for view. Export creates `ExportJob` and enqueues `GenerateExportJob`.
+- **Services** — Business logic and side effects: `CustomerSyncService`, `Exports::*` (PDF/Excel), `PromotionPerformanceQuery`, `Promotions::MetricsService`, `Customers::DirectoryQuery`, `Clients::CorporateAccountsInsights`, `Insights::*` (business, financial, strategy, action center), `Finance::FinanceDashboardSummary`, `FinancialOverviewService`.
+- **Jobs** — `GenerateExportJob` (reads export_type/format, calls matching export service, attaches file to ExportJob, updates state). `SendPaymentSummaryJob` for payment summary emails.
+- **Policies** — Pundit (e.g. `ExportJobPolicy`). `current_user` from session; no role column on admin_users (role-based UI deferred).
+- **Helpers** — `ApplicationHelper`, `Admin::CustomersHelper`, `Admin::SettingsHelper`, `Odt::UiHelper` (buttons, badges, KPI strip, page header, table, filters).
+- **Frontend** — Turbo Frames and Turbo Streams for modals, side panels, and partial updates (e.g. calendar event panel, customer sync, export modal). Stimulus for interactive bits. No Bootstrap; ODT design system (CSS only).
 
-### Key directories
-```
-app/
-  controllers/application_controller.rb
-  controllers/admin/          # dashboard, finance, training_classes, attendees,
-                              # customers, settings, class_expenses, exports, data, components
-  controllers/finance_dashboards_controller.rb
-  models/                     # TrainingClass, Attendee, Customer, Promotion, AttendeePromotion,
-                              # ClassExpense, AdminUser, ExportJob, CustomField, CustomFieldValue
-  services/                   # customer_sync_service, exports/*, promotions/*, customers/*
-  jobs/                       # generate_export_job
-  policies/                   # export_job_policy
-  helpers/                    # application_helper, admin/*, odt/ui_helper
-  views/
-    layouts/                  # application, admin, mailer
-    components/odt/           # shared UI: page_header, kpi_strip, button, card, badge, table, etc.
-    admin/                    # dashboard, finance, training_classes, attendees, customers,
-                              # settings, class_expenses, exports, data
-    finance_dashboards/       # CFO dashboard partials
-    shared/                   # empty_state, section_header, progress_bar, etc.
-  assets/stylesheets/          # design_tokens.css, application.css
-  assets/javascripts/          # table_sort_filter; Stimulus controllers under javascript/controllers
-```
+### Key routes (summary)
+| Area | Paths |
+|------|--------|
+| **Operations** | `/operations/calendar`, `/operations/calendar/event/:id`; `/admin/training_classes`, `/admin/courses`, `/instructors` |
+| **Insights** | `/insights`, `/insights/business`, `/insights/financial`, `/insights/strategy`, `/insights/actions` |
+| **Clients** | `/admin/customers`, `/clients/corporate_accounts`, `/clients/analysis` |
+| **Financials** | `/finance`, `/finance/ar`, `/finance/payments`, `/finance/expenses`, `/finance/compliance`, `/finance/export_jobs`; `/financials/payment_tracking`, `/financials/payments/:id` |
+| **Strategy** | `/admin/settings` (Promotions, Performance) |
+| **Admin** | `/admin` (dashboard), `/admin/data`, exports, etc. |
+
+Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar`.
 
 ### Export flow
-1. User เลือก type/format ใน Export modal (HTML request ใช้ `file_format` ไม่ใช้ `format`).
-2. `Admin::ExportsController#create` สร้าง `ExportJob` (state: queued), enqueue `GenerateExportJob`.
-3. Job เรียก service ตาม type+format (e.g. `Exports::FinancialReportPdf`), attach ไฟล์กับ `ExportJob`, อัปเดต state เป็น succeeded/failed.
-4. Exports index แสดงรายการ; user ดาวน์โหลดจาก link เมื่อ state = succeeded.
+1. User chooses export type and format in Export modal (e.g. Financial Report PDF).
+2. `Admin::ExportsController#create` creates `ExportJob` (state: queued), enqueues `GenerateExportJob`.
+3. Job calls the appropriate `Exports::*` service, attaches file to `ExportJob`, sets state to succeeded/failed.
+4. Export History lists jobs; user downloads when state = succeeded.
 
-### Customer 360° & Edit
-- **Show** — Sticky header, 2-column layout (Billing/Tax, Snapshot; Class history, Documents/Payments; Timeline); optional auto-sync billing เมื่อข้อมูล billing ขาด; Turbo Stream สำหรับ sync
-- **Edit** — 2-column form (Basic info, Billing/Tax) + side panel (tips by type, document preview); "Sync from latest registration" ใช้ `link_to` + `turbo_method: :post` และ Turbo Stream แทน nested form
+### Database (main tables)
+- **admin_users** — email, password_digest
+- **training_classes** — title, date, end_date, start_time, end_time, location, instructor, max_attendees, price, cost, description
+- **attendees** — training_class_id, customer_id, name, email, seats, participant_type, status (attendee/potential), payment_status, document_status, pricing fields, invoice_no, due_date, etc.
+- **customers** — name, email, company, billing_*, tax_id, acquisition_channel
+- **promotions**, **attendee_promotions** — discount rules and application
+- **class_expenses** — training_class_id, description, amount, category
+- **export_jobs** — export_type, format, state, filters, requested_by_id, file (Active Storage)
+- **custom_fields**, **custom_field_values** — polymorphic custom data
+- **financial_action_logs** — audit for financial actions
 
 ---
 
-## Database
+## Design Principles
 
-### Main tables (from schema)
-
-| Table | Purpose |
-|-------|---------|
-| **admin_users** | email, password_digest — ผู้ดูแลระบบ |
-| **training_classes** | title, date, end_date, location, start_time, end_time, instructor, max_attendees, price, cost, description |
-| **attendees** | training_class_id, customer_id, name, email, phone, company, participant_type, seats, source_channel, status (attendee/potential), payment_status, document_status, attendance_status, total_classes, price, total_amount, invoice_no, due_date, quotation_no, receipt_no, tax_id, address, name_thai, notes |
-| **customers** | name, email, phone, participant_type, company, tax_id, billing_name, billing_address |
-| **attendee_promotions** | attendee_id, promotion_id |
-| **promotions** | name, discount_type, discount_value, description, active, base_price |
-| **class_expenses** | training_class_id, description, amount, category |
-| **export_jobs** | export_type, format, state, filters, include_sections, include_custom_fields, requested_by_id, started_at, finished_at, error_message, filename; has_one_attached :file |
-| **custom_fields** | entity_type, key, label, field_type, active |
-| **custom_field_values** | custom_field_id, record_type, record_id, value |
-| **active_storage_*** | blobs, attachments, variant_records — ไฟล์อัปโหลด (สลิป, export files) |
-
-### Relationships (summary)
-- `TrainingClass` has_many `attendees`, has_many `class_expenses`
-- `Attendee` belongs_to `training_class`, optional belongs_to `customer`; has_many attendee_promotions, has_many promotions through attendee_promotions; has_one_attached payment_slips (or payment_slip)
-- `Customer` has_many `attendees`
-- `ExportJob` belongs_to requested_by (AdminUser); has_one_attached :file
-- `CustomFieldValue` belongs_to custom_field, polymorphic (record)
+1. **Token-first** — Colors, spacing, typography, radii, and shadows come from design tokens (`design_tokens.css`, `application.css` :root). Avoid new hex/rgba in component CSS.
+2. **Component reuse** — Use shared ODT components (page header, section header, cards, KPI strip, filters, tables, buttons). See `docs/ui-checklist.md`.
+3. **Hierarchy** — Header → Summary (KPIs) → Operations (tables, forms). No heavy solid backgrounds; use accent borders and strips.
+4. **Consistency** — Same font family and scale across pages; tables use ODT table pattern; primary actions use primary button style.
+5. **Minimal layout** — Prefer existing layout classes (e.g. dashboard grid, finance two-col) over one-off wrappers.
+6. **Accessibility** — Focus states, ARIA where needed, semantic HTML.
 
 ---
 
 ## Design System
 
-UI ใช้ CSS แบบรวมศูนย์ ไม่ใช้ Bootstrap: ตัวแปรและคอมโพเนนต์อยู่ที่ `app/assets/stylesheets/` และ `app/views/components/odt/`.
+**ODT** (brand) theme: consulting-premium, enterprise SaaS look. No Tailwind; no Bootstrap. All UI via `design_tokens.css`, `design_system.css`, and `application.css`.
 
-### Design tokens (`design_tokens.css`)
+### Tokens (`design_tokens.css` + `application.css` :root)
+- **Font** — `--font-family`: Inter + system fallbacks.
+- **Typography** — `--font-size-xs` (11px) through `--font-size-4xl` (28px).
+- **Colors** — `--color-ink` (#292929), `--color-primary` (#13139c), `--color-accent` (#ffc700), `--color-surface` (#f9f9fe); `--odt-blue`, `--odt-gold`, `--odt-soft`, `--odt-muted`; semantic success/warning/danger.
+- **ODT palette** — Primary Navy #13139c, Deep Navy #012a71, Yellow Accent #ffc700, Soft Yellow #f5bf00, Dark Text #292929, Light BG #f9f9fe; hover tints (e.g. rgba(1,42,113,0.05)).
+- **Spacing** — `--space-1` (4px) to `--space-6` (32px); `--odt-spacing`, `--odt-section`.
+- **Radii & shadows** — `--radius-xs/sm/md`, `--shadow-sm/md`, `--border-light`.
 
-- **Font**  
-  `--font-family`: Inter + system fallbacks (ใช้ทั้ง body และหัวข้อใน application.css)
+### Components (`design_system.css` + `application.css` + `components/odt/`)
+- **Page / section** — Page header, section header (title + optional actions); left accent bar (4px primary) for emphasis.
+- **Cards** — `.card`, `.card--accent-left`; ODT card with optional icon and header action.
+- **Buttons** — `.btn`, `.btn--primary`, `.btn--secondary`, `.btn--danger`, `.btn--ghost`, `.btn--sm`; icon buttons.
+- **KPI / metrics** — KPI strip (grid of metric cells); single metric cards.
+- **Tables** — ODT table (fixed layout, column classes, numeric/actions cells, truncate).
+- **Filters** — Filters row (label + input groups, Apply/Clear).
+- **Badges** — Status and label badges.
+- **Empty states** — Shared empty state partial.
+- **Calendar** — Training Calendar uses `cal-*` classes: header with accent and yellow underline, day headers (navy + yellow bottom border), day cells (no overflow), event cards (white, left accent, progress bar, FULL badge), side panel, KPIs, legend.
 
-- **Typography scale**  
-  `--font-size-xs` (11px) ถึง `--font-size-4xl` (28px) — ใช้กับ body, headings, labels, table cells ให้ตรงกันทุกหน้า
-
-- **Colors**  
-  `--color-ink`, `--color-primary`, `--color-surface`, `--odt-blue`, `--odt-yellow`, `--odt-muted`, `--odt-blue-tint`, `--odt-yellow-tint`
-
-- **Spacing**  
-  `--space-1` (4px) ถึง `--space-6` (32px)
-
-- **Radii & shadows**  
-  `--radius-xs`, `--radius-sm`, `--radius-md`; `--shadow-sm`, `--shadow-md`; `--border-light`, `--border-muted`
-
-### Application CSS (`application.css`)
-
-- ใช้ tokens สำหรับ `body`, `h1`–`h6`, `.odt-page-header`, `.admin-section`, `.odt-section-header`, Customer 360, Customer Edit, Export modal, KPI strip และส่วนอื่นที่ต้องการให้ฟอนต์/ขนาดตรงกันทุกหน้า
-
-### Components (ODT)
-
-- **Page / section** — `page_header`, `section_header` (title + optional actions)
-- **Metrics** — `kpi_strip` (icon + label บรรทัดเดียว, ค่าตัวเลขชิดขวา), `metric_card`, `metric`
-- **UI** — `button`, `badge`, `card`, `accent_card`, `icon_button`, `action_menu`
-- **Data** — `table`, `table_empty_state`, `amount_cell`, `doc_chip`
-- **Shared** — `empty_state`, `progress_bar`, `section_header` (shared)
-
-การจัด style กล่อง KPI และหน้าอื่นให้ใช้ class เหล่านี้ร่วมกับ tokens เพื่อให้ Font type และ Font size ตรงกันทุกหน้า
+### Where to add styles
+- **New tokens** — Add in `:root` in `design_tokens.css` or the style-audit block in `application.css`; do not introduce one-off hex in component rules.
+- **New components** — Add a named block (e.g. “ODT [ComponentName]”) and use tokens only. See `docs/ui-checklist.md`.
 
 ---
 
-## Setup Instructions
+## Project Structure
+
+```
+Training-Management/
+├── app/
+│   ├── controllers/
+│   │   ├── application_controller.rb
+│   │   ├── admin/                    # dashboard, finance, training_classes, attendees,
+│   │   │                             # customers, settings, exports, data, courses, etc.
+│   │   ├── clients/                  # corporate_accounts, analysis
+│   │   ├── financials/               # payment_tracking, payments
+│   │   ├── finance_dashboards_controller.rb
+│   │   ├── insights/                 # business, financial, strategy, actions
+│   │   └── operations/              # calendar (Training Calendar)
+│   ├── models/                      # TrainingClass, Attendee, Customer, Promotion,
+│   │                                 # AttendeePromotion, ClassExpense, AdminUser,
+│   │                                 # ExportJob, CustomField*, FinancialActionLog
+│   ├── services/                    # CustomerSyncService, Exports::*, Promotions::*,
+│   │   ├── clients/                 # CorporateAccountsInsights, DateRangeResolver
+│   │   ├── insights/                # BusinessInsights, FinancialInsights, etc.
+│   │   └── payment_summary_pdf_generator.rb
+│   ├── jobs/                        # GenerateExportJob, SendPaymentSummaryJob
+│   ├── policies/                    # ExportJobPolicy, etc.
+│   ├── helpers/                     # ApplicationHelper, Admin::*, Odt::UiHelper
+│   ├── views/
+│   │   ├── layouts/                 # application, admin, mailer
+│   │   ├── components/odt/          # page_header, kpi_strip, button, card, table, filters
+│   │   ├── shared/                  # main_nav, section_header, empty_state, tabs
+│   │   ├── admin/                   # dashboard, training_classes, attendees, customers,
+│   │   │                             # settings, exports, finance, data
+│   │   ├── operations/calendar/     # index, month/week grid, event_card, event_sidebar
+│   │   ├── finance_dashboards/      # CFO dashboard partials
+│   │   ├── financials/              # payment_tracking, payments
+│   │   ├── insights/                # business, financial, strategy, actions
+│   │   ├── clients/                 # corporate_accounts, analysis
+│   │   └── payment_mailer/
+│   ├── assets/stylesheets/          # design_tokens.css, design_system.css, application.css
+│   └── javascript/controllers/    # Stimulus controllers
+├── config/
+│   └── routes.rb                    # Executive IA routes (insights, finance, operations, clients)
+├── db/
+│   ├── schema.rb
+│   └── migrate/
+├── docs/                            # NAVIGATION_IA, INSIGHTS_*, CLIENTS_*, ui-checklist,
+│   ├── NAVIGATION_IA.md             # DATABASE_ER_DIAGRAM, etc.
+│   ├── ui-checklist.md
+│   ├── ui-consistency.md
+│   └── ...
+├── test/                            # Unit and integration tests
+└── README.md
+```
+
+---
+
+## Knowledge & Documentation
+
+| Document | Purpose |
+|----------|---------|
+| **docs/NAVIGATION_IA.md** | Top-level menu (Operations, Insights, Clients, Financials, Strategy, Settings); route map; manual test checklist. |
+| **docs/ui-checklist.md** | Pre-merge UI checklist: shared components, KPIs, tokens, tables, responsive layout. |
+| **docs/ui-consistency.md** | UI consistency guidelines. |
+| **docs/INSIGHTS_DISCOVERY.md** | Insights feature discovery and implementation notes. |
+| **docs/INSIGHTS_IMPLEMENTATION.md** | Insights implementation details. |
+| **docs/CLIENTS_DISCOVERY.md** | Clients/Corporate Accounts discovery and decisions. |
+| **docs/CLIENTS_IMPLEMENTATION.md** | Clients implementation details. |
+| **docs/DATABASE_ER_DIAGRAM.md** | Database entity-relationship reference. |
+
+**Conventions**
+- **Calendar** — Month default; filters via query params; event cards constrained (no overflow); side panel via Turbo Frame.
+- **Exports** — Always via ExportJob + background job; never synchronous heavy PDF/Excel in request.
+- **Customer sync** — “Sync from latest registration” and sync endpoints use Turbo Streams where appropriate.
+
+---
+
+## Setup & Development
+
+### Tech stack
+| Layer | Technology |
+|-------|------------|
+| Framework | Ruby on Rails 8.1.x |
+| Ruby | 3.x |
+| Database | SQLite3 |
+| Server | Puma |
+| Assets | Propshaft, CSS (no Tailwind) |
+| Frontend | Turbo (Frames, Streams), Stimulus, Importmap |
+| Auth | Session (admin_user_id), bcrypt |
+| Authorization | Pundit |
+| Background jobs | Active Job + Solid Queue |
+| File storage | Active Storage (local); image_processing for variants |
+| Export | Prawn (PDF), caxlsx (Excel) |
+| Deploy | Kamal, Docker; Thruster optional |
 
 ### Prerequisites
-- Ruby 3.x
-- Rails 8.1.x
-- SQLite3
-- Bundler
+- Ruby 3.x  
+- Rails 8.1.x  
+- SQLite3  
+- Bundler  
 
 ### Installation
 1. `bundle install`
 2. `rails db:create && rails db:migrate && rails db:seed`
-3. (Optional) วาง CSV ใน `db/Data/` แล้วรัน `rails data:import`
-4. `rails server` แล้วเปิด `http://localhost:3000`
+3. (Optional) Place CSV in `db/Data/` and run `rails data:import`
+4. Start server: `rails server` → `http://localhost:3000`
 
 ### Background jobs
-Export ใช้ Active Job; ถ้าใช้ Solid Queue ให้รัน worker (หรือเทียบเท่า) เพื่อให้ export jobs ทำงาน
+Export and payment summary emails use Active Job. Run a Solid Queue worker (or equivalent) so export and email jobs run.
 
----
-
-## Development
-
+### Development
 - **Tests:** `rails test`
 - **Console:** `rails console`
-- **Rake:** `rails data:import`, `rails attendees:migrate` (ถ้ามี)
+- **Tasks:** `rails data:import`, `rails attendees:migrate` (if defined)
 
----
-
-## License
-
+### License
 This project is open source and available for use.

@@ -1,0 +1,27 @@
+<%
+  form_url = local_assigns[:form_url] || request.path
+  preset = local_assigns[:preset] || @date_range&.dig(:preset) || "mtd"
+  start_date = local_assigns[:start_date] || @date_range&.dig(:start_date)&.to_s
+  end_date = local_assigns[:end_date] || @date_range&.dig(:end_date)&.to_s
+%>
+<%= render "components/odt/filters_row", form_url: form_url, form_method: :get, form_options: { data: { turbo_frame: "insights_main" } } do %>
+  <div class="odt-filters-row__field">
+    <label for="insights_preset" class="odt-filters-row__label">Period</label>
+    <select name="preset" id="insights_preset" class="odt-filters-row__input">
+      <option value="mtd" <%= "selected" if preset == "mtd" %>>MTD</option>
+      <option value="ytd" <%= "selected" if preset == "ytd" %>>YTD</option>
+      <option value="custom" <%= "selected" if preset == "custom" %>>Custom</option>
+    </select>
+  </div>
+  <div class="odt-filters-row__field">
+    <label for="insights_start_date" class="odt-filters-row__label">Start</label>
+    <input type="date" name="start_date" id="insights_start_date" class="odt-filters-row__input" value="<%= start_date %>">
+  </div>
+  <div class="odt-filters-row__field">
+    <label for="insights_end_date" class="odt-filters-row__label">End</label>
+    <input type="date" name="end_date" id="insights_end_date" class="odt-filters-row__input" value="<%= end_date %>">
+  </div>
+  <div class="odt-filters-row__actions">
+    <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+  </div>
+<% end %>

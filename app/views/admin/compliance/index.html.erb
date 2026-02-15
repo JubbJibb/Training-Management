@@ -1,0 +1,11 @@
+<% content_for :title, "Compliance" %>
+<%= render "components/odt/page_header", title: "Compliance", subtitle: "Revenue, receivables, expenses, compliance", icon: "shield-check" %>
+
+<div class="card card--accent-left">
+  <div class="card__body">
+    <p class="empty-state empty-state--sm">Compliance and audit views can be added here. For export audit, use <strong>Export History</strong> under Financials.</p>
+    <%= link_to finance_export_jobs_path, class: "btn btn--secondary btn--sm" do %>
+      <i class="bi bi-clock-history" aria-hidden="true"></i> Export History
+    <% end %>
+  </div>
+</div>

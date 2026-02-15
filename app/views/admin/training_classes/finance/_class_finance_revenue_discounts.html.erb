@@ -1,4 +1,4 @@
-<%# Revenue Composition & Discounts: Tab 1 Segment Split (donut + numbers), Tab 2 Promotions Performance %>
+<%# Revenue Composition & Discounts: tabs (Segment Split / Promotions Performance) %>
 <%
   segment_split = local_assigns[:segment_split] || { indi: { amount: 0, count: 0, seats: 0 }, corp: { amount: 0, count: 0, seats: 0 } }
   promotions_performance = local_assigns[:promotions_performance] || []
@@ -8,11 +8,7 @@
   indi_pct = total_seg.positive? ? ((indi[:amount].to_f / total_seg) * 100).round(0) : 0
   corp_pct = total_seg.positive? ? ((corp[:amount].to_f / total_seg) * 100).round(0) : 0
 %>
-<div class="class-finance-revenue-card class-finance-card cfo-two-col__block" role="region" aria-labelledby="revenue-discounts-title">
-  <div class="class-finance-card__header" id="revenue-discounts-title">
-    <h2 class="class-finance-card__title">Revenue Composition & Discounts</h2>
-  </div>
-  <div class="class-finance-card__body">
+<%= odt_card(title: "Revenue Composition & Discounts", icon: "pie-chart", extra_class: "class-finance-revenue-card") do %>
   <ul class="nav nav-tabs class-finance-tabs" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-segment" type="button" role="tab" aria-selected="true">Segment Split</button>
@@ -50,45 +46,44 @@
     </div>
     <div class="tab-pane fade" id="tab-promos" role="tabpanel">
       <% if promotions_performance.any? %>
-        <div class="cfo-table-wrap class-finance-promo-table">
-          <table class="odt-table odt-table--sm class-finance-table" role="table">
-            <thead>
+        <%= odt_table(extra_class: "class-finance-promo-table class-finance-table") do %>
+          <thead>
+            <tr>
+              <th scope="col" class="odt-th col-xl"><span class="th-inner">Promotion</span></th>
+              <th scope="col" class="odt-th col-xs num"><span class="th-inner">Seats Used</span></th>
+              <th scope="col" class="odt-th col-sm num"><span class="th-inner">Discount Cost</span></th>
+              <th scope="col" class="odt-th col-sm num"><span class="th-inner">Revenue</span></th>
+              <th scope="col" class="odt-th col-sm num"><span class="th-inner">Avg/Seat</span></th>
+              <th scope="col" class="odt-th col-sm num"><span class="th-inner">Margin Impact %</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% promotions_performance.each do |r| %>
               <tr>
-                <th scope="col">Promotion</th>
-                <th scope="col" class="text-end">Seats Used</th>
-                <th scope="col" class="text-end">Discount Cost</th>
-                <th scope="col" class="text-end">Revenue</th>
-                <th scope="col" class="text-end">Avg/Seat</th>
-                <th scope="col" class="text-end">Margin Impact %</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% promotions_performance.each do |r| %>
-                <tr>
-                  <td>
-                    <span><%= r[:promotion_name] %></span>
-                    <% if r[:chips].present? %>
-                      <div class="class-finance-promo-chips">
+                <td class="col-xl cell-stack">
+                  <span class="cell-stack__primary"><%= r[:promotion_name] %></span>
+                  <% if r[:chips].present? %>
+                    <span class="cell-stack__secondary">
+                      <span class="class-finance-promo-chips">
                         <% r[:chips].each do |chip| %>
                           <span class="odt-badge odt-badge--neutral odt-badge--sm"><%= chip %></span>
                         <% end %>
-                      </div>
-                    <% end %>
-                  </td>
-                  <td class="text-end"><%= r[:seats_used] %></td>
-                  <td class="text-end"><%= number_to_thb(r[:discount_cost]) %></td>
-                  <td class="text-end"><%= number_to_thb(r[:revenue]) %></td>
-                  <td class="text-end"><%= number_to_thb(r[:avg_per_seat]) %></td>
-                  <td class="text-end"><%= r[:margin_impact_pct].nil? ? "—" : number_to_percent(r[:margin_impact_pct]) %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
+                      </span>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="col-xs odt-table-numeric num"><%= r[:seats_used] %></td>
+                <td class="col-sm odt-table-numeric num"><%= number_to_thb(r[:discount_cost]) %></td>
+                <td class="col-sm odt-table-numeric num"><%= number_to_thb(r[:revenue]) %></td>
+                <td class="col-sm odt-table-numeric num"><%= number_to_thb(r[:avg_per_seat]) %></td>
+                <td class="col-sm odt-table-numeric num"><%= r[:margin_impact_pct].nil? ? "—" : number_to_percent(r[:margin_impact_pct]) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        <% end %>
       <% else %>
         <p class="cfo-empty">No promotions used for this class.</p>
       <% end %>
     </div>
   </div>
-  </div>
-</div>
+<% end %>

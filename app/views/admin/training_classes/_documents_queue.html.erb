@@ -1,0 +1,75 @@
+<%
+  need_qt = local_assigns[:need_qt] || []
+  need_invoice = local_assigns[:need_invoice] || []
+  paid_missing_receipt = local_assigns[:paid_missing_receipt] || []
+  missing_slip = local_assigns[:missing_slip] || []
+%>
+<div class="card card--accent-left">
+  <div class="card__header">
+    <h3 class="card__title"><i class="bi bi-list-check" aria-hidden="true"></i> Document Queue</h3>
+  </div>
+  <div class="card__body">
+    <ul class="queue" role="list">
+      <li class="queue__item <%= 'queue__item--disabled' if need_qt.empty? %>">
+        <div class="queue__meta">
+          <span class="queue__label">Need QT</span>
+          <span class="queue__count" aria-label="<%= need_qt.size %> items"><%= need_qt.size %></span>
+          <span class="queue__hint">Create quotation for attendees</span>
+        </div>
+        <div class="queue__actions">
+          <% if need_qt.any? %>
+            <%= link_to "#", class: "btn btn--secondary btn--sm", title: "Create QT", aria: { label: "Create QT" } do %><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Create QT<% end %>
+          <% else %>
+            <button type="button" class="btn btn--secondary btn--sm" disabled aria-label="Create QT">Create QT</button>
+          <% end %>
+          <%= link_to admin_training_class_path(@training_class, tab: "documents", mode: "register", doc_filter: "missing_qt"), class: "queue__view-list", aria: { label: "View list" } do %>View list<% end %>
+        </div>
+      </li>
+      <li class="queue__item <%= 'queue__item--disabled' if need_invoice.empty? %>">
+        <div class="queue__meta">
+          <span class="queue__label">Need Invoice</span>
+          <span class="queue__count" aria-label="<%= need_invoice.size %> items"><%= need_invoice.size %></span>
+          <span class="queue__hint">Generate invoice after QT</span>
+        </div>
+        <div class="queue__actions">
+          <% if need_invoice.any? %>
+            <%= link_to "#", class: "btn btn--secondary btn--sm", title: "Generate Invoice", aria: { label: "Generate Invoice" } do %><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Generate Invoice<% end %>
+          <% else %>
+            <button type="button" class="btn btn--secondary btn--sm" disabled aria-label="Generate Invoice">Generate Invoice</button>
+          <% end %>
+          <%= link_to admin_training_class_path(@training_class, tab: "documents", mode: "register", doc_filter: "missing_invoice"), class: "queue__view-list", aria: { label: "View list" } do %>View list<% end %>
+        </div>
+      </li>
+      <li class="queue__item <%= 'queue__item--disabled' if paid_missing_receipt.empty? %>">
+        <div class="queue__meta">
+          <span class="queue__label">Paid but missing receipt</span>
+          <span class="queue__count" aria-label="<%= paid_missing_receipt.size %> items"><%= paid_missing_receipt.size %></span>
+          <span class="queue__hint">Issue receipt for paid attendees</span>
+        </div>
+        <div class="queue__actions">
+          <% if paid_missing_receipt.any? %>
+            <%= link_to "#", class: "btn btn--secondary btn--sm", title: "Issue Receipt", aria: { label: "Issue Receipt" } do %><i class="bi bi-receipt" aria-hidden="true"></i> Issue Receipt<% end %>
+          <% else %>
+            <button type="button" class="btn btn--secondary btn--sm" disabled aria-label="Issue Receipt">Issue Receipt</button>
+          <% end %>
+          <%= link_to admin_training_class_path(@training_class, tab: "documents", mode: "register", doc_filter: "missing_receipt"), class: "queue__view-list", aria: { label: "View list" } do %>View list<% end %>
+        </div>
+      </li>
+      <li class="queue__item <%= 'queue__item--disabled' if missing_slip.empty? %>">
+        <div class="queue__meta">
+          <span class="queue__label">Missing payment slip</span>
+          <span class="queue__count" aria-label="<%= missing_slip.size %> items"><%= missing_slip.size %></span>
+          <span class="queue__hint">Request or upload slip</span>
+        </div>
+        <div class="queue__actions">
+          <% if missing_slip.any? %>
+            <%= link_to "#", class: "btn btn--secondary btn--sm", title: "Upload Slip", aria: { label: "Upload Slip" } do %><i class="bi bi-upload" aria-hidden="true"></i> Upload Slip<% end %>
+          <% else %>
+            <button type="button" class="btn btn--secondary btn--sm" disabled aria-label="Upload Slip">Upload Slip</button>
+          <% end %>
+          <%= link_to admin_training_class_path(@training_class, tab: "documents", mode: "register", doc_filter: "missing_slip"), class: "queue__view-list", aria: { label: "View list" } do %>View list<% end %>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>

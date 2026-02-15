@@ -1,0 +1,16 @@
+<%
+  tc = local_assigns[:tc]
+  fill_pct = tc.fill_rate_percent || 0
+  fill_level = fill_pct >= 90 ? "high" : (fill_pct >= 50 ? "mid" : "low")
+  fill_range = fill_pct <= 25 ? "r0-25" : (fill_pct <= 60 ? "r25-60" : (fill_pct <= 85 ? "r60-85" : "r85-100"))
+  seats_text = "#{tc.total_registered_seats}#{tc.max_attendees.present? ? " / #{tc.max_attendees}" : ""} seats"
+%>
+<div class="tc-saas-fill tc-saas-fill--<%= fill_level %> tc-saas-fill--<%= fill_range %>">
+  <div class="tc-saas-fill__bar-wrap">
+    <%= render "shared/progress_bar", percent: [fill_pct, 100].min, extra_class: "tc-saas-fill__bar" %>
+  </div>
+  <div class="tc-saas-fill__labels">
+    <span class="tc-saas-fill__pct"><%= fill_pct %>%</span>
+    <span class="tc-saas-fill__seats"><%= seats_text %></span>
+  </div>
+</div>

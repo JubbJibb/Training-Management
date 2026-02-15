@@ -1,0 +1,83 @@
+<%
+  buckets = overview&.dig(:ar_aging, :buckets) || []
+  total_ar = overview&.dig(:ar_aging, :total_outstanding).to_f
+  total_ar = summary[:outstanding].to_f if total_ar.zero? && summary[:outstanding].present?
+  total_ar = 1 if total_ar.zero?
+  rate = overview&.dig(:collection_rate) || summary[:collection_rate_pct].to_f
+  dso = overview&.dig(:days_sales_outstanding)
+  unless dso
+    net = summary[:net_before_vat].to_f
+    out = summary[:outstanding].to_f
+    start_d = summary[:start_date]
+    end_d = summary[:end_date]
+    if net.positive? && start_d && end_d
+      days = (end_d - start_d).to_i + 1
+      daily = net / days
+      dso = daily.positive? ? (out / daily).round(0) : nil
+    end
+  end
+%>
+<section class="foh-ar-section" aria-label="AR Aging">
+  <h2 class="foh-section-title">AR Aging</h2>
+  <% if buckets.any? %>
+    <%= odt_table(extra_class: "foh-ar-table-wrap") do %>
+      <thead>
+        <tr>
+          <th class="odt-th"><span class="th-inner">Bucket</span></th>
+          <th class="odt-th num"><span class="th-inner">Amount</span></th>
+          <th class="odt-th num"><span class="th-inner">%</span></th>
+          <th class="odt-th"><span class="th-inner">Status</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% buckets.each do |b| %>
+          <% pct = (b[:amount].to_f / total_ar * 100).round(0) %>
+          <tr>
+            <td class="truncate"><%= b[:label] %></td>
+            <td class="num"><%= number_to_thb(b[:amount]) %></td>
+            <td class="num"><%= pct %>%</td>
+            <td><%= odt_badge(b[:status].to_s.titleize, variant: b[:status] == "critical" ? :danger : (b[:status] == "warning" ? :warning : :neutral), size: :sm) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    <% end %>
+    <div class="foh-ar-footer">
+      <span class="foh-ar-footer__item">Total Outstanding: <strong><%= number_to_thb(total_ar) %></strong></span>
+      <span class="foh-ar-footer__item">Collection Rate: <strong><%= number_to_percent(rate) %></strong></span>
+      <% if dso.present? %><span class="foh-ar-footer__item">DSO: <strong><%= dso %> days</strong></span><% end %>
+    </div>
+  <% else %>
+    <% ar_buckets = summary[:ar_aging_buckets] || [] %>
+    <% if ar_buckets.any? { |b| b[:amount].positive? } %>
+      <% total_ar = ar_buckets.sum { |b| b[:amount] } %>
+      <%= odt_table(extra_class: "foh-ar-table-wrap") do %>
+        <thead>
+          <tr>
+            <th class="odt-th"><span class="th-inner">Bucket</span></th>
+            <th class="odt-th num"><span class="th-inner">Amount</span></th>
+            <th class="odt-th num"><span class="th-inner">%</span></th>
+            <th class="odt-th"><span class="th-inner">Status</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% ar_buckets.each do |b| %>
+            <% pct = total_ar.positive? ? (b[:amount] / total_ar * 100).round(0) : 0 %>
+            <tr>
+              <td class="truncate"><%= b[:range] %> days</td>
+              <td class="num"><%= number_to_thb(b[:amount]) %></td>
+              <td class="num"><%= pct %>%</td>
+              <td>—</td>
+            </tr>
+          <% end %>
+        </tbody>
+      <% end %>
+      <div class="foh-ar-footer">
+        <span class="foh-ar-footer__item">Total Outstanding: <strong><%= number_to_thb(summary[:outstanding]) %></strong></span>
+        <span class="foh-ar-footer__item">Collection Rate: <strong><%= number_to_percent(summary[:collection_rate_pct]) %></strong></span>
+        <% if dso.present? %><span class="foh-ar-footer__item">DSO: <strong><%= dso %> days</strong></span><% end %>
+      </div>
+    <% else %>
+      <p class="foh-section-empty">No AR aging data for this period.</p>
+    <% end %>
+  <% end %>
+</section>

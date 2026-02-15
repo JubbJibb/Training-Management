@@ -46,6 +46,13 @@
   --odt-yellow-tint: rgba(245, 196, 0, 0.12);
   --odt-muted: #6b7280;
 
+  /* ODT Card System v1 — Consulting Premium (theme palette) */
+  --odt-text: #292929;
+  --odt-navy: #13139c;
+  --odt-gold: #ffc700;
+  --odt-gold-deep: #f5bf00;
+  --odt-soft: #f9f9fe;
+
   --radius-md: 12px;
   --radius-sm: 8px;
   --radius-xs: 6px;

@@ -1,0 +1,152 @@
+<% content_for :title, "Strategy Insights" %>
+<%
+  data = @data || {}
+  kpis = data[:kpis] || {}
+  chart_data = data[:chart_data] || {}
+  fp = @filter_params || {}
+  fill_distribution = data[:fill_rate_distribution] || [
+    { bucket: "0–25%", count: 0 },
+    { bucket: "25–50%", count: 0 },
+    { bucket: "50–75%", count: 0 },
+    { bucket: "75–100%", count: 0 }
+  ]
+  high_value_inactive = data[:high_value_inactive_90] || []
+  instructor_load = data[:instructor_load] || []
+  growth_opportunities = data[:growth_opportunities] || [
+    { title: "Weekday classes have lower fill rate", evidence: "Avg fill 32% vs 58% weekend", action: "Promote weekday slots", priority: "High" },
+    { title: "Corporate segment underpenetrated", evidence: "20% of revenue from Corp", action: "Target Corp campaigns", priority: "Med" },
+    { title: "Repeat rate below target", evidence: "Repeat 24% vs 30% target", action: "Post-class follow-up", priority: "Low" }
+  ]
+  kpi_cells = [
+    { icon: "people", label: "High Value Clients", value: (data[:high_value_clients_count] || "—").to_s, sub: "top segment" },
+    { icon: "person-x", label: "High Value Inactive 90+", value: (data[:high_value_inactive_count] || high_value_inactive.size).to_s, sub: "days" },
+    { icon: "calendar-x", label: "Low Fill Classes", value: (data[:low_fill_classes_count] || "—").to_s, sub: "below threshold" },
+    { icon: "graph-up-arrow", label: "High Margin Classes", value: (data[:high_margin_count] || "—").to_s, sub: "" },
+    { icon: "person-badge", label: "Instructor Utilization", value: (data[:instructor_utilization] || "—").to_s, sub: "avg" }
+  ]
+%>
+<div class="insights-page">
+  <%= render "components/odt/page_header", title: "Strategy Insights", subtitle: "Opportunities, risks, and growth signals", icon: "lightbulb" %>
+
+  <%= render "insights/shared/filter_bar", filter_params: fp, form_url: insights_strategy_path, turbo_frame: "insights_main" %>
+
+  <section class="insights-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "insights-kpi-strip") %>
+  </section>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Fill Rate Distribution</h3>
+        <p class="insight-card__subtitle">Classes by fill rate bucket</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if fill_distribution.any? %>
+        <div class="insight-progress-row" style="margin-bottom: 0.5rem;">
+          <span class="insight-progress-row__label">Bucket</span>
+          <span class="insight-progress-row__value">Count</span>
+          <div class="insight-progress-row__bar" style="max-width: 100px;"></div>
+        </div>
+        <% fill_distribution.each do |b| %>
+          <% total_f = fill_distribution.sum { |x| x[:count].to_i } %>
+          <% pct = total_f.positive? ? ((b[:count].to_i.to_f / total_f) * 100).round(1) : 0 %>
+          <div class="insight-progress-row">
+            <span class="insight-progress-row__label"><%= b[:bucket] %></span>
+            <span class="insight-progress-row__value"><%= b[:count].to_i %></span>
+            <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= [pct, 100].min %>%;"></div></div>
+          </div>
+        <% end %>
+      <% else %>
+        <%= render "insights/shared/empty_chart", message: "No fill rate distribution data." %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="insight-two-col">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">High Value, No Activity 90+ Days</h3>
+          <p class="insight-card__subtitle">Top 10 clients</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if high_value_inactive.any? %>
+          <ul class="insight-simple-list">
+            <% high_value_inactive.first(10).each do |c| %>
+              <li class="insight-simple-list__item">
+                <span><%= c[:name] || c[:company] %></span>
+                <span class="text-muted"><%= c[:last_activity].to_s %> · <%= number_to_thb(c[:lifetime_revenue].to_f) %></span>
+                <div class="mt-1">
+                  <%= link_to "View client", c[:customer_id].present? ? admin_customer_path(c[:customer_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                  <span class="odt-btn odt-btn--ghost odt-btn--sm">Create follow-up task</span>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= render "shared/empty_state", title: "No high-value inactive clients", icon: "people", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Instructor Load</h3>
+          <p class="insight-card__subtitle">Upcoming classes · last taught</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if instructor_load.any? %>
+          <div class="insight-odt-table__scroll">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Instructor</th>
+                  <th class="text-end">Upcoming</th>
+                  <th>Last taught</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% instructor_load.each do |r| %>
+                  <tr>
+                    <td><%= r[:name] %></td>
+                    <td class="text-end"><%= r[:upcoming_count].to_i %></td>
+                    <td><%= r[:last_taught].to_s %></td>
+                    <td><span class="insight-badge insight-badge--<%= r[:status] == "Overloaded" ? "critical" : (r[:status] == "Underutilized" ? "warning" : "info") %>"><%= r[:status] %></span></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "No instructor load data", icon: "person-badge", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%
+    opp_rows = growth_opportunities.map do |o|
+      { title: o[:title], evidence: o[:evidence], action: o[:action], priority: o[:priority], id: o[:id] }
+    end
+  %>
+  <%= render "insights/shared/odt_table", title: "Growth Opportunities", columns: [
+    { key: :title, label: "Opportunity" },
+    { key: :evidence, label: "Evidence" },
+    { key: :action, label: "Suggested action" },
+    { key: :priority, label: "Priority" }
+  ], rows: opp_rows, empty_message: "No opportunities identified." do |row_h| %>
+    <%= link_to "View details", "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+  <% end %>
+
+  <p class="insight-settings-note">
+    Thresholds: Low fill default 40% · Inactive days default 90.
+    <%= link_to "Settings", admin_settings_path, class: "ml-1" %>
+  </p>
+</div>

@@ -1,0 +1,19 @@
+<%
+  summary = local_assigns[:summary] || {}
+  rows = (summary[:action_required_rows] || []).select { |r| r[:due_date].present? && r[:due_date] < Date.current }.first(5)
+  columns = [
+    { key: :class_name, label: "Class", width: "65%", truncate: true },
+    { key: :amount_fmt, label: "Amount", width: "35%", align: "right" }
+  ]
+  rows_for_table = rows.map do |r|
+    r.merge(amount_fmt: number_to_thb(r[:amount]))
+  end
+%>
+<%= render layout: "shared/components/dashboard_card", locals: { title: "Top overdue invoices", icon: "clock-history", extra_class: "finance-overdue-mini" } do %>
+  <% if rows_for_table.any? %>
+    <%= render "shared/components/compact_table", columns: columns, rows: rows_for_table, empty_message: "No overdue invoices", aria_label: "Top overdue invoices", wrap_class: "compact-table-wrap--mini" %>
+    <%= link_to "View all overdue", finance_dashboard_path(status: "overdue"), class: "finance-overdue-mini__link", data: { turbo_frame: "finance_dashboard" } %>
+  <% else %>
+    <p class="finance-overdue-mini__empty">No overdue invoices in this period.</p>
+  <% end %>
+<% end %>

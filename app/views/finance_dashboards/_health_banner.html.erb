@@ -1,0 +1,11 @@
+<%
+  health_status = local_assigns[:health_status]
+  options = finance_health_banner_options(health_status)
+  variant = options[:variant]
+  label = options[:label]
+  banner_class = "finance-health-banner finance-health-banner--#{variant}"
+%>
+<div class="<%= banner_class %>" role="status" aria-live="polite">
+  <span class="finance-health-banner__dot" aria-hidden="true"></span>
+  <span class="finance-health-banner__label"><%= label %></span>
+</div>

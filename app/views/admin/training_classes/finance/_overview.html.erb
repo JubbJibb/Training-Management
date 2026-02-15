@@ -1,0 +1,89 @@
+<%
+  d = local_assigns[:finance_dashboard] || {}
+  training_class = local_assigns[:training_class]
+  k = d[:kpis] || {}
+  w = d[:waterfall] || {}
+  ar = d[:ar_aging] || {}
+  ts = d[:revenue_timeseries] || []
+  payment_list = d[:payment_status_list] || []
+  unpaid_rows = payment_list.reject { |r| r[:status] == "Paid" }.first(5)
+  documents_path = admin_training_class_path(training_class, tab: "documents", mode: "register")
+  costs_path = finance_admin_training_class_path(training_class, sub: "costs", type: params[:type], status: params[:status])
+%>
+<div class="finance-sub-content finance-sub-content--overview">
+  <div class="grid-2">
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Cashflow Timeline</h3>
+      </div>
+      <div class="card__body">
+        <div class="finance-cashflow-legend" role="list" aria-label="Cashflow legend">
+          <span class="finance-cashflow-legend__item">Total Revenue: <%= number_to_thb(w[:total_incl_vat]) %></span>
+          <span class="finance-cashflow-legend__item">Cash Received: <%= number_to_thb(k[:cash_received]) %></span>
+          <span class="finance-cashflow-legend__item">Outstanding AR: <%= number_to_thb(k[:outstanding]) %></span>
+          <span class="finance-cashflow-legend__item">Collection: <%= k[:collection_rate_pct].nil? ? "—" : number_to_percent(k[:collection_rate_pct]) %></span>
+        </div>
+        <% if ts.any? %>
+          <div class="data-table-wrap data-table-wrap--accent">
+            <table class="data-table" role="table" aria-label="Cashflow by period">
+              <colgroup>
+                <col class="col-md">
+                <col class="col-sm">
+                <col class="col-sm">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">Period</th>
+                  <th scope="col" class="cell--num">Net Revenue (before VAT)</th>
+                  <th scope="col" class="cell--num">Cash received</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% ts.each do |r| %>
+                  <tr>
+                    <td><%= r[:label] %></td>
+                    <td class="cell--num"><%= number_to_thb(r[:net_revenue]) %></td>
+                    <td class="cell--num"><%= number_to_thb(r[:cash_received]) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="empty-state empty-state--sm">No time series data.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-clock-history" aria-hidden="true"></i> AR Aging Summary</h3>
+      </div>
+      <div class="card__body">
+        <%= render "admin/training_classes/finance/ar_aging_table", ar_aging: ar, d: d %>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-wallet2" aria-hidden="true"></i> Recent Expenses</h3>
+        <%= link_to "View all", costs_path, class: "btn btn--ghost btn--sm", data: { turbo_frame: "class_finance_tab" }, aria: { label: "View all expenses" } %>
+      </div>
+      <div class="card__body">
+        <%= render "admin/training_classes/finance/recent_expenses_table", expense_list: d[:expense_list], training_class: training_class %>
+      </div>
+    </div>
+
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-receipt" aria-hidden="true"></i> Top Unpaid Invoices</h3>
+        <%= link_to "View all", documents_path, class: "btn btn--ghost btn--sm", data: { turbo_frame: "_top" }, aria: { label: "View all in Financial Documents" } %>
+      </div>
+      <div class="card__body">
+        <%= render "admin/training_classes/finance/top_unpaid_invoices", unpaid_rows: unpaid_rows, training_class: training_class %>
+      </div>
+    </div>
+  </div>
+</div>

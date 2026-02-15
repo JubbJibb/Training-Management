@@ -1,0 +1,48 @@
+<%
+  tc = local_assigns[:training_class]
+  subtitle_text = local_assigns[:subtitle_text]
+  class_status = local_assigns[:class_status] || "—"
+  registered_seats = local_assigns[:registered_seats].to_i
+  max_seats = local_assigns[:max_seats].to_i
+  revenue_capacity = local_assigns[:revenue_capacity].to_f
+  collection_rate_pct = local_assigns[:collection_rate_pct]
+  status_variant = (class_status == "Upcoming" ? :info : (class_status == "Ongoing" ? :success : :neutral))
+%>
+<div class="class-header class-detail-header">
+  <%= link_to admin_training_classes_path, class: "btn btn--secondary btn--sm class-detail-header__back" do %>
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    Back to Classes
+  <% end %>
+  <div class="class-detail-header__row page-header">
+    <div class="class-detail-header__title-wrap page-header__text">
+      <h1 class="class-detail-header__title odt-page-header__title page-header__title">
+        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+        <%= tc.title %>
+      </h1>
+      <% if subtitle_text.present? %>
+        <p class="class-detail-header__subtitle odt-page-header__subtitle page-header__subtitle"><%= subtitle_text %></p>
+      <% end %>
+      <div class="class-detail-header__meta">
+        <%= render "shared/badge", text: class_status, variant: status_variant %>
+        <span class="class-detail-header__meta-item">
+          <i class="bi bi-people" aria-hidden="true"></i>
+          <%= registered_seats %>/<%= max_seats.positive? ? max_seats : "—" %> seats
+        </span>
+        <% if revenue_capacity.positive? %>
+          <span class="class-detail-header__meta-item">Revenue capacity <%= number_to_thb(revenue_capacity) %></span>
+        <% end %>
+        <% if collection_rate_pct.present? %>
+          <span class="class-detail-header__meta-item">Collection rate <%= number_to_percent(collection_rate_pct) %></span>
+        <% end %>
+      </div>
+    </div>
+    <div class="class-detail-header__actions page-header__actions">
+      <%= link_to edit_admin_training_class_path(tc), class: "btn btn--secondary" do %>
+        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+      <% end %>
+      <%= button_to admin_training_class_path(tc), method: :delete, form: { class: "d-inline", data: { turbo_confirm: "Are you sure you want to delete this training class? This action cannot be undone." } }, class: "btn btn--danger" do %>
+        <i class="bi bi-trash" aria-hidden="true"></i> Delete
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -5,35 +5,35 @@
         <%= link_to "Training Classes", admin_training_classes_path %> &rarr; <%= link_to training_class.title, admin_training_class_path(training_class) %> &rarr; Finance
       </div>
       <h1 class="cfo-finance-header__title">Finance Dashboard &middot; <%= training_class.title %></h1>
-      <div class="cfo-finance-filters">
-        <div>
-          <label for="filter_type">Type</label>
-          <select name="type" id="filter_type" class="form-select form-select-sm">
+      <div class="odt-filters-row__row cfo-finance-filters">
+        <div class="odt-filters-row__field">
+          <label for="filter_type" class="odt-filters-row__label">Type</label>
+          <select name="type" id="filter_type" class="odt-filters-row__input">
             <option value="">All</option>
             <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
             <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
           </select>
         </div>
-        <div>
-          <label for="filter_status">Payment status</label>
-          <select name="status" id="filter_status" class="form-select form-select-sm">
+        <div class="odt-filters-row__field">
+          <label for="filter_status" class="odt-filters-row__label">Payment status</label>
+          <select name="status" id="filter_status" class="odt-filters-row__input">
             <option value="">All</option>
             <option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option>
             <option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option>
             <option value="Overdue" <%= "selected" if params[:status] == "Overdue" %>>Overdue</option>
           </select>
         </div>
-        <div>
-          <label for="filter_date_from">Date from</label>
-          <input type="date" name="date_from" id="filter_date_from" value="<%= params[:date_from] %>" class="form-control form-control-sm" style="min-width: 120px;" />
+        <div class="odt-filters-row__field">
+          <label for="filter_date_from" class="odt-filters-row__label">Date from</label>
+          <input type="date" name="date_from" id="filter_date_from" value="<%= params[:date_from] %>" class="odt-filters-row__input" />
         </div>
-        <div>
-          <label for="filter_date_to">Date to</label>
-          <input type="date" name="date_to" id="filter_date_to" value="<%= params[:date_to] %>" class="form-control form-control-sm" style="min-width: 120px;" />
+        <div class="odt-filters-row__field">
+          <label for="filter_date_to" class="odt-filters-row__label">Date to</label>
+          <input type="date" name="date_to" id="filter_date_to" value="<%= params[:date_to] %>" class="odt-filters-row__input" />
         </div>
-        <div class="cfo-finance-filters__actions">
-          <%= odt_button("Apply", variant: :primary, size: :sm, type: "submit") %>
-          <%= link_to "Clear", finance_admin_training_class_path(training_class), class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "class_finance_tab" } %>
+        <div class="odt-filters-row__actions">
+          <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+          <%= link_to "Clear", finance_admin_training_class_path(training_class), class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: "class_finance_tab" } %>
         </div>
       </div>
     </div>

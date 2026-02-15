@@ -1,0 +1,27 @@
+<%# ODT Consulting Premium: white bg, subtle border-r, navy values, highlight Corporate Revenue + Outstanding (gold if > 0). %>
+<% cells = local_assigns[:cells] || [] %>
+<% oc = cells[2] %>
+<% outstanding_positive = oc.is_a?(Hash) && oc[:value].present? && oc[:value].to_s.gsub(/[^\d.]/, "").to_f > 0 %>
+<section class="corp-accounts-kpi odt-kpi-strip" aria-label="Key metrics">
+  <div class="odt-kpi-strip__inner corp-accounts-kpi__inner">
+    <% cells.each_with_index do |cell, i| %>
+      <% is_primary = (i == 0) %>
+      <% is_outstanding_highlight = (i == 2) && outstanding_positive %>
+      <% cell_class = "corp-accounts-kpi__cell" %>
+      <% cell_class += " corp-accounts-kpi__cell--primary" if is_primary %>
+      <% cell_class += " corp-accounts-kpi__cell--accent" if is_outstanding_highlight %>
+      <div class="odt-kpi-strip__cell <%= cell_class %>">
+        <div class="odt-kpi-strip__head">
+          <% if cell[:icon].present? %>
+            <span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span>
+          <% end %>
+          <span class="odt-kpi-strip__label"><%= cell[:label] %></span>
+        </div>
+        <span class="odt-kpi-strip__value <%= "odt-kpi-strip__value--#{cell[:value_variant]}" if cell[:value_variant].present? %>"><%= cell[:value] %></span>
+        <% if cell[:sub].present? %>
+          <span class="odt-kpi-strip__sub"><%= cell[:sub] %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>

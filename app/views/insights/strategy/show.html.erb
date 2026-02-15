@@ -1,0 +1,64 @@
+<% content_for :title, "Strategy Insights" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <%= render "insights/shared/chart_init" %>
+<% end %>
+
+<div class="dashboard-page">
+  <%= render "components/odt/page_header", title: "Strategy Insights", subtitle: "Growth & optimization", icon: "graph-up" %>
+
+  <%= turbo_frame_tag "insights_main", data: { turbo_action: "advance" } do %>
+    <%= render "insights/shared/date_filter" %>
+
+    <%
+      kpis = @data[:kpis] || {}
+      cells = [
+        { icon: "person-plus", label: "New Clients (MTD)", value: kpis[:new_clients_mtd].to_i, sub: "" },
+        { icon: "percent", label: "Conversion Rate", value: "#{kpis[:conversion_rate].to_f}%", sub: "" },
+        { icon: "tag", label: "Campaign/Promo Revenue", value: number_to_thb(kpis[:campaign_promo_revenue].to_f), sub: "" },
+        { icon: "currency-dollar", label: "Avg Revenue per Client", value: number_to_thb(kpis[:avg_revenue_per_client].to_f), sub: "" },
+        { icon: "graph-up-arrow", label: "LTV (est.)", value: number_to_thb(kpis[:ltv_estimated].to_f), sub: "" },
+        { icon: "arrow-repeat", label: "Repeat Rate", value: "#{kpis[:repeat_rate].to_f}%", sub: "" }
+      ]
+    %>
+    <%= render "insights/shared/kpi_strip", cells: cells %>
+
+    <div class="dashboard-grid mt-4">
+      <div class="dashboard-grid__left">
+        <%
+          funnel = @data.dig(:chart_data, :funnel) || []
+          funnel_labels = funnel.map { |h| h[:stage] }
+          funnel_values = funnel.map { |h| h[:count].to_i }
+        %>
+        <%= render "insights/shared/chart_card", title: "Funnel: Lead → Potential → Enrolled", chart_id: "strategy_funnel", chart_type: "bar", labels: funnel_labels, datasets: [{ "label" => "Count", "data" => funnel_values }] %>
+
+        <%
+          trend = @data.dig(:chart_data, :client_acquisition_trend) || []
+          trend_labels = trend.map { |h| h[:label] }
+          trend_values = trend.map { |h| h[:value] }
+        %>
+        <%= render "insights/shared/chart_card", title: "Client acquisition trend", chart_id: "strategy_acquisition", chart_type: "line", labels: trend_labels, datasets: [{ "label" => "New clients", "data" => trend_values }] %>
+
+        <%
+          rev_share = @data.dig(:chart_data, :revenue_by_promotion) || {}
+          rev_labels = rev_share[:labels] || []
+          rev_values = rev_share[:values] || []
+        %>
+        <%= render "insights/shared/chart_card", title: "Revenue by Promotion", chart_id: "strategy_revenue_promo", chart_type: "doughnut", labels: rev_labels, datasets: [{ "label" => "Revenue", "data" => rev_values }] %>
+
+        <%
+          leaderboard = @data[:promotion_leaderboard] || []
+          lb_cols = [{ key: :name, label: "Promotion" }, { key: :revenue, label: "Revenue", format: :currency }, { key: :seats, label: "Seats" }, { key: :margin_pct, label: "Margin %" }, { key: :impact_tag, label: "Impact" }]
+        %>
+        <%= render "insights/shared/table_card", title: "Promotion Leaderboard", columns: lb_cols, rows: leaderboard %>
+      </div>
+      <div class="dashboard-grid__right">
+        <%
+          under = @data[:underperforming_promotions] || []
+          under_items = under.map { |u| { title: "#{u[:name]} — #{u[:revenue_share_pct]}% share", url: admin_settings_path, cta: "View" } }
+        %>
+        <%= render "insights/shared/alert_list", title: "Underperforming promotions", items: under_items %>
+      </div>
+    </div>
+  <% end %>
+</div>

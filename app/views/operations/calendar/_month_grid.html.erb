@@ -1,0 +1,37 @@
+<%
+  month_start = local_assigns[:month_start]
+  month_end = local_assigns[:month_end]
+  events_by_date = local_assigns[:events_by_date] || {}
+  today = local_assigns[:today] || Date.current
+  grid_start = month_start.beginning_of_week(:monday)
+  grid_end = month_end.end_of_week(:monday)
+  grid_days = (grid_start..grid_end).to_a
+  weekdays = %w[MON TUE WED THU FRI SAT SUN]
+%>
+<div class="cal-grid" role="grid" aria-label="Calendar month view">
+  <div class="cal-grid__head" role="row">
+    <% weekdays.each do |day| %>
+      <div class="cal-grid__head-cell" role="columnheader"><%= day %></div>
+    <% end %>
+  </div>
+  <div class="cal-grid__body">
+    <% grid_days.each_slice(7) do |week| %>
+      <div class="cal-grid__row" role="row">
+        <% week.each do |day| %>
+          <%
+            other_month = day.month != month_start.month
+            is_today = day == today
+          %>
+          <div class="cal-grid__cell calendar-day <%= 'cal-grid__cell--other' if other_month %> <%= 'cal-grid__cell--today' if is_today %>" data-date="<%= day.iso8601 %>" role="gridcell">
+            <div class="cal-grid__day-num"><%= day.day %></div>
+            <div class="cal-grid__events calendar-day__events">
+              <% (events_by_date[day] || []).each do |ev| %>
+                <%= render "operations/calendar/event_card", event: ev %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

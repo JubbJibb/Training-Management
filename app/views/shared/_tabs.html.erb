@@ -1,0 +1,24 @@
+<%
+  tabs = local_assigns[:tabs] || []
+  # each item: { id:, label:, icon:, target:, active: boolean }
+  active_id = tabs.find { |t| t[:active] }&.dig(:id) || tabs.first&.dig(:id)
+  role = local_assigns[:role] || "tablist"
+  aria_label = local_assigns[:aria_label] || "Tabs"
+  extra_class = ["tabs", local_assigns[:extra_class]].compact.join(" ")
+%>
+<nav class="<%= extra_class %>" role="<%= role %>" aria-label="<%= aria_label %>">
+  <% tabs.each do |tab| %>
+    <% is_active = (tab[:id] == active_id) || tab[:active] %>
+    <% if tab[:url] %>
+      <%= link_to tab[:url], class: "tabs__tab #{'active' if is_active}", role: "tab", aria_selected: is_active, data: tab[:data] || {} do %>
+        <% if tab[:icon].present? %><i class="bi bi-<%= tab[:icon] %>" aria-hidden="true"></i><% end %>
+        <%= tab[:label] %>
+      <% end %>
+    <% else %>
+      <button type="button" class="tabs__tab <%= 'active' if is_active %>" id="<%= tab[:id] %>-tab" data-bs-toggle="tab" data-bs-target="#<%= tab[:target] %>" role="tab" aria-selected="<%= is_active %>">
+        <% if tab[:icon].present? %><i class="bi bi-<%= tab[:icon] %>" aria-hidden="true"></i><% end %>
+        <%= tab[:label] %>
+      </button>
+    <% end %>
+  <% end %>
+</nav>

@@ -1,0 +1,59 @@
+<% content_for :title, "Financial Insights" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <%= render "insights/shared/chart_init" %>
+<% end %>
+
+<div class="dashboard-page">
+  <%= render "components/odt/page_header", title: "Financial Insights", subtitle: "Financial health & risk", icon: "currency-dollar" %>
+
+  <%= turbo_frame_tag "insights_main", data: { turbo_action: "advance" } do %>
+    <%= render "insights/shared/date_filter" %>
+
+    <%
+      kpis = @data[:kpis] || {}
+      cells = [
+        { icon: "receipt", label: "Booked Revenue", value: number_to_thb(kpis[:booked_revenue].to_f), sub: "" },
+        { icon: "cash-coin", label: "Collected Revenue", value: number_to_thb(kpis[:collected_revenue].to_f), sub: "" },
+        { icon: "hourglass-split", label: "Outstanding", value: number_to_thb(kpis[:outstanding].to_f), sub: "", value_variant: (kpis[:outstanding].to_f > 0 ? "warning" : nil) },
+        { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(kpis[:overdue].to_f), sub: "", value_variant: (kpis[:overdue].to_f > 0 ? "danger" : nil) },
+        { icon: "wallet2", label: "Total Expenses", value: number_to_thb(kpis[:total_expenses].to_f), sub: "" },
+        { icon: "percent", label: "Net Margin %", value: "#{kpis[:net_margin_pct].to_f}%", sub: "" }
+      ]
+    %>
+    <%= render "insights/shared/kpi_strip", cells: cells %>
+
+    <div class="dashboard-grid mt-4">
+      <div class="dashboard-grid__left">
+        <%
+          cash = @data.dig(:chart_data, :cash_in_vs_out) || []
+          cash_labels = cash.map { |h| h[:label] }
+          cash_in = cash.map { |h| h[:cash_in].to_f }
+          cash_out = cash.map { |h| h[:cash_out].to_f }
+          cash_datasets = [{ "label" => "Cash In", "data" => cash_in }, { "label" => "Cash Out", "data" => cash_out }]
+        %>
+        <%= render "insights/shared/chart_card", title: "Cash In vs Cash Out", chart_id: "financial_cash", chart_type: "line", labels: cash_labels, datasets: cash_datasets %>
+
+        <%
+          ar = @data.dig(:chart_data, :ar_aging) || []
+          ar_labels = ar.map { |h| h[:range] }
+          ar_values = ar.map { |h| h[:amount].to_f }
+        %>
+        <%= render "insights/shared/chart_card", title: "AR Aging (0-30 / 31-60 / 60+)", chart_id: "financial_ar", chart_type: "bar", labels: ar_labels, datasets: [{ "label" => "Amount", "data" => ar_values }] %>
+
+        <%
+          overdue = @data[:overdue_invoices] || []
+          overdue_cols = [{ key: :client, label: "Client" }, { key: :invoice_no, label: "Invoice No" }, { key: :due_date, label: "Due date" }, { key: :amount, label: "Amount", format: :currency }, { key: :days_overdue, label: "Days overdue" }]
+        %>
+        <%= render "insights/shared/table_card", title: "Overdue Invoices", columns: overdue_cols, rows: overdue, row_url: (->(row) { admin_training_class_attendee_path(row[:training_class_id], row[:attendee_id]) if row[:training_class_id].present? && row[:attendee_id].present? }) %>
+      </div>
+      <div class="dashboard-grid__right">
+        <%
+          expense_cat = @data[:expense_by_category] || []
+          exp_cols = [{ key: :category, label: "Category" }, { key: :amount, label: "Amount", format: :currency }]
+        %>
+        <%= render "insights/shared/table_card", title: "Expense by Category", columns: exp_cols, rows: expense_cat %>
+      </div>
+    </div>
+  <% end %>
+</div>

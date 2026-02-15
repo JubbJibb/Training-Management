@@ -1,0 +1,23 @@
+ODT Training - Payment Summary
+
+Hello <%= @customer_name %>,
+
+<% if @body_message.present? %><%= @body_message %>
+
+<% end %>Payment summary for your training class:
+
+Class:     <%= @class_title %>
+Date:      <%= @class_date %>
+Customer:  <%= @customer_name %>
+Total Paid: ฿<%= number_with_delimiter(@total_paid) %>
+
+Pricing breakdown:
+  Base:        ฿<%= number_with_delimiter(@base) %>
+  Discount:   -฿<%= number_with_delimiter(@discount) %>
+  Before VAT:  ฿<%= number_with_delimiter(@before_vat) %>
+  VAT 7%:      ฿<%= number_with_delimiter(@vat) %>
+  Total:       ฿<%= number_with_delimiter(@total_paid) %>
+
+Payment Summary PDF is attached to this email.
+
+Contact: ODTTraining@odds.team

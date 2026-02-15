@@ -1,0 +1,18 @@
+<%
+  label = local_assigns[:label]
+  url = local_assigns[:url] || "#"
+  variant = local_assigns[:variant] || "primary" # primary, secondary, danger, ghost
+  size = local_assigns[:size] # sm, nil
+  icon_left = local_assigns[:icon_left]
+  icon_right = local_assigns[:icon_right]
+  btn_css = ["btn", "btn--#{variant}", (size.present? ? "btn--#{size}" : nil)].compact.join(" ")
+  method = local_assigns[:method]
+  data_attrs = local_assigns[:data] || {}
+  data_attrs[:turbo_method] = method if method.present?
+  data_attrs[:turbo_confirm] = local_assigns[:confirm] if local_assigns[:confirm].present?
+%>
+<%= link_to url, class: btn_css, data: data_attrs do %>
+  <% if icon_left.present? %><i class="bi bi-<%= icon_left %>" aria-hidden="true"></i><% end %>
+  <span><%= label %></span>
+  <% if icon_right.present? %><i class="bi bi-<%= icon_right %>" aria-hidden="true"></i><% end %>
+<% end %>

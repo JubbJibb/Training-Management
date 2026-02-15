@@ -1,0 +1,126 @@
+<% content_for :title, @account_name %>
+
+<div class="dashboard-page">
+  <%= render "components/odt/page_header", title: @account_name, subtitle: "Corporate account profile", icon: "building" do %>
+    <%= link_to clients_corporate_accounts_path, class: "dashboard-header__link" do %>
+      <i class="bi bi-list" aria-hidden="true"></i> All Corporate Accounts
+    <% end %>
+  <% end %>
+
+  <%
+    snap = @profile[:snapshot] || {}
+    ar = @profile[:ar_aging] || []
+    invoices = @profile[:invoice_list] || []
+    portfolio = @profile[:program_portfolio] || []
+    stakeholders = @profile[:stakeholders] || {}
+    opportunities = @profile[:opportunities] || []
+  %>
+  <section class="dashboard-kpi-section" aria-label="Snapshot">
+    <%
+      snap_cells = [
+        { icon: "currency-dollar", label: "Lifetime Revenue", value: number_to_thb(snap[:lifetime_revenue].to_f), sub: "" },
+        { icon: "graph-up", label: "YTD Revenue", value: number_to_thb(snap[:ytd_revenue].to_f), sub: "" },
+        { icon: "hourglass-split", label: "Outstanding", value: number_to_thb(snap[:outstanding].to_f), sub: "" },
+        { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(snap[:overdue].to_f), sub: "" },
+        { icon: "percent", label: "Repeat rate", value: "#{snap[:repeat_rate].to_f}%", sub: "" },
+        { icon: "calendar-event", label: "Last activity", value: snap[:last_activity]&.strftime("%d %b %Y") || "—", sub: "" }
+      ]
+    %>
+    <%= odt_kpi_strip(cells: snap_cells, extra_class: "clients-kpi-strip") %>
+  </section>
+
+  <div class="row g-3 mt-2">
+    <div class="col-lg-6">
+      <div class="card odt-card">
+        <div class="card-header odt-card__header">
+          <h3 class="card-title odt-card__title">AR Aging</h3>
+        </div>
+        <div class="card-body">
+          <% if ar.empty? %>
+            <p class="text-muted mb-0">No pending AR.</p>
+          <% else %>
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Bucket</th><th class="text-end">Amount</th></tr></thead>
+              <tbody>
+                <% ar.each do |b| %>
+                  <tr><td><%= b[:range] %> days</td><td class="text-end"><%= number_to_thb(b[:amount]) %></td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          <% end %>
+        </div>
+      </div>
+      <div class="card odt-card mt-3">
+        <div class="card-header odt-card__header">
+          <h3 class="card-title odt-card__title">Invoice list</h3>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead><tr><th>Ref</th><th>Due</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <% invoices.each do |inv| %>
+                  <tr>
+                    <td><%= inv[:invoice_no] %></td>
+                    <td><%= inv[:due_date]&.strftime("%d %b %Y") || "—" %></td>
+                    <td><%= number_to_thb(inv[:amount]) %></td>
+                    <td><%= inv[:status] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card odt-card">
+        <div class="card-header odt-card__header">
+          <h3 class="card-title odt-card__title">Program portfolio</h3>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Program</th><th>Classes</th><th>Revenue</th><th>Profit</th><th>Last attended</th></tr></thead>
+              <tbody>
+                <% portfolio.each do |p| %>
+                  <tr>
+                    <td><%= p[:program] %></td>
+                    <td><%= p[:classes] %></td>
+                    <td><%= number_to_thb(p[:revenue]) %></td>
+                    <td><%= number_to_thb(p[:profit]) %></td>
+                    <td><%= p[:last_attended]&.strftime("%d %b %Y") || "—" %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card odt-card mt-3">
+        <div class="card-header odt-card__header">
+          <h3 class="card-title odt-card__title">Stakeholders / Contacts</h3>
+        </div>
+        <div class="card-body">
+          <p><strong>Billing:</strong> <%= stakeholders[:billing_contacts]&.join(", ") || "—" %></p>
+          <p><strong>Tax ID:</strong> <%= stakeholders[:tax_id].presence || "—" %></p>
+          <p><strong>Address:</strong> <%= stakeholders[:billing_address].presence || "—" %></p>
+        </div>
+      </div>
+      <% if opportunities.any? %>
+        <div class="card odt-card mt-3 border-warning">
+          <div class="card-header odt-card__header">
+            <h3 class="card-title odt-card__title">Opportunities</h3>
+          </div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <% opportunities.each do |opp| %>
+                <li><%= opp[:message] %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

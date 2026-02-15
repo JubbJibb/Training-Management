@@ -77,10 +77,11 @@
     <%= render "admin/settings/promo_kpi_strip" %>
   </section>
 
-  <%# Marketing dashboard: Promotion Performance %>
   <section class="perf-dashboard" aria-labelledby="perf-hero-title">
-    <%= render "admin/settings/perf_header" %>
-    <%= render "admin/settings/perf_filters" %>
+    <%= render "components/odt/section_header", title: "Promotion Performance", subtitle: (@perf_query&.period_label || "This month") %>
+    <%= render "components/odt/filters_row", form_url: admin_settings_path, form_method: :get, form_options: { data: { turbo_frame: "_top" } } do %>
+      <%= render "admin/settings/perf_filters_content" %>
+    <% end %>
     <%= render "admin/settings/perf_kpi_strip" %>
 
     <div class="perf-dashboard__main">

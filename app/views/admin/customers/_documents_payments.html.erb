@@ -2,37 +2,28 @@
   <h2 class="customer-360-section__title" id="documents-heading"><i class="bi bi-file-earmark-check" aria-hidden="true"></i> Documents &amp; Payments</h2>
   <div class="customer-360-section__body">
     <% if document_rows.any? %>
-      <div class="table-wrap table-responsive table-modern-wrap">
-        <table class="table data-table table-hover table-sortable-filterable mb-0" aria-label="Documents and payments">
-          <colgroup>
-            <col style="width: 18%;">
-            <col style="width: 22%;">
-            <col style="width: 18%; min-width: 85px;">
-            <col style="width: 22%; min-width: 90px;">
-            <col style="width: 20%;">
-          </colgroup>
-          <thead>
+      <%= odt_table(extra_class: "table-modern-wrap") do %>
+        <thead>
+          <tr>
+            <th class="odt-th col-md"><span class="th-inner">Doc type</span></th>
+            <th class="odt-th col-lg"><span class="th-inner">Doc no.</span></th>
+            <th class="odt-th col-md"><span class="th-inner">Date</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Amount</span></th>
+            <th class="odt-th col-sm"><span class="th-inner">Status</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% document_rows.each do |row| %>
             <tr>
-              <th><span class="th-inner">Doc type</span></th>
-              <th><span class="th-inner">Doc no.</span></th>
-              <th><span class="th-inner">Date</span></th>
-              <th class="text-end num"><span class="th-inner">Amount</span></th>
-              <th><span class="th-inner">Status</span></th>
+              <td class="col-md truncate"><%= row[:doc_type] %></td>
+              <td class="col-lg truncate"><%= row[:doc_no] %></td>
+              <td class="col-md truncate"><%= row[:date] %></td>
+              <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(row[:amount].to_f.round(2), delimiter: ",") %></td>
+              <td class="col-sm"><span class="badge badge-modern <%= row[:status] == "issued" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= row[:status] %></span></td>
             </tr>
-          </thead>
-          <tbody>
-            <% document_rows.each do |row| %>
-              <tr>
-                <td class="truncate"><%= row[:doc_type] %></td>
-                <td class="truncate"><%= row[:doc_no] %></td>
-                <td class="no-wrap"><%= row[:date] %></td>
-                <td class="num text-end amount-cell">฿<%= number_with_delimiter(row[:amount].to_f.round(2), delimiter: ",") %></td>
-                <td><span class="badge badge-modern <%= row[:status] == "issued" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= row[:status] %></span></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% end %>
+        </tbody>
+      <% end %>
     <% else %>
       <p class="customer-360-empty">No document records yet. Documents are issued per registration from the class page.</p>
     <% end %>

@@ -21,32 +21,25 @@
       </div>
     </div>
     <noscript>
-      <div class="table-wrap">
-        <table class="table data-table perf-revenue-share__table table-sortable-filterable" aria-label="Revenue by promotion (fallback)">
-          <colgroup>
-            <col style="width: 50%;">
-            <col style="width: 25%;">
-            <col style="width: 25%;">
-          </colgroup>
-          <thead>
+      <%= odt_table(extra_class: "perf-revenue-share__table") do %>
+        <thead>
+          <tr>
+            <th class="odt-th col-lg"><span class="th-inner">Promotion</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Revenue</span></th>
+            <th class="odt-th col-xs num"><span class="th-inner">Share</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% labels.each_with_index do |label, i| %>
+            <% pct = total.positive? ? (values[i].to_f / total * 100).round(0) : 0 %>
             <tr>
-              <th><span class="th-inner">Promotion</span></th>
-              <th class="perf-num num"><span class="th-inner">Revenue</span></th>
-              <th class="perf-num num"><span class="th-inner">Share</span></th>
+              <td class="col-lg truncate"><%= label %></td>
+              <td class="col-sm odt-table-numeric num"><%= number_to_thb(values[i].to_f) %></td>
+              <td class="col-xs odt-table-numeric num"><%= pct %>%</td>
             </tr>
-          </thead>
-          <tbody>
-            <% labels.each_with_index do |label, i| %>
-              <% pct = total.positive? ? (values[i].to_f / total * 100).round(0) : 0 %>
-              <tr>
-                <td class="truncate"><%= label %></td>
-                <td class="perf-num num"><%= number_to_thb(values[i].to_f) %></td>
-                <td class="perf-num num"><%= pct %>%</td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% end %>
+        </tbody>
+      <% end %>
     </noscript>
   <% else %>
     <div class="perf-revenue-share__empty" role="status">

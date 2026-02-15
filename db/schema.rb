@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_14_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -139,6 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000000) do
   end
 
   create_table "customers", force: :cascade do |t|
+    t.string "acquisition_channel"
     t.text "address"
     t.text "billing_address"
     t.string "billing_name"
@@ -170,6 +171,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_000000) do
     t.string "state", default: "queued", null: false
     t.datetime "updated_at", null: false
     t.index ["requested_by_id"], name: "index_export_jobs_on_requested_by_id"
+  end
+
+  create_table "financial_action_logs", force: :cascade do |t|
+    t.string "action_type", null: false
+    t.integer "actor_id"
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.text "metadata"
+    t.string "status", default: "queued", null: false
+    t.bigint "subject_id", null: false
+    t.string "subject_type", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action_type"], name: "index_financial_action_logs_on_action_type"
+    t.index ["actor_id"], name: "index_financial_action_logs_on_actor_id"
+    t.index ["created_at"], name: "index_financial_action_logs_on_created_at"
+    t.index ["status"], name: "index_financial_action_logs_on_status"
+    t.index ["subject_type", "subject_id"], name: "index_financial_action_logs_on_subject_type_and_subject_id"
   end
 
   create_table "promotions", force: :cascade do |t|

@@ -1,0 +1,65 @@
+<% content_for :title, "Client Analysis" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <%= render "clients/analysis/chart_init_exec" %>
+<% end %>
+
+<div class="dashboard-page client-analysis-exec">
+  <div class="client-analysis-exec__page-header">
+    <%= render "components/odt/page_header", title: "Client Analysis", subtitle: "Commercial intelligence", icon: "graph-up-arrow" %>
+  </div>
+
+  <%= turbo_frame_tag "clients_main", data: { turbo_action: "advance" } do %>
+    <%= render "clients/shared/date_filter" do %>
+      <div class="odt-filters-row__field">
+        <label for="filter_client_type" class="odt-filters-row__label">Client type</label>
+        <select name="client_type" id="filter_client_type" class="odt-filters-row__input">
+          <option value="">All</option>
+          <option value="corporate" <%= "selected" if params[:client_type] == "corporate" %>>Corporate</option>
+          <option value="individual" <%= "selected" if params[:client_type] == "individual" %>>Individual</option>
+        </select>
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="filter_channel" class="odt-filters-row__label">Channel</label>
+        <input type="text" name="channel" id="filter_channel" class="odt-filters-row__input" value="<%= params[:channel] %>" placeholder="Filter by channel">
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="filter_min_revenue" class="odt-filters-row__label">Min revenue</label>
+        <input type="number" name="min_revenue" id="filter_min_revenue" class="odt-filters-row__input" value="<%= params[:min_revenue] %>" placeholder="0" step="0.01">
+      </div>
+    <% end %>
+
+    <%
+      kpis = @data[:kpis] || {}
+      cells = [
+        { icon: "people", label: "Total Clients", value: kpis[:total_clients].to_i, sub: "" },
+        { icon: "person-check", label: "Active Clients", value: kpis[:active_clients].to_i, sub: "in period" },
+        { icon: "person-plus", label: "New Clients", value: kpis[:new_clients].to_i, sub: "in period" },
+        { icon: "currency-dollar", label: "Avg Revenue/Client", value: number_to_thb(kpis[:avg_revenue_per_client].to_f), sub: "" },
+        { icon: "arrow-repeat", label: "Repeat Rate", value: "#{kpis[:repeat_rate].to_f}%", sub: "" },
+        { icon: "building", label: "Corporate % Revenue", value: "#{kpis[:corporate_pct_revenue].to_f}%", sub: "" }
+      ]
+    %>
+    <section class="client-analysis-exec__kpi" aria-label="Key metrics">
+      <%= render "clients/analysis/kpi_strip", cells: cells %>
+    </section>
+
+    <div class="client-analysis-exec__full-width odt-v1-card-gap">
+      <%= render "clients/analysis/leaderboard_top_spenders", top_spenders: @data[:top_spenders] || [] %>
+      <%= render "clients/analysis/conversion_progress", conversion_by_channel: @data[:conversion_by_channel] || [] %>
+    </div>
+
+    <div class="client-analysis-exec__grid">
+      <div class="client-analysis-exec__col client-analysis-exec__col--main odt-v1-card-gap">
+        <%= render "clients/analysis/top_spenders_table", top_spenders: @data[:top_spenders] || [] %>
+        <%= render "clients/analysis/revenue_concentration", revenue_concentration: @data[:revenue_concentration] || {} %>
+        <%= render "clients/analysis/revenue_by_channel", revenue_by_channel: @data[:revenue_by_channel] || [] %>
+        <%= render "clients/analysis/segment_donuts", segment_mix: @data[:segment_mix] || {} %>
+      </div>
+      <div class="client-analysis-exec__col client-analysis-exec__col--sidebar odt-v1-card-gap">
+        <%= render "clients/analysis/risk_summary", risk_outstanding: @data[:risk_outstanding] || [] %>
+        <%= render "clients/analysis/risk_no_activity", risk_no_activity: @data[:risk_no_activity] || [] %>
+      </div>
+    </div>
+  <% end %>
+</div>

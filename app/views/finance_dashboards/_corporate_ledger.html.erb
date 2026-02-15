@@ -5,17 +5,15 @@
     <div class="table-wrap cfo-dash-table-wrap">
       <table class="table data-table cfo-dash-table table-sortable-filterable" aria-label="Corporate ledger">
         <colgroup>
-          <col style="width: 20%;">
+          <col style="width: 18%;">
+          <col style="width: 18%;">
+          <col style="width: 18%;">
           <col style="width: 14%;">
-          <col style="width: 14%;">
-          <col style="width: 14%;">
-          <col style="width: 12%;">
-          <col style="width: 14%; min-width: 95px;">
-          <col style="width: 8%;">
+          <col style="width: 18%; min-width: 95px;">
+          <col style="width: 10%;">
         </colgroup>
         <thead>
           <tr>
-            <th><span class="th-inner">Company</span></th>
             <th class="cfo-dash-table-num num"><span class="th-inner">Billed (net)</span></th>
             <th class="cfo-dash-table-num num"><span class="th-inner">Cash</span></th>
             <th class="cfo-dash-table-num num"><span class="th-inner">Outstanding</span></th>
@@ -27,7 +25,6 @@
         <tbody>
           <% summary[:corporate_ledger_rows].each do |row| %>
             <tr>
-              <td class="truncate"><strong><%= row[:company] %></strong></td>
               <td class="cfo-dash-table-num num"><%= number_to_thb(row[:total_billed_net]) %></td>
               <td class="cfo-dash-table-num num"><%= number_to_thb(row[:cash_received]) %></td>
               <td class="cfo-dash-table-num num"><%= number_to_thb(row[:outstanding]) %></td>
@@ -38,7 +35,7 @@
               </td>
             </tr>
             <tr class="collapse" id="ledger-<%= row[:attendee_ids].first %>">
-              <td colspan="7" class="cfo-dash-ledger-detail">
+              <td colspan="6" class="cfo-dash-ledger-detail">
                 <%= render "finance_dashboards/corporate_ledger_detail", row: row %>
               </td>
             </tr>

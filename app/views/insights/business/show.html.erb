@@ -1,0 +1,57 @@
+<% content_for :title, "Business Insights" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <%= render "insights/shared/chart_init" %>
+<% end %>
+
+<div class="dashboard-page">
+  <%= render "components/odt/page_header", title: "Business Insights", subtitle: "Operational performance", icon: "graph-up-arrow" %>
+
+  <%= turbo_frame_tag "insights_main", data: { turbo_action: "advance" } do %>
+    <%= render "insights/shared/date_filter" %>
+
+    <%
+      kpis = @data[:kpis] || {}
+      cells = [
+        { icon: "currency-dollar", label: "Total Revenue", value: number_to_thb(kpis[:total_revenue].to_f), sub: "in period" },
+        { icon: "graph-up", label: "Total Profit", value: number_to_thb(kpis[:total_profit].to_f), sub: "in period" },
+        { icon: "percent", label: "Fill Rate", value: kpis[:fill_rate].nil? ? "—" : "#{kpis[:fill_rate]}%", sub: "avg" },
+        { icon: "arrow-repeat", label: "Repeat Client Rate", value: "#{kpis[:repeat_client_rate].to_f}%", sub: "" },
+        { icon: "collection", label: "Active Programs", value: kpis[:active_programs].to_i, sub: "in period" },
+        { icon: "calendar-event", label: "Upcoming Classes", value: kpis[:upcoming_classes].to_i, sub: "next 30 days" }
+      ]
+    %>
+    <%= render "insights/shared/kpi_strip", cells: cells %>
+
+    <div class="dashboard-grid mt-4">
+      <div class="dashboard-grid__left">
+        <%
+          rev_by_program = @data.dig(:chart_data, :revenue_by_program) || []
+          labels = rev_by_program.map { |h| h[:label] }
+          values = rev_by_program.map { |h| h[:value] }
+        %>
+        <%= render "insights/shared/chart_card", title: "Revenue by Program", chart_id: "business_revenue_program", chart_type: "bar", labels: labels, datasets: [{ "label" => "Revenue", "data" => values }] %>
+
+        <%
+          trend = @data.dig(:chart_data, :revenue_trend) || []
+          trend_labels = trend.map { |h| h[:label] }
+          trend_values = trend.map { |h| h[:value] }
+        %>
+        <%= render "insights/shared/chart_card", title: "Revenue Trend", chart_id: "business_revenue_trend", chart_type: "line", labels: trend_labels, datasets: [{ "label" => "Revenue", "data" => trend_values }] %>
+
+        <%
+          top = @data[:top_programs] || []
+          cols = [{ key: :title, label: "Program" }, { key: :revenue, label: "Revenue", format: :currency }, { key: :profit, label: "Profit", format: :currency }, { key: :fill_rate, label: "Fill %" }]
+        %>
+        <%= render "insights/shared/table_card", title: "Top 5 Programs", columns: cols, rows: top.map { |r| r.merge(fill_rate: r[:fill_rate].nil? ? "—" : "#{r[:fill_rate]}%") } %>
+      </div>
+      <div class="dashboard-grid__right">
+        <%
+          low = @data.dig(:alerts, :low_enrollment_upcoming) || []
+          alert_items = low.map { |c| { title: "#{c[:title]} (#{c[:date]})", label: "Fill #{c[:fill_rate]}%", url: admin_training_class_path(c[:id]), cta: "View" } }
+        %>
+        <%= render "insights/shared/alert_list", title: "Low enrollment (upcoming)", items: alert_items %>
+      </div>
+    </div>
+  <% end %>
+</div>

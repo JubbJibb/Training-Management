@@ -31,17 +31,17 @@
     <%= odt_table(extra_class: "odt-table--sm") do %>
       <thead>
         <tr>
-          <th>Customer / Contact</th>
-          <th class="odt-table-numeric">Amount</th>
-          <th class="odt-table-numeric">Days outstanding</th>
+          <th class="col-lg">Customer / Contact</th>
+          <th class="col-sm odt-table-numeric">Amount</th>
+          <th class="col-sm odt-table-numeric">Days outstanding</th>
         </tr>
       </thead>
       <tbody>
         <% action_required[:top_outstanding].each do |row| %>
           <tr>
-            <td><%= row[:name] %></td>
-            <td class="odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
-            <td class="odt-table-numeric"><%= row[:days_outstanding].nil? ? "—" : row[:days_outstanding] %></td>
+            <td class="col-lg truncate"><%= row[:name] %></td>
+            <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
+            <td class="col-sm odt-table-numeric"><%= row[:days_outstanding].nil? ? "—" : row[:days_outstanding] %></td>
           </tr>
         <% end %>
       </tbody>

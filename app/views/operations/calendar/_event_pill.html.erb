@@ -1,0 +1,28 @@
+<%
+  event = local_assigns[:event]
+  time_str = if event.start_time.present? && event.end_time.present?
+    "#{event.start_time.strftime('%H:%M')}–#{event.end_time.strftime('%H:%M')}"
+  else
+    nil
+  end
+  cancelled = event.status_label == "Cancelled"
+  fill_pct = event.fill_rate_percent
+  max_seats = event.max_attendees.to_i
+  registered = event.total_registered_seats
+  fill_text = (max_seats.positive? && fill_pct) ? "#{fill_pct}% (#{registered}/#{max_seats})" : nil
+%>
+<%= link_to operations_calendar_event_path(event), class: "calendar-event-pill #{'calendar-event-pill--cancelled' if cancelled}", data: { turbo_frame: "calendar_side_panel" } do %>
+  <span class="calendar-event-pill__title" title="<%= event.title %>"><%= truncate(event.title, length: 28) %></span>
+  <% if time_str.present? %>
+    <span class="calendar-event-pill__time"><%= time_str %></span>
+  <% end %>
+  <span class="calendar-event-pill__badges">
+    <% if cancelled %>
+      <span class="calendar-event-pill__badge calendar-event-pill__badge--cancelled">Cancelled</span>
+    <% end %>
+    <%# Type badge: schema has no type; show if we add it later %>
+  </span>
+  <% if fill_text.present? %>
+    <span class="calendar-event-pill__fill"><%= fill_text %></span>
+  <% end %>
+<% end %>

@@ -6,21 +6,16 @@
   <%= button_to "Sync ข้อมูลลูกค้าชื่อซ้ำ", sync_duplicates_admin_customers_path, method: :post, class: "odt-btn odt-btn--secondary odt-btn--sm", form: { data: { turbo_confirm: "จะอัปเดตข้อมูลลูกค้าที่ชื่อซ้ำกัน ให้ครบจากรายการอื่นในกลุ่ม ต้องการดำเนินการหรือไม่?" } } %>
 <% end %>
 
-<div class="card odt-section">
-  <div class="card-body">
-    <%= form_with url: admin_customers_path, method: :get, local: true, data: { turbo_frame: "customers_table" } do |f| %>
-      <%= hidden_field_tag :segment, @segment %>
-      <div class="row g-2 align-items-center">
-        <div class="col-md-10">
-          <%= f.text_field :q, value: @q, class: "form-control", placeholder: "ค้นหา: ชื่อ, อีเมล, เบอร์โทร, บริษัท, Tax ID" %>
-        </div>
-        <div class="col-md-2 d-grid">
-          <%= f.submit "Search", class: "btn btn-primary" %>
-        </div>
-      </div>
-    <% end %>
+<%= render "components/odt/filters_row", form_url: admin_customers_path, form_method: :get, form_options: { data: { turbo_frame: "customers_table" } } do %>
+  <%= hidden_field_tag :segment, @segment %>
+  <div class="odt-filters-row__field" style="flex: 1; min-width: 200px;">
+    <label for="customer_q" class="odt-filters-row__label">Search</label>
+    <input type="text" name="q" id="customer_q" class="odt-filters-row__input" value="<%= @q %>" placeholder="ค้นหา: ชื่อ, อีเมล, เบอร์โทร, บริษัท, Tax ID">
   </div>
-</div>
+  <div class="odt-filters-row__actions">
+    <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Search</button>
+  </div>
+<% end %>
 
 <%= turbo_frame_tag "customers_table", class: "customers-table-frame" do %>
   <%= render "admin/customers/tabs", segment: @segment, q: @q, top_n: @top_n %>

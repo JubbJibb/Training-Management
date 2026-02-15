@@ -1,0 +1,19 @@
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  extra_class = local_assigns[:extra_class]
+  css = ["insight-card"]
+  css << extra_class if extra_class.present?
+%>
+<div class="<%= css.join(' ') %>">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <% if title.present? %><h3 class="insight-card__title"><%= title %></h3><% end %>
+      <% if subtitle.present? %><p class="insight-card__subtitle"><%= subtitle %></p><% end %>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <%= yield %>
+  </div>
+</div>

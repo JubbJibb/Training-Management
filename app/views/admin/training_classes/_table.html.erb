@@ -1,60 +1,59 @@
 <%= turbo_frame_tag "tc_index_table" do %>
-  <div class="table-wrap tc-index-table-wrap">
-    <% if @training_classes.any? %>
-      <table class="table data-table tc-index-table table-sortable-filterable" aria-label="Training classes">
+  <% if @training_classes.any? %>
+    <div class="tc-index-saas-table-wrap">
+      <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Training classes">
         <colgroup>
-          <col style="width: 22%;">
-          <col style="width: 10%; min-width: 90px;">
+          <col style="width: 35%;">
+          <col style="width: 20%;">
+          <col style="width: 15%;">
+          <col style="width: 12%;">
           <col style="width: 18%;">
-          <col style="width: 12%; min-width: 95px;">
-          <col style="width: 10%;">
-          <col style="width: 14%;">
-          <col style="width: 14%; min-width: 100px;">
         </colgroup>
         <thead>
           <tr>
-            <th><span class="th-inner">Title</span></th>
-            <th><span class="th-inner">Date</span></th>
-            <th><span class="th-inner">Fill rate</span></th>
-            <th class="tc-index-table-num num"><span class="th-inner">Revenue (net)</span></th>
-            <th><span class="th-inner">Status</span></th>
-            <th><span class="th-inner">Instructor</span></th>
-            <th class="tc-index-table-actions actions-col"><span class="th-inner">Actions</span></th>
+            <th scope="col" class="tc-saas-th tc-saas-th--class">Class</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--fill">Fill</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--revenue">Revenue</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--instructor">Instructor</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @training_classes.each do |tc| %>
-            <% fill_pct = tc.fill_rate_percent || 0 %>
-            <% fill_level = fill_pct >= 90 ? "high" : (fill_pct >= 50 ? "mid" : "low") %>
-            <tr class="tc-index-table__row">
-              <td class="truncate"><strong><%= link_to tc.title, admin_training_class_path(tc), class: "tc-index-link" %></strong></td>
-              <td class="no-wrap"><%= tc.date.strftime("%b %d, %Y") %></td>
-              <td>
-                <div class="tc-index-fill-cell tc-index-fill-cell--<%= fill_level %>">
-                  <%= render "shared/progress_bar", percent: [fill_pct, 100].min, extra_class: "tc-index-fill-bar" %>
-                  <span class="tc-index-fill-text"><%= tc.total_registered_seats %><%= tc.max_attendees.present? ? " / #{tc.max_attendees}" : "" %> · <%= fill_pct %>%</span>
+            <tr class="tc-saas-tr">
+              <td class="tc-saas-td tc-saas-td--class">
+                <div class="tc-saas-class-cell">
+                  <%= link_to tc.title, admin_training_class_path(tc), class: "tc-saas-class-link" %>
+                  <span class="tc-saas-class-meta"><%= tc.date.strftime("%b %d, %Y") %> · <%= tc.duration %></span>
                 </div>
               </td>
-              <td class="tc-index-table-num">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></td>
-              <td><%= odt_badge(tc.status_label, variant: tc.status_label == "Upcoming" ? :info : (tc.status_label == "Cancelled" ? :danger : :neutral), size: :sm) %></td>
-              <td><%= tc.instructor.presence || "—" %></td>
-              <td class="tc-index-table-actions">
-                <%= link_to new_admin_training_class_attendee_path(tc), class: "tc-index-action-btn tc-index-action-btn--primary", title: "สมัครเรียน", aria: { label: "สมัครเรียน" } do %><i class="bi bi-person-plus" aria-hidden="true"></i><% end %>
-                <%= link_to admin_training_class_path(tc), class: "tc-index-action-btn", title: "View", aria: { label: "View" } do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
-                <%= link_to edit_admin_training_class_path(tc), class: "tc-index-action-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
-                <%= link_to admin_training_class_path(tc), data: { turbo_method: :delete, turbo_confirm: "Delete this training class?" }, class: "tc-index-action-btn tc-index-action-btn--danger", title: "Delete", aria: { label: "Delete" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+              <td class="tc-saas-td tc-saas-td--fill">
+                <%= render "admin/training_classes/fill_rate_cell", tc: tc %>
+              </td>
+              <td class="tc-saas-td tc-saas-td--revenue">
+                <span class="tc-saas-revenue">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></span>
+              </td>
+              <td class="tc-saas-td tc-saas-td--instructor">
+                <span class="tc-saas-instructor"><%= tc.instructor.presence || "—" %></span>
+              </td>
+              <td class="tc-saas-td tc-saas-td--actions">
+                <div class="tc-saas-actions">
+                  <%= link_to new_admin_training_class_attendee_path(tc), class: "tc-saas-actions-btn", title: "Add Attendee", aria: { label: "Add Attendee" } do %><i class="bi bi-person-plus" aria-hidden="true"></i><% end %>
+                  <%= link_to edit_admin_training_class_path(tc), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                  <%= link_to admin_training_class_path(tc), data: { turbo_method: :delete, turbo_confirm: "Delete this training class?" }, class: "tc-saas-actions-btn tc-saas-actions-btn--danger", title: "Delete", aria: { label: "Delete" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+                </div>
               </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    <% else %>
-      <div class="tc-index-empty">
-        <%= render "shared/empty_state", message: @empty_state_message, icon: @empty_state_icon %>
-        <% if @tab == "upcoming" %>
-          <%= link_to "Create training class", new_admin_training_class_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+    </div>
+  <% else %>
+    <div class="tc-index-empty">
+      <%= render "shared/empty_state", message: @empty_state_message, icon: @empty_state_icon %>
+      <% if @tab == "upcoming" %>
+        <%= link_to "Create training class", new_admin_training_class_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>

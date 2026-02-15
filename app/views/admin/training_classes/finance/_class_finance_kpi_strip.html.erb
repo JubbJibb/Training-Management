@@ -1,0 +1,24 @@
+<%
+  k = kpis
+  w = local_assigns[:waterfall] || {}
+  prof = local_assigns[:profitability] || {}
+  payment_status_list = local_assigns[:payment_status_list] || []
+  pending_count = payment_status_list.count { |r| r[:status] != "Paid" }
+  total_inv = payment_status_list.size
+  discount_rate = w[:discount_rate_pct].to_f
+  margin_pct = k[:profit_margin_pct].to_f
+  collection_pct = k[:collection_rate_pct].to_f
+  tone_for_margin = margin_pct >= 20 ? "success" : (margin_pct >= 0 ? nil : "danger")
+  tone_for_collection = collection_pct >= 90 ? "success" : (collection_pct >= 60 ? "warning" : "danger")
+  tone_for_outstanding = k[:outstanding].to_f.zero? ? nil : "warning"
+
+  cells = [
+    { icon: "currency-dollar", label: "Gross Sales", value: number_to_thb(k[:gross_sales]), sub: "Discount " + number_to_percent(discount_rate) },
+    { icon: "receipt", label: "Net Revenue (before VAT)", value: number_to_thb(k[:net_revenue_before_vat]), sub: "VAT " + number_to_thb(w[:vat_amount] || 0) },
+    { icon: "cash", label: "Cash Received", value: number_to_thb(k[:cash_received]), sub: "#{total_inv} invoices · " + number_to_percent(collection_pct), value_variant: tone_for_collection },
+    { icon: "clock-history", label: "Outstanding (AR)", value: number_to_thb(k[:outstanding]), sub: "#{pending_count} pending", value_variant: tone_for_outstanding },
+    { icon: "graph-down", label: "Total Cost", value: number_to_thb(prof[:total_cost].to_f), sub: "Base + expenses" },
+    { icon: "graph-up-arrow", label: "Net Profit", value: number_to_thb(k[:net_profit]), sub: k[:profit_margin_pct].nil? ? "—" : "Margin " + number_to_percent(k[:profit_margin_pct]), value_variant: tone_for_margin }
+  ]
+%>
+<%= render "shared/kpi_strip", cells: cells, extra_class: "finance-kpi-strip" %>

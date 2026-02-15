@@ -1,0 +1,7 @@
+<%
+  message = local_assigns[:message] || "No chart data available."
+%>
+<div class="insight-empty-chart" role="status">
+  <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+  <p class="insight-empty-chart__text"><%= message %></p>
+</div>

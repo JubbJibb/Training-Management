@@ -1,0 +1,158 @@
+<% content_for :title, "Action Center" %>
+<%
+  data = @data || {}
+  critical = data[:critical] || []
+  warning = data[:warning] || []
+  follow_up = data[:follow_up] || []
+  task_queue = data[:task_queue] || []
+  fp = @filter_params || {}
+  overdue_count = critical.find { |c| c[:label].to_s.include?("Overdue") }&.dig(:count).to_i
+  outstanding_amount = (data[:outstanding_amount] || 0).to_f
+  nearly_full_count = (data[:nearly_full_count] || 0).to_i
+  leads_pending = follow_up.find { |f| f[:label].to_s.include?("Lead") }&.dig(:count).to_i
+  kpi_cells = [
+    { icon: "exclamation-triangle", label: "Overdue Invoices", value: overdue_count, sub: "count" },
+    { icon: "clock-history", label: "Outstanding Amount", value: number_to_thb(outstanding_amount), sub: "total" },
+    { icon: "people-fill", label: "Classes Nearly Full", value: nearly_full_count, sub: "≥80% fill" },
+    { icon: "person-plus", label: "Leads Pending Follow-up", value: leads_pending, sub: "count" }
+  ]
+  overdue_accounts = data[:overdue_accounts] || task_queue.select { |t| t[:type].to_s.include?("Overdue") }.first(10).map do |t|
+    { client: t[:client_or_class], amount: t[:amount], days_overdue: (t[:due_date].present? && t[:due_date].respond_to?(:to_date) ? (Date.current - t[:due_date].to_date).to_i : nil), attendee_id: t[:attendee_id], training_class_id: t[:training_class_id] }
+  end
+  missing_receipts = data[:missing_receipts] || task_queue.select { |t| t[:type].to_s.include?("receipt") }.first(10)
+  nearly_full_classes = data[:nearly_full_classes] || []
+  low_fill_upcoming = data[:low_fill_upcoming] || warning.select { |w| w[:label].to_s.include?("Low enrollment") }
+  filter = fp[:filter].to_s
+%>
+<div class="insights-page">
+  <%= render "components/odt/page_header", title: "Action Center", subtitle: "Priority items that require action now", icon: "lightning-charge" %>
+
+  <div class="insight-filter-chips mb-3">
+    <%= link_to "All", insights_actions_path, class: "odt-btn odt-btn--secondary odt-btn--sm #{'active' if filter != 'critical' && filter != 'finance' && filter != 'client'}" %>
+    <%= link_to "Critical only", insights_actions_path(filter: "critical"), class: "odt-btn odt-btn--secondary odt-btn--sm #{'active' if filter == 'critical'}" %>
+    <%= link_to "Finance only", insights_actions_path(filter: "finance"), class: "odt-btn odt-btn--secondary odt-btn--sm #{'active' if filter == 'finance'}" %>
+    <%= link_to "Client only", insights_actions_path(filter: "client"), class: "odt-btn odt-btn--secondary odt-btn--sm #{'active' if filter == 'client'}" %>
+  </div>
+
+  <section class="insights-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "insights-kpi-strip") %>
+  </section>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Urgent</h3>
+        <p class="insight-card__subtitle">Overdue accounts and missing receipts</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <h4 class="insight-card__subheading">A) Overdue Accounts</h4>
+      <% if overdue_accounts.any? %>
+        <ul class="insight-action-list">
+          <% overdue_accounts.first(10).each do |a| %>
+            <li class="insight-action-list__item">
+              <span class="insight-action-list__client"><%= a[:client] %></span>
+              <span class="insight-action-list__meta"><%= a[:amount].present? ? number_to_thb(a[:amount].to_f) : "—" %> · <%= a[:days_overdue].present? ? "#{a[:days_overdue]} days overdue" : "Overdue" %></span>
+              <div class="insight-action-list__cta">
+                <%= link_to "View invoice", a[:training_class_id].present? ? finance_admin_training_class_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                <span class="odt-btn odt-btn--ghost odt-btn--sm">Send reminder</span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="insight-empty-inline">No overdue accounts.</p>
+      <% end %>
+      <h4 class="insight-card__subheading mt-4">B) Missing Receipts</h4>
+      <% if missing_receipts.any? %>
+        <ul class="insight-action-list">
+          <% missing_receipts.each do |a| %>
+            <li class="insight-action-list__item">
+              <span class="insight-action-list__client"><%= a[:client_or_class] %></span>
+              <span class="insight-action-list__meta">Paid, receipt not uploaded</span>
+              <div class="insight-action-list__cta">
+                <%= link_to "View", a[:training_class_id].present? ? admin_training_class_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="insight-empty-inline">No missing receipts.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="insight-two-col">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Classes Nearly Full</h3>
+          <p class="insight-card__subtitle">Fill rate ≥ 80%</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if nearly_full_classes.any? %>
+          <ul class="insight-action-list">
+            <% nearly_full_classes.each do |c| %>
+              <li class="insight-action-list__item">
+                <span class="insight-action-list__client"><%= c[:title] %></span>
+                <span class="insight-action-list__meta"><%= c[:fill_rate].to_i %>% fill</span>
+                <div class="insight-action-list__cta">
+                  <span class="odt-btn odt-btn--ghost odt-btn--sm">Open registration</span>
+                  <span class="odt-btn odt-btn--ghost odt-btn--sm">Close registration</span>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= render "shared/empty_state", title: "No classes nearly full", icon: "calendar-event", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Low Fill Upcoming Classes</h3>
+          <p class="insight-card__subtitle">Below threshold</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if low_fill_upcoming.any? %>
+          <ul class="insight-action-list">
+            <% low_fill_upcoming.each do |c| %>
+              <li class="insight-action-list__item">
+                <span class="insight-action-list__client"><%= c[:label].to_s.sub(/^Low enrollment: /, "") %></span>
+                <span class="insight-action-list__meta">Low fill</span>
+                <div class="insight-action-list__cta">
+                  <%= link_to "View class", c[:training_class_id].present? ? admin_training_class_path(c[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                  <span class="odt-btn odt-btn--ghost odt-btn--sm">Create promo</span>
+                  <span class="odt-btn odt-btn--ghost odt-btn--sm">Send campaign</span>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <%= render "shared/empty_state", title: "No low fill upcoming classes", icon: "calendar-x", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%
+    follow_up_rows = task_queue.map do |t|
+      { client: t[:client_or_class], reason: t[:type], due_date: t[:due_date].respond_to?(:strftime) ? t[:due_date].strftime("%Y-%m-%d") : t[:due_date].to_s, owner: t[:owner].to_s.presence || "—", attendee_id: t[:attendee_id], training_class_id: t[:training_class_id] }
+    end
+  %>
+  <%= render "insights/shared/odt_table", title: "Follow-ups", columns: [
+    { key: :client, label: "Client / Lead" },
+    { key: :reason, label: "Reason" },
+    { key: :due_date, label: "Due date" },
+    { key: :owner, label: "Owner" },
+    { key: :_action, label: "Action" }
+  ], rows: follow_up_rows, empty_message: "No follow-ups." do |row_h| %>
+    <%= link_to "View", row_h[:training_class_id].present? ? admin_training_class_path(row_h[:training_class_id]) : admin_customers_path, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+  <% end %>
+</div>

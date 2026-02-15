@@ -1,0 +1,26 @@
+<%
+  title = local_assigns[:title] || "Alerts"
+  items = local_assigns[:items] || []
+  severity = local_assigns[:severity] || "warning"
+%>
+<div class="card odt-card insights-alert-card">
+  <div class="card-header odt-card__header">
+    <h3 class="card-title odt-card__title"><%= title %></h3>
+  </div>
+  <div class="card-body">
+    <% if items.empty? %>
+      <p class="text-muted mb-0">No items.</p>
+    <% else %>
+      <ul class="list-group list-group-flush">
+        <% items.each do |item| %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <%= item.is_a?(Hash) ? (item[:title] || item[:label] || item[:name] || item.to_s) : item %>
+            <% if item.is_a?(Hash) && item[:url].present? %>
+              <%= link_to (item[:cta] || "View"), item[:url], class: "btn btn-sm btn-outline-primary" %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<%
+  training_class = local_assigns[:training_class]
+  current_sub = local_assigns[:current_sub] || "overview"
+  base_params = { type: params[:type], status: params[:status] }.compact
+%>
+<nav class="subtabs" aria-label="Financial dashboard sections">
+  <div class="subtabs__inner">
+    <%= link_to finance_admin_training_class_path(training_class, base_params.merge(sub: "overview")), class: "subtabs__tab #{current_sub == 'overview' ? 'subtabs__tab--active' : ''}", data: { turbo_frame: "class_finance_tab" }, aria: { current: (current_sub == "overview" ? "page" : nil) } do %>
+      <i class="bi bi-grid" aria-hidden="true"></i><span>Overview</span>
+    <% end %>
+    <%= link_to finance_admin_training_class_path(training_class, base_params.merge(sub: "promo")), class: "subtabs__tab #{current_sub == 'promo' ? 'subtabs__tab--active' : ''}", data: { turbo_frame: "class_finance_tab" }, aria: { current: (current_sub == "promo" ? "page" : nil) } do %>
+      <i class="bi bi-tag" aria-hidden="true"></i><span>Promo & Segment</span>
+    <% end %>
+    <%= link_to finance_admin_training_class_path(training_class, base_params.merge(sub: "costs")), class: "subtabs__tab #{current_sub == 'costs' ? 'subtabs__tab--active' : ''}", data: { turbo_frame: "class_finance_tab" }, aria: { current: (current_sub == "costs" ? "page" : nil) } do %>
+      <i class="bi bi-wallet2" aria-hidden="true"></i><span>Costs</span>
+    <% end %>
+  </div>
+</nav>

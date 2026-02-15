@@ -12,8 +12,8 @@
     <div class="table-wrap cfo-dash-table-scroll data-table-wrap--sticky">
       <table class="table data-table cfo-dash-table cfo-dash-table--sticky table-sortable-filterable" aria-label="Action required">
         <colgroup>
-          <col style="width: 18%;">
-          <col style="width: 16%;">
+          <col style="width: 20%;">
+          <col style="width: 20%;">
           <col style="width: 18%;">
           <col style="width: 12%;">
           <col style="width: 12%; min-width: 78px;">
@@ -22,7 +22,7 @@
         </colgroup>
         <thead>
           <tr>
-            <th><span class="th-inner">Company / Contact</span></th>
+            <th><span class="th-inner">Contact</span></th>
             <th><span class="th-inner">Class</span></th>
             <th><span class="th-inner">Missing docs</span></th>
             <th class="cfo-dash-table-num num"><span class="th-inner">Amount</span></th>
@@ -34,7 +34,7 @@
         <tbody>
           <% summary[:action_required_rows].first(50).each do |row| %>
             <tr class="<%= "cfo-dash-table__row--action" if row[:due_date] && row[:due_date] < Date.current %>">
-              <td class="truncate"><%= row[:company] %> / <%= row[:contact] %></td>
+              <td class="truncate"><%= row[:contact] %></td>
               <td class="truncate"><%= row[:class_name] %></td>
               <td>
                 <% row[:missing_doc].to_s.split(", ").each do |d| %>

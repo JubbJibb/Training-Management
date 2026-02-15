@@ -2,6 +2,24 @@
 
 module Odt
   module UiHelper
+    # Standard usage (see docs/ui-checklist.md):
+    #   odt_page_header(title:, subtitle:, icon:) { actions }
+    #   odt_section_header(title:, subtitle:, actions:)
+    #   odt_kpi_strip(cells: [...])
+    #   odt_card(title:, icon:, header_action: or actions:) { body }
+    #   odt_table(extra_class: "...") do ... end
+
+    # Renders ODT Page header. title:, subtitle: (optional), icon: (Bootstrap icon name), extra_class:.
+    # Yields optional block for action links (e.g. "New", "Export").
+    def odt_page_header(title:, subtitle: nil, icon: nil, extra_class: nil, &block)
+      render "components/odt/page_header",
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        extra_class: extra_class,
+        &block
+    end
+
     # Renders ODT Button partial.
     # Options: variant (primary|secondary|ghost|danger|link), size (sm|md|lg),
     # icon_left:, icon_right:, loading:, disabled:, and any HTML options (href, method, data, class, id, etc.)
@@ -24,10 +42,10 @@ module Odt
       render "components/odt/icon_button", icon: icon.to_s, variant: variant.to_s, options: options
     end
 
-    # Renders ODT Card. Header can be structured (title + optional icon + optional action) or raw (header:).
-    # Options: title (string), icon (Bootstrap icon name), header_action (HTML string or captured content),
-    #          header (raw HTML, used when title not set), footer (HTML), hoverable, extra_class
-    def odt_card(hoverable: false, extra_class: nil, title: nil, icon: nil, header_action: nil, **options, &block)
+    # Renders ODT Card. Header: title + optional icon + optional action.
+    # Options: title, icon (Bootstrap icon name), header_action or actions (HTML/captured content for header right),
+    #          header (raw HTML if title not set), footer, hoverable, extra_class
+    def odt_card(hoverable: false, extra_class: nil, title: nil, icon: nil, header_action: nil, actions: nil, **options, &block)
       content = block ? capture(&block) : nil
       render "components/odt/card",
         body: content,
@@ -35,7 +53,7 @@ module Odt
         extra_class: extra_class,
         title: title,
         icon: icon,
-        header_action: header_action,
+        header_action: header_action || actions,
         options: options
     end
 
@@ -61,12 +79,30 @@ module Odt
       render "components/odt/badge", text: text, variant: (variant || :neutral).to_s, size: size.to_s, status: status&.to_s
     end
 
-    # Renders ODT DataTable wrapper. Yields for thead/tbody.
-    # Use with: <%= odt_table do %><thead>...</thead><tbody>...</tbody><% end %>
-    # Add class "odt-table-numeric" to th/td for right-aligned numeric columns.
-    def odt_table(extra_class: nil, **options, &block)
+    # Renders ODT DataTable (shared table system). Yields for thead+tbody, or tbody only when columns: provided.
+    # Options: extra_class:, sticky_header: (boolean), columns: (array of { label:, width: :xs|:sm|:md|:lg|:xl, align: :left|:right|:center, truncate: boolean, class: "..." }).
+    # Row highlight: add class "odt-tr--selected" or "odt-tr--active" on <tr>. Name cell: .cell-stack with .cell-stack__primary / .cell-stack__secondary.
+    def odt_table(extra_class: nil, sticky_header: false, columns: nil, table_id: nil, **options, &block)
       content = block ? capture(&block) : nil
-      render "components/odt/table", content: content, extra_class: extra_class, options: options
+      render "components/odt/table",
+        content: content,
+        extra_class: extra_class,
+        sticky_header: sticky_header,
+        columns: columns,
+        table_id: table_id,
+        options: options
+    end
+
+    # Renders ODT Grid Table (div-based, CSS Grid). Columns fit content or flex; table never exceeds container width.
+    # columns: [{ key:, label:, type: "text"|"stack"|"num"|"badge"|"actions"|"html", width: "fit"|"sm"|"md"|"lg"|"xl" }]
+    # rows: array of hashes (keys match column key; stack uses key_secondary/key_meta, badge uses key_badge_class)
+    # row_actions: array of HTML strings (same length as rows) for the actions column.
+    def odt_grid_table(columns:, rows:, row_actions: [], extra_class: nil)
+      render "components/odt/grid_table",
+        columns: columns,
+        rows: rows,
+        row_actions: row_actions,
+        extra_class: extra_class
     end
 
     # Renders ODT Table empty state. message (string), icon (optional Bootstrap icon name)
@@ -102,6 +138,17 @@ module Odt
     # Renders ODT DocChip. text:, variant: (warning|info|default), url: (optional), turbo_frame: (optional)
     def odt_doc_chip(text, variant: :default, url: nil, turbo_frame: nil, extra_class: nil)
       render "components/odt/doc_chip", text: text, variant: variant.to_s, url: url, turbo_frame: turbo_frame, extra_class: extra_class
+    end
+
+    # Renders ODT Filters row wrapper. form_url:, form_method: (:get), form_options: (e.g. data: { turbo_frame: "..." }), extra_class:.
+    # Yields content for the row (filter fields + actions).
+    def odt_filters_row(form_url:, form_method: :get, form_options: {}, extra_class: nil, &block)
+      render "components/odt/filters_row",
+        form_url: form_url,
+        form_method: form_method,
+        form_options: form_options,
+        extra_class: extra_class,
+        &block
     end
   end
 end

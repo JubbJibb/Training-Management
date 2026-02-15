@@ -1,0 +1,16 @@
+<%
+  form_url = local_assigns[:form_url] || "#"
+  form_method = local_assigns[:form_method] || :get
+  form_options = local_assigns[:form_options] || {}
+  form_options = form_options.merge(class: [form_options[:class], "odt-filters-row__form"].compact.join(" "))
+  extra_class = local_assigns[:extra_class]
+  css = ["odt-filters-row"]
+  css << extra_class if extra_class.present?
+%>
+<div class="<%= css.join(' ') %>" role="search" aria-label="Filters">
+  <%= form_with url: form_url, method: form_method, **form_options do %>
+    <div class="odt-filters-row__row">
+      <%= yield %>
+    </div>
+  <% end %>
+</div>

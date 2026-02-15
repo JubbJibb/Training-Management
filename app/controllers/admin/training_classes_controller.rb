@@ -17,15 +17,34 @@ module Admin
       # Finance tab: load dashboard inline so the frame doesn't depend on a second request (avoids loading issues when frame is inside hidden tab)
       @finance_dashboard = ::Finance::ClassFinanceDashboardQuery.new(
         @training_class,
-        type: params[:type].presence, status: params[:status].presence
+        type: params[:type].presence, status: params[:status].presence,
+        expense_category: params[:expense_category].presence,
+        expense_date_from: params[:expense_date_from].presence,
+        expense_date_to: params[:expense_date_to].presence
       ).call
     end
 
     def finance
       @training_class = TrainingClass.find(params[:id])
+      # When opened directly (not Turbo Frame), show full class page with Finance tab so design matches other pages
+      unless request.headers["Turbo-Frame"].to_s.present?
+        redirect_to admin_training_class_path(
+          @training_class,
+          tab: "finance",
+          sub: params[:sub],
+          type: params[:type],
+          status: params[:status],
+          expense_category: params[:expense_category],
+          expense_date_from: params[:expense_date_from],
+          expense_date_to: params[:expense_date_to]
+        ) and return
+      end
       @finance_dashboard = ::Finance::ClassFinanceDashboardQuery.new(
         @training_class,
-        type: params[:type].presence, status: params[:status].presence
+        type: params[:type].presence, status: params[:status].presence,
+        expense_category: params[:expense_category].presence,
+        expense_date_from: params[:expense_date_from].presence,
+        expense_date_to: params[:expense_date_to].presence
       ).call
       render layout: false
     end

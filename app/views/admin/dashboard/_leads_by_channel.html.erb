@@ -1,23 +1,20 @@
 <%= turbo_frame_tag "dashboard_leads_by_channel" do %>
-  <div class="dashboard-section-container">
-    <%= render "shared/section_header", title: "Leads by Channel", subtitle: "In period" %>
-    <div class="dashboard-section-container__body">
-      <% if @leads_by_channel.present? && @leads_total.positive? %>
-        <div class="dashboard-channel-bars" role="list" aria-label="Leads by channel">
-          <% @leads_by_channel.each do |channel, count| %>
-            <% pct = (@leads_total.positive? ? (count.to_f / @leads_total * 100).round(0) : 0) %>
-            <div class="dashboard-channel-bar" role="listitem">
-              <span class="dashboard-channel-bar__label"><%= channel %></span>
-              <span class="dashboard-channel-bar__track">
-                <span class="dashboard-channel-bar__fill" style="width: <%= [pct, 100].min %>%;"></span>
-              </span>
-              <span class="dashboard-channel-bar__value"><%= count %></span>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <%= render "shared/empty_state", message: "No leads in this period.", icon: "funnel" %>
-      <% end %>
-    </div>
-  </div>
+  <%= odt_card(title: "Leads by Channel", icon: "funnel") do %>
+    <% if @leads_by_channel.present? && @leads_total.positive? %>
+      <div class="dashboard-channel-bars" role="list" aria-label="Leads by channel">
+        <% @leads_by_channel.each do |channel, count| %>
+          <% pct = (@leads_total.positive? ? (count.to_f / @leads_total * 100).round(0) : 0) %>
+          <div class="dashboard-channel-bar" role="listitem">
+            <span class="dashboard-channel-bar__label"><%= channel %></span>
+            <span class="dashboard-channel-bar__track">
+              <span class="dashboard-channel-bar__fill" style="width: <%= [pct, 100].min %>%;"></span>
+            </span>
+            <span class="dashboard-channel-bar__value"><%= count %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render "shared/empty_state", message: "No leads in this period.", icon: "funnel" %>
+    <% end %>
+  <% end %>
 <% end %>

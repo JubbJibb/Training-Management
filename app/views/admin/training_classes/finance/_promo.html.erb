@@ -1,0 +1,111 @@
+<%
+  d = local_assigns[:finance_dashboard] || {}
+  training_class = local_assigns[:training_class]
+  seg = d[:segment_split] || { indi: { amount: 0, count: 0, seats: 0 }, corp: { amount: 0, count: 0, seats: 0 } }
+  indi = seg[:indi] || {}
+  corp = seg[:corp] || {}
+  total_rev = (indi[:amount].to_f + corp[:amount].to_f).round(2)
+  indi_pct = total_rev.positive? ? ((indi[:amount].to_f / total_rev) * 100).round(1) : 0
+  corp_pct = total_rev.positive? ? ((corp[:amount].to_f / total_rev) * 100).round(1) : 0
+  promo_rows = (d[:promotions_performance] || []).first(5)
+  promo_type_label = ->(t) { t.blank? ? "—" : (t == "percentage" ? "%" : (t == "fixed" ? "fixed" : (t == "buy_x_get_y" ? "buyXgetY" : t.to_s))) }
+%>
+<div class="finance-sub-content finance-sub-content--promo">
+  <div class="grid-2">
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-pie-chart" aria-hidden="true"></i> Revenue Mix: Corporate vs Individual</h3>
+      </div>
+      <div class="card__body">
+        <div class="segment-mix">
+          <div class="meter-bar" role="presentation" aria-hidden="true">
+            <span class="meter-bar__segment meter-bar__segment--corp" style="width: <%= corp_pct %>%;" title="Corporate <%= corp_pct %>%"></span>
+            <span class="meter-bar__segment meter-bar__segment--indi" style="width: <%= indi_pct %>%;" title="Individual <%= indi_pct %>%"></span>
+          </div>
+          <div class="segment-mix__legend">
+            <div class="segment-mix__row">
+              <span class="segment-mix__dot segment-mix__dot--corp" aria-hidden="true"></span>
+              <span class="segment-mix__label">Corporate</span>
+              <span class="segment-mix__pct"><%= corp_pct %>%</span>
+              <span class="segment-mix__amount cell--num"><%= number_to_thb(corp[:amount]) %></span>
+            </div>
+            <div class="segment-mix__row">
+              <span class="segment-mix__dot segment-mix__dot--indi" aria-hidden="true"></span>
+              <span class="segment-mix__label">Individual</span>
+              <span class="segment-mix__pct"><%= indi_pct %>%</span>
+              <span class="segment-mix__amount cell--num"><%= number_to_thb(indi[:amount]) %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card--accent-left">
+      <div class="card__header">
+        <h3 class="card__title"><i class="bi bi-currency-exchange" aria-hidden="true"></i> Avg Net per Seat (Corp vs Indi)</h3>
+      </div>
+      <div class="card__body">
+        <div class="mini-metrics">
+          <div class="mini-metrics__row">
+            <span class="mini-metrics__label">Corporate</span>
+            <span class="mini-metrics__meta"><%= corp[:seats].to_i %> seats · <%= number_to_thb(corp[:amount]) %></span>
+            <span class="mini-metrics__value cell--num"><%= corp[:seats].to_i.positive? ? number_to_thb((corp[:amount].to_f / corp[:seats]).round(2)) : "—" %></span>
+          </div>
+          <div class="mini-metrics__row">
+            <span class="mini-metrics__label">Individual</span>
+            <span class="mini-metrics__meta"><%= indi[:seats].to_i %> seats · <%= number_to_thb(indi[:amount]) %></span>
+            <span class="mini-metrics__value cell--num"><%= indi[:seats].to_i.positive? ? number_to_thb((indi[:amount].to_f / indi[:seats]).round(2)) : "—" %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card--accent-left">
+    <div class="card__header">
+      <h3 class="card__title"><i class="bi bi-tag" aria-hidden="true"></i> Promotion Analysis (Top 5)</h3>
+    </div>
+    <div class="card__body">
+      <% if promo_rows.any? %>
+        <div class="data-table-wrap data-table-wrap--accent">
+          <table class="data-table" role="table" aria-label="Promotion analysis">
+            <colgroup>
+              <col class="col-xl">
+              <col class="col-sm">
+              <col class="col-sm">
+              <col class="col-md">
+              <col class="col-sm">
+              <col class="col-md">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Promotion</th>
+                <th scope="col" class="cell--center">Type</th>
+                <th scope="col" class="cell--num">Uses (#)</th>
+                <th scope="col" class="cell--num">Discount total</th>
+                <th scope="col" class="cell--num">Net share %</th>
+                <th scope="col" class="cell--num">Avg discount/seat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% promo_rows.each do |r| %>
+                <tr>
+                  <td class="cell--truncate" title="<%= r[:promotion_name] %>"><%= r[:promotion_name] %></td>
+                  <td class="cell--center"><span class="badge badge--neutral"><%= promo_type_label.call(r[:promotion_type]) %></span></td>
+                  <td class="cell--num"><%= r[:seats_used] %></td>
+                  <td class="cell--num"><%= number_to_thb(r[:discount_cost]) %></td>
+                  <td class="cell--num"><%= r[:net_revenue_share_pct].nil? ? "—" : "#{r[:net_revenue_share_pct]}%" %></td>
+                  <td class="cell--num"><%= number_to_thb(r[:avg_discount_per_seat].to_f) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state empty-state--sm">
+          <p class="empty-state__hint">No promotions used in this class. Add promotions to see analysis.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

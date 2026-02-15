@@ -1,0 +1,138 @@
+<%
+  register_url = local_assigns[:register_url]
+  doc_filter = local_assigns[:doc_filter].to_s.presence
+  status_filter = params[:doc_status].to_s.presence || "all"
+  payment_filter = params[:doc_payment].to_s.presence || "all"
+  q = params[:doc_q].to_s.presence
+  export_path = export_documents_admin_training_class_attendees_path(@training_class)
+%>
+<div class="card card--accent-left">
+  <div class="card__header">
+    <h3 class="card__title"><i class="bi bi-table" aria-hidden="true"></i> Document Register</h3>
+  </div>
+  <div class="card__body">
+    <div class="filters filters--compact documents-register-filters">
+      <%= form_with url: admin_training_class_path(@training_class), method: :get, local: true, data: { turbo_frame: "_top" }, class: "filters__form" do |f| %>
+        <%= hidden_field_tag :tab, "documents" %>
+        <%= hidden_field_tag :mode, "register" %>
+        <div class="filters__row">
+          <div class="filters__group">
+            <label class="filters__label">Status</label>
+            <%= select_tag :doc_status, options_for_select([["All", "all"], ["Complete", "complete"], ["Missing", "missing"]], status_filter), class: "filters__input", aria: { label: "Filter by status" } %>
+          </div>
+          <div class="filters__group">
+            <label class="filters__label">Payment</label>
+            <%= select_tag :doc_payment, options_for_select([["All", "all"], ["Paid", "paid"], ["Pending", "pending"]], payment_filter), class: "filters__input", aria: { label: "Filter by payment" } %>
+          </div>
+          <div class="filters__group">
+            <label class="filters__label">Doc</label>
+            <%= select_tag :doc_filter, options_for_select([["All", ""], ["Missing QT", "missing_qt"], ["Missing Invoice", "missing_invoice"], ["Missing Receipt", "missing_receipt"], ["Missing Slip", "missing_slip"]], doc_filter), class: "filters__input", aria: { label: "Filter by document" } %>
+          </div>
+          <div class="filters__group">
+            <label class="filters__label">Search</label>
+            <%= text_field_tag :doc_q, q, class: "filters__input", placeholder: "Customer", aria: { label: "Search customer" } %>
+          </div>
+          <div class="filters__actions">
+            <button type="submit" class="btn btn--secondary btn--sm">Apply</button>
+            <%= link_to "Clear", admin_training_class_path(@training_class, tab: "documents", mode: "register"), class: "btn btn--ghost btn--sm", aria: { label: "Clear filters" } %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="documents-register-bulk">
+      <span class="documents-register-bulk__count" id="doc-selected-count" aria-live="polite">0 selected</span>
+      <button type="button" class="btn btn--secondary btn--sm" id="doc-export-selected-btn" aria-label="Export selected to Excel">Export selected</button>
+    </div>
+
+    <div class="data-table-wrap data-table-wrap--accent">
+      <table class="data-table" id="documents-table" role="table" aria-label="Document Register">
+        <colgroup>
+          <col class="col-xs">
+          <col class="col-xs">
+          <col class="col-lg">
+          <col class="col-sm">
+          <col class="col-sm">
+          <col class="col-sm">
+          <col class="col-sm">
+          <col class="col-sm">
+          <col class="col-md">
+          <col class="col-sm">
+          <col class="col-sm">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col" class="cell--center">
+              <input type="checkbox" id="doc-select-all" class="form-check-input" aria-label="Select all">
+            </th>
+            <th scope="col" class="cell--center">#</th>
+            <th scope="col">Customer</th>
+            <th scope="col" class="cell--center">QT no</th>
+            <th scope="col" class="cell--center">Invoice no</th>
+            <th scope="col" class="cell--center">Receipt no</th>
+            <th scope="col" class="cell--center">Slip</th>
+            <th scope="col" class="cell--center">Payment Date</th>
+            <th scope="col" class="cell--center">Tax info</th>
+            <th scope="col" class="cell--center">Status</th>
+            <th scope="col" class="cell-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @attendees.each_with_index do |attendee, index| %>
+            <% name_has_thai = attendee.name.to_s.match?(/\p{Thai}/) %>
+            <tr class="doc-row"
+                data-update-url="<%= admin_training_class_attendee_path(@training_class, attendee) %>"
+                data-attendee-name="<%= attendee.name %>"
+                data-quotation-no="<%= attendee.quotation_no.to_s %>"
+                data-invoice-no="<%= attendee.invoice_no.to_s %>"
+                data-receipt-no="<%= attendee.receipt_no.to_s %>"
+                data-slip-filenames="<%= attendee.payment_slips.attached? ? attendee.payment_slips.map(&:filename).join('|') : '' %>"
+                data-slip-urls="<%= attendee.payment_slips.attached? ? attendee.payment_slips.map { |s| rails_blob_path(s, disposition: 'inline') }.join('|') : '' %>"
+                data-slip-count="<%= attendee.payment_slips.size %>"
+                data-name-thai="<%= attendee.name_thai.to_s %>"
+                data-tax-id="<%= attendee.tax_id.to_s %>"
+                data-address="<%= attendee.address.to_s.gsub('"', '&quot;').tr("\n", " ") %>"
+                data-name-thai-prefill="<%= name_has_thai ? attendee.name : '' %>"
+                data-payment-date="<%= attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%Y-%m-%d") : '' %>">
+              <td class="cell--center">
+                <input type="checkbox" class="form-check-input doc-export-checkbox" value="<%= attendee.id %>" aria-label="Select <%= attendee.name %>">
+              </td>
+              <td class="cell--center cell--num"><%= index + 1 %></td>
+              <td class="cell--truncate" title="<%= attendee.name %>">
+                <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "doc-name-link", title: attendee.name do %><%= attendee.name %><% end %>
+              </td>
+              <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข" role="button" tabindex="0"><%= attendee.quotation_no.presence || "—" %></td>
+              <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข" role="button" tabindex="0"><%= attendee.invoice_no.presence || "—" %></td>
+              <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข" role="button" tabindex="0"><%= attendee.receipt_no.presence || "—" %></td>
+              <td class="cell--center doc-slip-cell" data-edit-section="payment-slip" title="<%= attendee.payment_slips.attached? ? 'Click to view or add slips' : 'Click to upload or drag file here' %>" role="button" tabindex="0">
+                <% if attendee.payment_slips.attached? && attendee.payment_slips.any? %>
+                  <span class="doc-slip-badge doc-slip-pill" title="<%= attendee.payment_slips.size %> file(s)"><i class="bi bi-check-circle-fill doc-slip-icon" aria-hidden="true"></i><span class="doc-slip-count"><%= attendee.payment_slips.size %></span></span>
+                <% else %>
+                  <span class="doc-slip-upload-hint text-muted"><i class="bi bi-upload" aria-hidden="true"></i></span>
+                <% end %>
+              </td>
+              <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="payment-date" title="Click to edit" role="button" tabindex="0"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
+              <td class="cell--center cell--truncate" title="<%= attendee.tax_id.presence || attendee.name_thai.presence || "—" %>"><%= attendee.tax_id.presence || attendee.name_thai.presence || "—" %></td>
+              <td class="cell--center">
+                <% doc_complete = attendee.quotation_no.present? && attendee.invoice_no.present? && (attendee.payment_status != "Paid" || attendee.receipt_no.present?) %>
+                <% if doc_complete %>
+                  <span class="badge badge--success">Complete</span>
+                <% else %>
+                  <span class="badge badge--warning">Missing</span>
+                <% end %>
+              </td>
+              <td class="cell-actions">
+                <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "icon-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                <% if attendee.payment_slips.attached? %>
+                  <% attendee.payment_slips.first(1).each do |slip| %>
+                    <%= link_to rails_blob_path(slip, disposition: "inline"), target: "_blank", class: "icon-btn", title: "View slip", aria: { label: "View slip" } do %><i class="bi bi-receipt" aria-hidden="true"></i><% end %>
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

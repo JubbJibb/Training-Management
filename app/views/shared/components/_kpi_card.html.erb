@@ -1,0 +1,21 @@
+<%
+  label = local_assigns[:label]
+  value = local_assigns[:value]
+  sub = local_assigns[:sub]
+  icon = local_assigns[:icon]
+  variant = local_assigns[:variant] # "danger", "success", "neutral"
+  card_class = "dashboard-kpi-card"
+  card_class += " dashboard-kpi-card--#{variant}" if variant.present?
+%>
+<div class="<%= card_class %>" role="figure" aria-label="<%= label %>">
+  <div class="dashboard-kpi-card__head">
+    <% if icon.present? %>
+      <span class="dashboard-kpi-card__icon" aria-hidden="true"><i class="bi bi-<%= icon %>"></i></span>
+    <% end %>
+    <span class="dashboard-kpi-card__label"><%= label %></span>
+  </div>
+  <span class="dashboard-kpi-card__value"><%= value %></span>
+  <% if sub.present? %>
+    <span class="dashboard-kpi-card__sub"><%= sub %></span>
+  <% end %>
+</div>

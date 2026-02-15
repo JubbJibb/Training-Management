@@ -2,46 +2,43 @@
 
 <%= render "components/odt/page_header", title: "Financial Dashboard", subtitle: "ภาพรวมรายได้ · Cash Flow · งานที่ต้องทำ", icon: "cash-coin" %>
 
-<%# Filters %>
-<%= odt_card(title: "Filters", icon: "funnel", extra_class: "odt-section") do %>
-  <%= form_with url: admin_finance_index_path, method: :get, local: true, class: "row g-3 align-items-end" do |f| %>
-    <div class="col-12 col-md-2">
-      <label class="form-label small">Date from</label>
-      <input type="date" name="date_from" class="form-control form-control-sm" value="<%= params[:date_from] %>">
-    </div>
-    <div class="col-12 col-md-2">
-      <label class="form-label small">Date to</label>
-      <input type="date" name="date_to" class="form-control form-control-sm" value="<%= params[:date_to] %>">
-    </div>
-    <div class="col-12 col-md-3">
-      <label class="form-label small">Class</label>
-      <select name="training_class_id" class="form-select form-select-sm">
-        <option value="">All classes</option>
-        <% @training_classes.each do |tc| %>
-          <option value="<%= tc.id %>" <%= "selected" if params[:training_class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
-        <% end %>
-      </select>
-    </div>
-    <div class="col-12 col-md-2">
-      <label class="form-label small">Type</label>
-      <select name="type" class="form-select form-select-sm">
-        <option value="">All</option>
-        <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
-        <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
-      </select>
-    </div>
-    <div class="col-12 col-md-3 d-flex gap-2 flex-wrap">
-      <%= odt_button("Apply", variant: :primary, size: :sm, type: "submit") %>
-      <%= odt_button("Clear", variant: :secondary, size: :sm, href: admin_finance_index_path) %>
-      <%= odt_button("Export CSV", variant: :secondary, size: :sm, href: admin_finance_index_path(format: :csv, **params.permit(:date_from, :date_to, :training_class_id, :type).to_h), icon_left: "download") %>
-    </div>
-  <% end %>
+<%= render "components/odt/filters_row", form_url: admin_finance_index_path, form_method: :get do %>
+  <div class="odt-filters-row__field">
+    <label for="admin_finance_date_from" class="odt-filters-row__label">Date from</label>
+    <input type="date" name="date_from" id="admin_finance_date_from" class="odt-filters-row__input" value="<%= params[:date_from] %>">
+  </div>
+  <div class="odt-filters-row__field">
+    <label for="admin_finance_date_to" class="odt-filters-row__label">Date to</label>
+    <input type="date" name="date_to" id="admin_finance_date_to" class="odt-filters-row__input" value="<%= params[:date_to] %>">
+  </div>
+  <div class="odt-filters-row__field">
+    <label for="admin_finance_training_class_id" class="odt-filters-row__label">Class</label>
+    <select name="training_class_id" id="admin_finance_training_class_id" class="odt-filters-row__input">
+      <option value="">All classes</option>
+      <% @training_classes.each do |tc| %>
+        <option value="<%= tc.id %>" <%= "selected" if params[:training_class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+      <% end %>
+    </select>
+  </div>
+  <div class="odt-filters-row__field">
+    <label for="admin_finance_type" class="odt-filters-row__label">Type</label>
+    <select name="type" id="admin_finance_type" class="odt-filters-row__input">
+      <option value="">All</option>
+      <option value="Corp" <%= "selected" if params[:type] == "Corp" %>>Corporate</option>
+      <option value="Indi" <%= "selected" if params[:type] == "Indi" %>>Individual</option>
+    </select>
+  </div>
+  <div class="odt-filters-row__actions">
+    <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+    <%= link_to "Clear", admin_finance_index_path, class: "odt-filters-row__btn odt-filters-row__btn--secondary" %>
+    <%= link_to admin_finance_index_path(format: :csv, **params.permit(:date_from, :date_to, :training_class_id, :type).to_h), class: "odt-filters-row__btn odt-filters-row__btn--secondary" do %>
+      <i class="bi bi-download" aria-hidden="true"></i> Export CSV
+    <% end %>
+  </div>
 <% end %>
 
-<%# SECTION 1: Revenue Structure – stacked rows in Card %>
-<div class="odt-section">
-  <div class="row">
-    <div class="col-12 col-lg-6">
+<div class="odt-section odt-finance-two-col">
+  <div class="odt-finance-two-col__block">
       <%= odt_card(title: "Revenue Structure", icon: "graph-up") do %>
         <div class="odt-stack">
           <div class="odt-stack-row">
@@ -66,10 +63,8 @@
           </div>
         </div>
       <% end %>
-    </div>
-
-    <%# SECTION 2: Cash Flow %>
-    <div class="col-12 col-lg-6">
+  </div>
+  <div class="odt-finance-two-col__block">
       <%= odt_card(title: "Cash Flow", icon: "wallet2") do %>
         <div class="odt-stack">
           <div class="odt-stack-row">
@@ -86,11 +81,9 @@
           </div>
         </div>
       <% end %>
-    </div>
   </div>
 </div>
 
-<%# SECTION 3: Cost & Profit %>
 <div class="odt-section">
   <%= odt_card(title: "Cost & Profit", icon: "currency-dollar") do %>
     <div class="odt-stack">
@@ -106,12 +99,11 @@
   <% end %>
 </div>
 
-<%# Action Required %>
 <div class="odt-section">
-  <h5 class="mb-2"><i class="bi bi-list-check"></i> Action Required</h5>
-  <div class="row g-2 g-lg-3">
-    <div class="col-6 col-md-4 col-lg">
-      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "pending_qt")), class: "text-decoration-none" do %>
+  <%= render "components/odt/section_header", title: "Action Required", subtitle: "Pending QT, unpaid INV, overdue, receipts, due this week" %>
+  <div class="odt-finance-action-grid">
+    <div class="odt-finance-action-grid__item">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "pending_qt")), class: "odt-finance-action-card-link" do %>
         <%= odt_card(hoverable: true, extra_class: "action-card border-warning h-100") do %>
           <div class="text-center py-2">
             <span class="bi bi-file-earmark-text text-warning fs-4"></span>
@@ -121,8 +113,8 @@
         <% end %>
       <% end %>
     </div>
-    <div class="col-6 col-md-4 col-lg">
-      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "inv_unpaid")), class: "text-decoration-none" do %>
+    <div class="odt-finance-action-grid__item">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "inv_unpaid")), class: "odt-finance-action-card-link" do %>
         <%= odt_card(hoverable: true, extra_class: "action-card border-info h-100") do %>
           <div class="text-center py-2">
             <span class="bi bi-file-earmark-text text-info fs-4"></span>
@@ -132,8 +124,8 @@
         <% end %>
       <% end %>
     </div>
-    <div class="col-6 col-md-4 col-lg">
-      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "overdue")), class: "text-decoration-none" do %>
+    <div class="odt-finance-action-grid__item">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "overdue")), class: "odt-finance-action-card-link" do %>
         <%= odt_card(hoverable: true, extra_class: "action-card border-danger h-100") do %>
           <div class="text-center py-2">
             <span class="bi bi-exclamation-triangle text-danger fs-4"></span>
@@ -143,8 +135,8 @@
         <% end %>
       <% end %>
     </div>
-    <div class="col-6 col-md-4 col-lg">
-      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "paid_no_receipt")), class: "text-decoration-none" do %>
+    <div class="odt-finance-action-grid__item">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "paid_no_receipt")), class: "odt-finance-action-card-link" do %>
         <%= odt_card(hoverable: true, extra_class: "action-card border-secondary h-100") do %>
           <div class="text-center py-2">
             <span class="bi bi-receipt text-secondary fs-4"></span>
@@ -154,8 +146,8 @@
         <% end %>
       <% end %>
     </div>
-    <div class="col-6 col-md-4 col-lg">
-      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "due_this_week")), class: "text-decoration-none" do %>
+    <div class="odt-finance-action-grid__item">
+      <%= link_to admin_finance_index_path(request.query_parameters.except("action_list").merge("action_list" => "due_this_week")), class: "odt-finance-action-card-link" do %>
         <%= odt_card(hoverable: true, extra_class: "action-card border-primary h-100") do %>
           <div class="text-center py-2">
             <span class="bi bi-calendar-week text-primary fs-4"></span>
@@ -175,25 +167,25 @@
       <%= odt_table do %>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Class</th>
-              <th>Company</th>
-              <th class="odt-table-numeric">Amount</th>
-              <th>Due</th>
-              <th>Payment Date</th>
-              <th>Doc</th>
+              <th class="odt-th col-lg"><span class="th-inner">Name</span></th>
+              <th class="odt-th col-lg"><span class="th-inner">Class</span></th>
+              <th class="odt-th col-md"><span class="th-inner">Company</span></th>
+              <th class="odt-th col-sm num"><span class="th-inner">Amount</span></th>
+              <th class="odt-th col-sm"><span class="th-inner">Due</span></th>
+              <th class="odt-th col-sm"><span class="th-inner">Payment Date</span></th>
+              <th class="odt-th col-xs"><span class="th-inner">Doc</span></th>
             </tr>
           </thead>
           <tbody>
             <% @action_list_attendees.each do |a| %>
               <tr>
-                <td><%= link_to a.name, edit_admin_training_class_attendee_path(a.training_class, a) %></td>
-                <td><%= a.training_class.title %></td>
-                <td><%= a.customer&.company_name || a.company || "—" %></td>
-                <td class="odt-table-numeric">฿<%= number_with_delimiter(a.total_final_price.round(2), delimiter: ",") %></td>
-                <td><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
-                <td><%= a.display_payment_date.present? ? a.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
-                <td><%= a.document_status || "—" %></td>
+                <td class="col-lg cell-stack"><span class="cell-stack__primary"><%= link_to a.name, edit_admin_training_class_attendee_path(a.training_class, a) %></span></td>
+                <td class="col-lg truncate"><%= a.training_class.title %></td>
+                <td class="col-md truncate"><%= a.customer&.company_name || a.company || "—" %></td>
+                <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(a.total_final_price.round(2), delimiter: ",") %></td>
+                <td class="col-sm truncate"><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
+                <td class="col-sm truncate"><%= a.display_payment_date.present? ? a.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
+                <td class="col-xs truncate"><%= a.document_status || "—" %></td>
               </tr>
             <% end %>
           </tbody>
@@ -209,25 +201,25 @@
       <%= odt_table do %>
         <thead>
           <tr>
-            <th>Company</th>
-            <th class="odt-table-numeric">Gross</th>
-            <th class="odt-table-numeric">Discount</th>
-            <th class="odt-table-numeric">Net</th>
-            <th class="odt-table-numeric">Paid</th>
-            <th class="odt-table-numeric">Outstanding</th>
-            <th>Status</th>
+            <th class="odt-th col-xl"><span class="th-inner">Company</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Gross</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Discount</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Net</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Paid</span></th>
+            <th class="odt-th col-sm num"><span class="th-inner">Outstanding</span></th>
+            <th class="odt-th col-xs"><span class="th-inner">Status</span></th>
           </tr>
         </thead>
         <tbody>
           <% @corporate_billing.each do |b| %>
             <tr>
-              <td><strong><%= b[:company] %></strong></td>
-              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:gross].round(2), delimiter: ",") %></td>
-              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:discount].round(2), delimiter: ",") %></td>
-              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:net].round(2), delimiter: ",") %></td>
-              <td class="odt-table-numeric">฿<%= number_with_delimiter(b[:paid].round(2), delimiter: ",") %></td>
-              <td class="odt-table-numeric"><strong>฿<%= number_with_delimiter(b[:outstanding].round(2), delimiter: ",") %></strong></td>
-              <td><%= odt_badge(b[:status], status: b[:status] == "Paid" ? :paid : :pending) %></td>
+              <td class="col-xl truncate"><span class="cell-stack__primary"><%= b[:company] %></span></td>
+              <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(b[:gross].round(2), delimiter: ",") %></td>
+              <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(b[:discount].round(2), delimiter: ",") %></td>
+              <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(b[:net].round(2), delimiter: ",") %></td>
+              <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(b[:paid].round(2), delimiter: ",") %></td>
+              <td class="col-sm odt-table-numeric num"><strong>฿<%= number_with_delimiter(b[:outstanding].round(2), delimiter: ",") %></strong></td>
+              <td class="col-xs"><%= odt_badge(b[:status], status: b[:status] == "Paid" ? :paid : :pending) %></td>
             </tr>
           <% end %>
         </tbody>

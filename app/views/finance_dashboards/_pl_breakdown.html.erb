@@ -1,0 +1,20 @@
+<%
+  s = summary
+  derived_cost = (s[:profit_before_vat].present? && s[:net_before_vat].present?) ? (s[:net_before_vat] - s[:profit_before_vat]) : nil
+  rows = [
+    { line: "Gross sales", amount: number_to_thb(s[:gross_sales]) },
+    { line: "Less: Discounts", amount: "−#{number_to_thb(s[:discount_total])}" },
+    { line: "Net revenue (before VAT)", amount: number_to_thb(s[:net_before_vat]) },
+    { line: "VAT", amount: number_to_thb(s[:vat_amount]) },
+    { line: "Total revenue (incl VAT)", amount: number_to_thb(s[:total_incl_vat]) },
+    { line: "Cost (training)", amount: derived_cost.nil? ? "—" : number_to_thb(derived_cost) },
+    { line: "Net profit", amount: s[:profit_before_vat].nil? ? "—" : number_to_thb(s[:profit_before_vat]) }
+  ]
+  columns = [
+    { key: :line, label: "Line", width: "60%" },
+    { key: :amount, label: "Amount", width: "40%", align: "right" }
+  ]
+%>
+<%= render layout: "shared/components/dashboard_card", locals: { title: "P&L breakdown", icon: "calculator", extra_class: "finance-pl-breakdown" } do %>
+  <%= render "shared/components/compact_table", columns: columns, rows: rows, aria_label: "Profit and loss breakdown" %>
+<% end %>

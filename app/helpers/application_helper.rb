@@ -1,22 +1,32 @@
 module ApplicationHelper
   include Odt::UiHelper
 
-  # Returns "nav-link active" or "nav-link" for navbar.
-  # tab_name: admin | finance | cfo | training_classes | customers | courses | exports | settings
+  # Returns "nav-link active" or "nav-link" for navbar (legacy flat nav).
   def nav_class(tab_name)
     base = "nav-link"
-    active = case tab_name.to_s
+    active = nav_active?(tab_name.to_s)
+    active ? "#{base} active" : base
+  end
+
+  # Returns "active" or "" for dropdown parent (executive IA).
+  # section: insights | operations | clients | financials | strategy | settings
+  def nav_active?(section)
+    path = request.path
+    case section.to_s
+    when "insights" then path.start_with?("/insights")
+    when "operations" then path.start_with?("/admin/training_classes") || path.start_with?("/admin/courses") || path.start_with?("/instructors") || path.start_with?("/training_classes") || path.start_with?("/courses")
+    when "clients" then path.start_with?("/admin/customers") || path.start_with?("/customers") || path.start_with?("/clients") || (path.start_with?("/admin/customers") && params[:segment].present?)
+    when "financials" then path.start_with?("/finance") || path.start_with?("/finance_dashboard") || controller.controller_path == "admin/finance" || controller.controller_path == "admin/exports" || controller.controller_path == "admin/expenses" || controller.controller_path == "admin/compliance" || controller.controller_path == "finance_dashboards"
+    when "strategy" then controller.controller_path == "admin/settings" || path.start_with?("/promotions")
+    when "settings" then controller.controller_path == "admin/settings"
     when "admin" then controller.controller_path == "admin/dashboard"
-    when "finance" then controller.controller_path == "admin/finance"
     when "cfo" then controller.controller_path == "finance_dashboards"
     when "training_classes" then %w[admin/training_classes admin/attendees admin/class_expenses].include?(controller.controller_path)
     when "customers" then controller.controller_path == "admin/customers"
     when "courses" then controller.controller_path == "admin/courses"
     when "exports" then controller.controller_path == "admin/exports"
-    when "settings" then controller.controller_path == "admin/settings"
     else false
-    end
-    active ? "#{base} active" : base
+    end ? "active" : ""
   end
 
   # Format number as Thai Baht (e.g. ฿1,234.56)

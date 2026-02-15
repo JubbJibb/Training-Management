@@ -1,0 +1,36 @@
+<%
+  rows = (summary[:breakdown_by_course] || []).first(10)
+%>
+<section class="foh-course-section" aria-label="Revenue by course">
+  <h2 class="foh-section-title">Revenue by Course (Top 10)</h2>
+  <% if rows.any? %>
+    <%= odt_table(extra_class: "foh-course-table-wrap") do %>
+      <thead>
+        <tr>
+          <th class="odt-th"><span class="th-inner">Course</span></th>
+          <th class="odt-th num"><span class="th-inner">Seats</span></th>
+          <th class="odt-th num"><span class="th-inner">Net</span></th>
+          <th class="odt-th num"><span class="th-inner">Cash</span></th>
+          <th class="odt-th num"><span class="th-inner">AR</span></th>
+          <th class="odt-th num"><span class="th-inner">Profit</span></th>
+          <th class="odt-th num"><span class="th-inner">Margin %</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.each do |row| %>
+          <tr>
+            <td class="truncate" title="<%= row[:course] %>"><%= row[:course] %></td>
+            <td class="num"><%= row[:seats_sold] %></td>
+            <td class="num"><%= number_to_thb(row[:net_before_vat]) %></td>
+            <td class="num"><%= number_to_thb(row[:cash_received]) %></td>
+            <td class="num"><%= number_to_thb(row[:outstanding]) %></td>
+            <td class="num"><%= number_to_thb(row[:profit]) %></td>
+            <td class="num"><%= row[:margin_pct].nil? ? "—" : "#{row[:margin_pct]}%" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    <% end %>
+  <% else %>
+    <p class="foh-section-empty">No course data.</p>
+  <% end %>
+</section>

@@ -3,72 +3,74 @@
   segment = local_assigns[:segment].to_s.presence || "all"
   sort = local_assigns[:sort].to_s.presence
   direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
-  colspan_empty = 9
   base_params = { q: params[:q].to_s.presence, segment: segment, top_n: params[:top_n].to_s.presence }.compact
 %>
-<div class="table-wrap table-responsive table-modern-wrap customer-table-wrap customer-table-wrap--fixed-height">
-  <table class="table data-table table-hover table-sortable-filterable customer-table" aria-label="Customers">
-    <colgroup>
-      <col style="width: 33%; min-width: 160px;">
-      <col style="width: 5%; min-width: 52px;">
-      <col style="width: 6%; min-width: 58px;">
-      <col style="width: 8%; min-width: 78px;">
-      <col style="width: 11%; min-width: 95px;">
-      <col style="width: 11%; min-width: 95px;">
-      <col style="width: 5%; min-width: 52px;">
-      <col style="width: 11%; min-width: 88px;">
-      <col style="width: 10%; min-width: 76px;">
-    </colgroup>
-    <thead>
-      <tr>
-        <th class="customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "customer", direction: (sort == "customer" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Customer<% if sort == "customer" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
+<div class="tc-index-content">
+  <% if customers.any? %>
+    <div class="tc-index-saas-table-wrap">
+      <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Customers">
+        <colgroup>
+          <col style="width: 30%;">
+          <col style="width: 7%;">
+          <col style="width: 7%;">
+          <col style="width: 9%;">
+          <col style="width: 11%;">
+          <col style="width: 11%;">
+          <col style="width: 6%;">
+          <col style="width: 11%;">
+          <col style="width: 8%;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col" class="tc-saas-th tc-saas-th--customer">
+              <%= link_to admin_customers_path(base_params.merge(sort: "customer", direction: (sort == "customer" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Customer<% if sort == "customer" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--center">
+              <%= link_to admin_customers_path(base_params.merge(sort: "type", direction: (sort == "type" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Type<% if sort == "type" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--center">
+              <%= link_to admin_customers_path(base_params.merge(sort: "times_attended", direction: (sort == "times_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Times attended<% if sort == "times_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th">
+              <%= link_to admin_customers_path(base_params.merge(sort: "last_attended", direction: (sort == "last_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Last attended<% if sort == "last_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--num">
+              <%= link_to admin_customers_path(base_params.merge(sort: "total_spent", direction: (sort == "total_spent" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Total spent (Net)<% if sort == "total_spent" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--num">
+              <%= link_to admin_customers_path(base_params.merge(sort: "outstanding", direction: (sort == "outstanding" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Outstanding<% if sort == "outstanding" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--center">
+              <%= link_to admin_customers_path(base_params.merge(sort: "seats_total", direction: (sort == "seats_total" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
+                Seats<% if sort == "seats_total" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--center">Billing &amp; Tax</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% customers.each do |c| %>
+            <%= render "admin/customers/row", customer: c, segment: segment, sort: sort, direction: direction, base_params: base_params %>
           <% end %>
-        </th>
-        <th class="customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "type", direction: (sort == "type" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Type<% if sort == "type" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="text-center customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "times_attended", direction: (sort == "times_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Times attended<% if sort == "times_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "last_attended", direction: (sort == "last_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Last attended<% if sort == "last_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="text-end customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "total_spent", direction: (sort == "total_spent" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Total spent (Net)<% if sort == "total_spent" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="text-end customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "outstanding", direction: (sort == "outstanding" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Outstanding<% if sort == "outstanding" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="text-center customer-table__th-sortable">
-          <%= link_to admin_customers_path(base_params.merge(sort: "seats_total", direction: (sort == "seats_total" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "customer-table__sort-link" do %>
-            <span class="th-inner">Seats total<% if sort == "seats_total" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill customer-table__sort-icon"></i><% end %></span>
-          <% end %>
-        </th>
-        <th class="text-center customer-table__th-docs"><span class="th-inner">Billing &amp; Tax</span></th>
-        <th class="text-end actions-col"><span class="th-inner">Actions</span></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% customers.each do |c| %>
-        <%= render "admin/customers/row", customer: c, segment: segment, sort: sort, direction: direction, base_params: base_params %>
-      <% end %>
-      <% if customers.empty? %>
-        <tr>
-          <td colspan="<%= colspan_empty %>" class="text-center text-muted py-4">ไม่พบข้อมูล</td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="tc-index-empty">
+      <%= render "shared/empty_state", message: "ไม่พบข้อมูล", icon: "people" %>
+    </div>
+  <% end %>
 </div>

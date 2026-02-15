@@ -30,59 +30,25 @@
 %>
 
 <div class="class-detail-page">
-  <div class="class-detail-header">
-    <%= odt_button("Back to Classes", variant: :secondary, size: :md, icon_left: "arrow-left", href: admin_training_classes_path, class: "class-detail-header__back") %>
-    <div class="class-detail-header__row">
-      <div class="class-detail-header__title-wrap">
-        <h1 class="class-detail-header__title odt-page-header__title"><i class="bi bi-calendar-event" aria-hidden="true"></i> <%= @training_class.title %></h1>
-        <% if subtitle_text.present? %>
-          <p class="class-detail-header__subtitle odt-page-header__subtitle"><%= subtitle_text %></p>
-        <% end %>
-        <div class="class-detail-header__meta">
-          <%= odt_badge(class_status, variant: class_status == "Upcoming" ? :info : (class_status == "Ongoing" ? :success : :neutral), size: :sm) %>
-          <span class="class-detail-header__meta-item">
-            <i class="bi bi-people"></i> <%= registered_seats %>/<%= max_seats.positive? ? max_seats : "—" %> seats
-          </span>
-          <% if revenue_capacity.positive? %>
-            <span class="class-detail-header__meta-item">Revenue capacity <%= number_to_thb(revenue_capacity) %></span>
-          <% end %>
-          <% if collection_rate_pct.present? %>
-            <span class="class-detail-header__meta-item">Collection rate <%= number_to_percent(collection_rate_pct) %></span>
-          <% end %>
-        </div>
-      </div>
-      <div class="class-detail-header__actions">
-        <%= odt_button("Edit", variant: :secondary, size: :md, icon_left: "pencil", href: edit_admin_training_class_path(@training_class)) %>
-        <%= button_to admin_training_class_path(@training_class), method: :delete,
-            data: { confirm: "Are you sure you want to delete this training class? This action cannot be undone." },
-            form: { style: "display: inline-block;" },
-            class: "odt-btn odt-btn--danger odt-btn--md" do %>
-          <i class="bi bi-trash odt-btn__icon odt-btn__icon--left"></i><span class="odt-btn__label">Delete</span>
-        <% end %>
-      </div>
-    </div>
-  </div>
+  <%= render "classes/class_header",
+      training_class: @training_class,
+      subtitle_text: subtitle_text,
+      class_status: class_status,
+      registered_seats: registered_seats,
+      max_seats: max_seats,
+      revenue_capacity: revenue_capacity,
+      collection_rate_pct: collection_rate_pct %>
 
-  <!-- 5 Tabs: Class Overview | Class Attendees | Potential Customers | Financial Documents | Financial Dashboard -->
-  <nav class="customer-tabs class-detail-tabs" aria-label="Class sections">
-    <div class="customer-tabs__inner" id="classTabs" role="tablist">
-      <button class="customer-tabs__tab active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-selected="true">
-        <i class="bi bi-info-circle"></i> Class Overview
-      </button>
-      <button class="customer-tabs__tab" id="attendees-tab" data-bs-toggle="tab" data-bs-target="#attendees" type="button" role="tab">
-        <i class="bi bi-people-fill"></i> Class Attendees
-      </button>
-      <button class="customer-tabs__tab" id="potential-tab" data-bs-toggle="tab" data-bs-target="#potential" type="button" role="tab">
-        <i class="bi bi-person-plus"></i> Potential Customers
-      </button>
-      <button class="customer-tabs__tab" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
-        <i class="bi bi-file-earmark-text"></i> Financial Documents
-      </button>
-      <button class="customer-tabs__tab" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">
-        <i class="bi bi-cash-coin"></i> Financial Dashboard
-      </button>
-    </div>
-  </nav>
+  <%= render "shared/tabs",
+      tabs: [
+        { id: "overview", label: "Class Overview", icon: "info-circle", target: "overview", active: true },
+        { id: "attendees", label: "Class Attendees", icon: "people-fill", target: "attendees", active: false },
+        { id: "potential", label: "Potential Customers", icon: "person-plus", target: "potential", active: false },
+        { id: "documents", label: "Financial Documents", icon: "file-earmark-text", target: "documents", active: false },
+        { id: "finance", label: "Financial Dashboard", icon: "cash-coin", target: "finance", active: false }
+      ],
+      aria_label: "Class sections",
+      extra_class: "class-detail-tabs" %>
 
   <div class="tab-content class-detail-tab-content" id="classTabsContent">
     <!-- Tab 1: Class Overview -->
@@ -210,97 +176,95 @@
 
     <!-- Tab 2: Class Attendees -->
     <div class="tab-pane fade" id="attendees" role="tabpanel" aria-labelledby="attendees-tab">
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-              <h6 class="mb-0">👥 Class Attendees (ผู้ลงทะเบียนแล้ว)</h6>
-              <div class="d-flex align-items-center gap-2">
-                <%= odt_button("Add Attendee", variant: :primary, size: :sm, icon_left: "plus-circle", href: new_admin_training_class_attendee_path(@training_class)) %>
-                <% if @attendees.any? %>
-                  <%= link_to mailto_all_attendees_link(@training_class),
-                      class: "btn btn-primary btn-sm",
-                      title: "Send Email to All Attendees (Opens Outlook)",
-                      target: "_blank" do %>
-                    <i class="bi bi-envelope"></i> Send Email to All
-                  <% end %>
+            <% attendees_actions = capture do %>
+              <%= render "shared/button", label: "Add Attendee", url: new_admin_training_class_attendee_path(@training_class), variant: "primary", size: "sm", icon_left: "plus-circle" %>
+              <% if @attendees.any? %>
+                <%= link_to mailto_all_attendees_link(@training_class), class: "btn btn--secondary btn--sm", title: "Send Email to All Attendees (Opens Outlook)", target: "_blank" do %>
+                  <i class="bi bi-envelope" aria-hidden="true"></i> Send Email to All
                 <% end %>
-              </div>
-            </div>
-            <% if @attendees.any? %>
-              <%= odt_table(extra_class: "attendees-table-wrap tc-class-attendees-wrap") do %>
-                <colgroup>
-                  <col class="col-num" style="width: 3%;">
-                  <col class="col-name" style="width: 15%;">
-                  <col class="col-company" style="width: 12%;">
-                  <col class="col-type" style="width: 5%;">
-                  <col class="col-seats" style="width: 5%;">
-                  <col class="col-channel" style="width: 7%;">
-                  <col class="col-payment" style="width: 7%;">
-                  <col class="col-payment-date" style="width: 9%;">
-                  <col class="col-amount" style="width: 17%;">
-                  <col class="col-note" style="width: 10%;">
-                  <col class="col-actions" style="width: 9%;">
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th class="text-center col-num"><span class="th-inner">#</span></th>
-                    <th class="col-name"><span class="th-inner">Name</span></th>
-                    <th class="col-company"><span class="th-inner">Company</span></th>
-                    <th class="text-center col-type"><span class="th-inner">Type</span></th>
-                    <th class="text-center col-seats"><span class="th-inner">Seats</span></th>
-                    <th class="col-channel"><span class="th-inner">Channel</span></th>
-                    <th class="col-payment"><span class="th-inner">Payment</span></th>
-                    <th class="col-payment-date text-center"><span class="th-inner">Payment Date</span></th>
-                    <th class="odt-table-numeric num col-amount"><span class="th-inner">Amount</span></th>
-                    <th class="col-note"><span class="th-inner">Note</span></th>
-                    <th class="text-end actions-col col-actions"><span class="th-inner">Actions</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% @attendees.each_with_index do |attendee, index| %>
-                    <%
-                      dropdown_items = [
-                        { label: "Quick Edit", icon: "pencil", url: "#", data: { bs_toggle: "modal", bs_target: "#quickEditModal#{attendee.id}" } },
-                        { label: "Move to Potential", icon: "arrow-right-circle", url: move_to_potential_admin_training_class_attendee_path(@training_class, attendee), method: "patch", confirm: "Move #{attendee.name} to Potential Customers?" }
-                      ]
-                      attendee.payment_slips.each do |slip|
-                        dropdown_items << { label: "View Slip: #{slip.filename}", icon: "file-earmark-image", url: rails_blob_path(slip, disposition: "inline"), target: "_blank" }
-                      end if attendee.payment_slips.attached?
-                      dropdown_items << { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(@training_class, attendee), method: "delete", confirm: "Remove #{attendee.name}?" }
-                    %>
-                    <tr>
-                      <td class="text-center col-num"><%= index + 1 %></td>
-                      <td class="col-name attendee-name-cell">
-                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "attendee-name-link text-decoration-none", title: "ดู/แก้ไขข้อมูล #{attendee.name}" do %>
-                          <span class="attendee-name-line"><strong><%= attendee.name %></strong></span>
-                          <% if attendee.email.present? %>
-                            <span class="attendee-email-line text-muted"><%= attendee.email %></span>
-                          <% end %>
-                        <% end %>
-                      </td>
-                      <td class="col-company attendee-company-cell"><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></td>
-                      <td class="col-type"><%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %></td>
-                      <td class="text-center col-seats"><%= attendee.seats || 1 %></td>
-                      <td class="col-channel"><%= attendee.source_channel || "—" %></td>
-                      <td class="col-payment"><%= odt_badge(attendee.payment_status || "Pending", status: (attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %></td>
-                      <td class="col-payment-date text-center no-wrap doc-payment-date-cell" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#quickEditModal<%= attendee.id %>" title="Click to edit"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
-                      <td class="num odt-amount-cell odt-table-numeric col-amount" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
-                        <%= odt_amount_cell(attendee.total_final_price, incl_vat: "incl. VAT") %>
-                      </td>
-                      <td class="col-note attendee-note-cell" title="<%= attendee.notes.present? ? attendee.notes.gsub('"', '&quot;').truncate(200) : '' %>">
-                        <% if attendee.notes.present? %>
-                          <span class="text-muted small"><%= truncate(attendee.notes, length: 40) %></span>
-                        <% else %>
-                          <span class="text-muted">—</span>
-                        <% end %>
-                      </td>
-                      <td class="text-end action-cell col-actions">
-                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "odt-icon-btn odt-icon-btn--primary me-1", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
-                        <%= link_to mailto_class_info_link(attendee), class: "odt-icon-btn odt-icon-btn--ghost me-1", title: "Email", target: "_blank" do %><i class="bi bi-envelope"></i><% end %>
-                        <%= odt_action_menu(items: dropdown_items, button_title: "More actions") %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
               <% end %>
+            <% end %>
+            <%= render "shared/section_header", title: "Class Attendees", subtitle: "ผู้ลงทะเบียนแล้ว", actions: attendees_actions %>
+            <% if @attendees.any? %>
+              <div class="tc-index-saas-table-wrap">
+                <table class="tc-index-saas-table" role="table" aria-label="Class Attendees">
+                  <colgroup>
+                    <col style="width: 4%;">
+                    <col style="width: 24%;">
+                    <col style="width: 7%;">
+                    <col style="width: 5%;">
+                    <col style="width: 9%;">
+                    <col style="width: 9%;">
+                    <col style="width: 9%;">
+                    <col style="width: 11%;">
+                    <col style="width: 12%;">
+                    <col style="width: 10%;">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th scope="col" class="tc-saas-th tc-saas-th--center">#</th>
+                      <th scope="col" class="tc-saas-th">Name</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--center">Type</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--center">Seats</th>
+                      <th scope="col" class="tc-saas-th">Channel</th>
+                      <th scope="col" class="tc-saas-th">Payment</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--center">Payment Date</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--num">Amount</th>
+                      <th scope="col" class="tc-saas-th">Note</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @attendees.each_with_index do |attendee, index| %>
+                      <%
+                        dropdown_items = [
+                          { label: "Quick Edit", icon: "pencil", url: "#", data: { bs_toggle: "modal", bs_target: "#quickEditModal#{attendee.id}" } },
+                          { label: "Move to Potential", icon: "arrow-right-circle", url: move_to_potential_admin_training_class_attendee_path(@training_class, attendee), method: "patch", confirm: "Move #{attendee.name} to Potential Customers?" }
+                        ]
+                        attendee.payment_slips.each do |slip|
+                          dropdown_items << { label: "View Slip: #{slip.filename}", icon: "file-earmark-image", url: rails_blob_path(slip, disposition: "inline"), target: "_blank" }
+                        end if attendee.payment_slips.attached?
+                        dropdown_items << { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(@training_class, attendee), method: "delete", confirm: "Remove #{attendee.name}?" }
+                      %>
+                      <tr class="tc-saas-tr">
+                        <td class="tc-saas-td tc-saas-td--center"><%= index + 1 %></td>
+                        <td class="tc-saas-td">
+                          <div class="tc-saas-class-cell">
+                            <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "tc-saas-class-link", title: "ดู/แก้ไขข้อมูล #{attendee.name}" do %>
+                              <span class="attendee-name-line"><strong><%= attendee.name %></strong></span>
+                              <% if attendee.email.present? %>
+                                <span class="tc-saas-class-meta attendee-email-line"><%= attendee.email %></span>
+                              <% end %>
+                            <% end %>
+                          </div>
+                        </td>
+                        <td class="tc-saas-td tc-saas-td--center"><%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %></td>
+                        <td class="tc-saas-td tc-saas-td--center"><%= attendee.seats || 1 %></td>
+                        <td class="tc-saas-td truncate" title="<%= attendee.source_channel || "—" %>"><%= attendee.source_channel || "—" %></td>
+                        <td class="tc-saas-td"><%= odt_badge(attendee.payment_status || "Pending", status: (attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %></td>
+                        <td class="tc-saas-td tc-saas-td--center truncate" role="button" tabindex="0" data-bs-toggle="modal" data-bs-target="#quickEditModal<%= attendee.id %>" title="Click to edit"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
+                        <td class="tc-saas-td tc-saas-td--num tc-saas-revenue" title="Before VAT: ฿<%= number_with_delimiter(attendee.total_price_before_vat, delimiter: ',') %> · VAT 7%: ฿<%= number_with_delimiter(attendee.total_vat_amount, delimiter: ',') %>">
+                          <%= odt_amount_cell(attendee.total_final_price, incl_vat: "incl. VAT") %>
+                        </td>
+                        <td class="tc-saas-td truncate" title="<%= attendee.notes.present? ? attendee.notes.gsub('"', '&quot;').truncate(200) : '' %>">
+                          <% if attendee.notes.present? %>
+                            <span class="text-muted small"><%= truncate(attendee.notes, length: 40) %></span>
+                          <% else %>
+                            <span class="text-muted">—</span>
+                          <% end %>
+                        </td>
+                        <td class="tc-saas-td tc-saas-td--actions">
+                          <div class="tc-saas-actions">
+                            <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                            <%= link_to mailto_class_info_link(attendee), class: "tc-saas-actions-btn", title: "Email", aria: { label: "Email" }, target: "_blank" do %><i class="bi bi-envelope" aria-hidden="true"></i><% end %>
+                            <%= odt_action_menu(items: dropdown_items, button_title: "More actions") %>
+                          </div>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
               
               <!-- Quick Edit Modals -->
               <% @attendees.each do |attendee| %>
@@ -425,61 +389,57 @@
                 </div>
               <% end %>
             <% else %>
-              <div class="text-center py-4">
-                <i class="bi bi-people display-4 text-muted"></i>
-                <p class="text-muted mt-3">No attendees registered yet.</p>
-                <%= link_to "Add First Attendee", new_admin_training_class_attendee_path(@training_class), class: "btn btn-primary" %>
-              </div>
+              <%= render "shared/empty_state",
+                  title: "No attendees registered yet.",
+                  hint: "Add your first attendee to get started.",
+                  icon: "people",
+                  cta_label: "Add First Attendee",
+                  cta_url: new_admin_training_class_attendee_path(@training_class),
+                  cta_primary: true %>
             <% end %>
           </div>
 
           <!-- Tab 3: Potential Customers -->
           <div class="tab-pane fade" id="potential" role="tabpanel" aria-labelledby="potential-tab" data-tab-id="potential">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="mb-0">🎯 Potential Customers (ลูกค้าที่มีศักยภาพ)</h6>
-              <div class="alert alert-info mb-0 py-2 px-3">
-                <i class="bi bi-info-circle"></i> Click "Move to Attendee" to convert potential customers to registered attendees
-              </div>
-            </div>
+            <%= render "shared/section_header",
+                title: "Potential Customers",
+                subtitle: "ลูกค้าที่มีศักยภาพ — Click \"Move to Attendee\" to convert to registered attendees",
+                actions: (render "shared/button", label: "Add Potential Customer", url: new_admin_training_class_attendee_path(@training_class), variant: "primary", size: "sm", icon_left: "person-plus") %>
             <% if @potential_customers.any? %>
-              <div class="table-wrap table-responsive table-modern-wrap">
-                <table class="table data-table table-hover table-sortable-filterable" aria-label="Potential customers">
+              <div class="tc-index-saas-table-wrap">
+                <table class="tc-index-saas-table" role="table" aria-label="Potential customers">
                   <colgroup>
-                    <col style="width: 14%;">
-                    <col style="width: 12%;">
-                    <col style="width: 6%;">
-                    <col style="width: 10%;">
+                    <col style="width: 30%;">
+                    <col style="width: 8%;">
                     <col style="width: 11%;">
-                    <col style="width: 16%;">
-                    <col style="width: 16%;">
-                    <col style="width: 15%; min-width: 110px;">
+                    <col style="width: 10%;">
+                    <col style="width: 15%;">
+                    <col style="width: 26%;">
                   </colgroup>
                   <thead>
                     <tr>
-                      <th><span class="th-inner">Name</span></th>
-                      <th><span class="th-inner">Company</span></th>
-                      <th><span class="th-inner">Type</span></th>
-                      <th><span class="th-inner">Channel</span></th>
-                      <th><span class="th-inner">Phone</span></th>
-                      <th><span class="th-inner">Email</span></th>
-                      <th><span class="th-inner">Notes</span></th>
-                      <th class="text-end actions-col"><span class="th-inner">Actions</span></th>
+                      <th scope="col" class="tc-saas-th">Name</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--center">Type</th>
+                      <th scope="col" class="tc-saas-th">Channel</th>
+                      <th scope="col" class="tc-saas-th">Phone</th>
+                      <th scope="col" class="tc-saas-th">Notes</th>
+                      <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% @potential_customers.each do |customer| %>
-                      <tr>
-                        <td class="truncate"><strong><%= customer.name %></strong></td>
-                        <td class="truncate"><%= customer.participant_type == "Corp" ? (customer.company || "—") : "—" %></td>
-                        <td><span class="badge badge-attendees <%= customer.participant_type == "Corp" ? "badge-type-corp" : "badge-type-indi" %>"><%= customer.participant_type || "Indi" %></span></td>
-                        <td class="truncate"><%= customer.source_channel || "—" %></td>
-                        <td class="truncate no-wrap"><%= customer.phone || "—" %></td>
-                        <td class="truncate"><%= customer.email %></td>
-                        <td class="truncate"><%= truncate(customer.notes, length: 30) || "—" %></td>
-                        <td class="text-end action-cell actions-col">
-                          <%= button_to move_to_attendee_admin_training_class_attendee_path(@training_class, customer), method: :patch, data: { turbo_confirm: "Move #{customer.name} to Class Attendees?" }, class: "btn btn-action border-0", form: { class: "d-inline" }, title: "Move to Attendees" do %><i class="bi bi-arrow-left-circle"></i><% end %>
-                          <%= link_to edit_admin_training_class_attendee_path(@training_class, customer), class: "btn btn-action", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
-                          <%= link_to admin_training_class_attendee_path(@training_class, customer), data: { turbo_method: :delete, turbo_confirm: "Remove?" }, class: "btn btn-action btn-action-danger", title: "Remove" do %><i class="bi bi-trash"></i><% end %>
+                      <tr class="tc-saas-tr">
+                        <td class="tc-saas-td"><strong><%= customer.name %></strong></td>
+                        <td class="tc-saas-td tc-saas-td--center"><%= odt_badge(customer.participant_type || "Indi", variant: (customer.participant_type == "Corp" ? :info : :neutral), size: :sm) %></td>
+                        <td class="tc-saas-td truncate" title="<%= customer.source_channel || "—" %>"><%= customer.source_channel || "—" %></td>
+                        <td class="tc-saas-td truncate" title="<%= customer.phone || "—" %>"><%= customer.phone || "—" %></td>
+                        <td class="tc-saas-td truncate" title="<%= truncate(customer.notes, length: 30) || "—" %>"><%= truncate(customer.notes, length: 30) || "—" %></td>
+                        <td class="tc-saas-td tc-saas-td--actions">
+                          <div class="tc-saas-actions">
+                            <%= button_to move_to_attendee_admin_training_class_attendee_path(@training_class, customer), method: :patch, data: { turbo_confirm: "Move #{customer.name} to Class Attendees?" }, form: { class: "d-inline" }, class: "tc-saas-actions-btn", title: "Move to Attendees", aria: { label: "Move to Attendees" } do %><i class="bi bi-arrow-left-circle" aria-hidden="true"></i><% end %>
+                            <%= link_to edit_admin_training_class_attendee_path(@training_class, customer), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                            <%= link_to admin_training_class_attendee_path(@training_class, customer), data: { turbo_method: :delete, turbo_confirm: "Remove?" }, class: "tc-saas-actions-btn tc-saas-actions-btn--danger", title: "Remove", aria: { label: "Remove" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+                          </div>
                         </td>
                       </tr>
                     <% end %>
@@ -487,190 +447,21 @@
                 </table>
               </div>
             <% else %>
-              <div class="text-center py-4">
-                <i class="bi bi-person-plus display-4 text-muted"></i>
-                <p class="text-muted mt-3">No potential customers yet.</p>
-                <%= link_to "Add Potential Customer", new_admin_training_class_attendee_path(@training_class), class: "btn btn-primary" %>
-              </div>
+              <%= render "shared/empty_state",
+                  title: "No potential customers yet.",
+                  hint: "Add leads to follow up and convert to attendees.",
+                  icon: "person-plus",
+                  cta_label: "Add Potential Customer",
+                  cta_url: new_admin_training_class_attendee_path(@training_class),
+                  cta_primary: true %>
             <% end %>
           </div>
 
-          <!-- Tab 4: Financial Documents -->
+          <!-- Tab 4: Financial Documents (refactored: Queue + Register modes, Export modal) -->
           <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-              <div class="dropdown">
-                <button type="button" class="btn btn-primary btn-sm" id="doc-export-btn" aria-haspopup="true" aria-expanded="false" data-bs-toggle="dropdown">
-                  <i class="bi bi-download me-1"></i> Export selected to Excel
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-3 doc-export-menu" style="min-width: 300px; max-height: 70vh; overflow-y: auto;" id="doc-export-menu">
-                  <p class="small fw-bold mb-2">Select fields to include:</p>
-                  <%= form_with url: export_documents_admin_training_class_attendees_path(@training_class), method: :get, local: true, id: "doc-export-form", target: "_blank", data: { doc_export_form: true } do |f| %>
-                    <div id="doc-export-attendee-ids"></div>
+            <%= render "admin/training_classes/documents_tab" %>
 
-                    <div class="doc-export-section">
-                      <p class="doc-export-section__title">ข้อมูลผู้สมัคร</p>
-                      <div class="row g-2 mb-2">
-                        <% %w[name email company name_thai tax_id address].each do |col| %>
-                          <div class="col-6">
-                            <label class="small d-flex align-items-center gap-1">
-                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
-                              <%= col == "name_thai" ? "Name (Thai)" : col.humanize %>
-                            </label>
-                          </div>
-                        <% end %>
-                      </div>
-                    </div>
-
-                    <div class="doc-export-section">
-                      <p class="doc-export-section__title">รายละเอียดการสมัคร</p>
-                      <div class="row g-2 mb-2">
-                        <% %w[class_name unit_price discount vat final_price].each do |col| %>
-                          <div class="col-6">
-                            <label class="small d-flex align-items-center gap-1">
-                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
-                              <%= col == "class_name" ? "Class" : (col == "unit_price" ? "ราคา/หัว" : (col == "discount" ? "ส่วนลด" : (col == "vat" ? "VAT" : (col == "final_price" ? "ราคา Final" : col.humanize)))) %>
-                            </label>
-                          </div>
-                        <% end %>
-                      </div>
-                    </div>
-
-                    <div class="doc-export-section">
-                      <p class="doc-export-section__title">เอกสาร</p>
-                      <div class="row g-2 mb-2">
-                        <% %w[document_status quotation_no invoice_no receipt_no payment_slip].each do |col| %>
-                          <div class="col-6">
-                            <label class="small d-flex align-items-center gap-1">
-                              <input type="checkbox" name="columns[]" value="<%= col %>" class="form-check-input doc-column-cb">
-                              <%= col.humanize %>
-                            </label>
-                          </div>
-                        <% end %>
-                      </div>
-                    </div>
-
-                    <div class="doc-export-section">
-                      <p class="doc-export-section__title">อื่นๆ</p>
-                      <div class="row g-2 mb-2">
-                        <div class="col-6">
-                          <label class="small d-flex align-items-center gap-1">
-                            <input type="checkbox" name="columns[]" value="amount" class="form-check-input doc-column-cb">
-                            Amount
-                          </label>
-                        </div>
-                        <div class="col-6">
-                          <label class="small d-flex align-items-center gap-1">
-                            <input type="checkbox" name="columns[]" value="payment_date" class="form-check-input doc-column-cb">
-                            Payment Date
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-sm w-100" id="doc-export-submit">Download Excel</button>
-                  <% end %>
-                </div>
-              </div>
-              <span class="text-muted small" id="doc-selected-count">0 selected</span>
-            </div>
-
-            <div class="table-wrap odt-table-wrap attendees-table-wrap tc-documents-wrap">
-              <div class="table-responsive tc-table-inner">
-              <table class="table data-table table-hover table-sortable-filterable tc-documents-table mb-0" id="documents-table" aria-label="Documents by attendee">
-                <colgroup>
-                  <col class="col-checkbox" style="width: 2.5%;">
-                  <col class="col-num" style="width: 2.5%;">
-                  <col class="col-name" style="width: 13%;">
-                  <col class="col-company" style="width: 12%;">
-                  <col class="col-type" style="width: 5%;">
-                  <col class="col-quotation" style="width: 15%;">
-                  <col class="col-invoice" style="width: 8%;">
-                  <col class="col-receipt" style="width: 10.5%;">
-                  <col class="col-slip" style="width: 8%;">
-                  <col class="col-payment-date" style="width: 9%;">
-                  <col class="col-tax" style="width: 9.5%;">
-                  <col class="col-actions" style="width: 8%;">
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th class="col-checkbox text-center">
-                      <input type="checkbox" id="doc-select-all" class="form-check-input" aria-label="Select all">
-                    </th>
-                    <th class="col-num text-center"><span class="th-inner">#</span></th>
-                    <th class="col-name"><span class="th-inner">Name</span></th>
-                    <th class="col-company"><span class="th-inner">Company</span></th>
-                    <th class="col-type text-center"><span class="th-inner">Type</span></th>
-                    <th class="col-quotation text-center"><span class="th-inner">Quotation No.</span></th>
-                    <th class="col-invoice text-center"><span class="th-inner">Invoice No.</span></th>
-                    <th class="col-receipt text-center"><span class="th-inner">Receipt No.</span></th>
-                    <th class="col-slip text-center"><span class="th-inner">Payment Slip</span></th>
-                    <th class="col-payment-date text-center"><span class="th-inner">Payment Date</span></th>
-                    <th class="col-tax text-center"><span class="th-inner">Tax Info</span></th>
-                    <th class="col-actions text-end"><span class="th-inner">Actions</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% @attendees.each_with_index do |attendee, index| %>
-                    <% name_has_thai = attendee.name.to_s.match?(/\p{Thai}/) %>
-                    <tr class="doc-row" 
-                        data-update-url="<%= admin_training_class_attendee_path(@training_class, attendee) %>"
-                        data-attendee-name="<%= attendee.name %>"
-                        data-quotation-no="<%= attendee.quotation_no.to_s %>"
-                        data-invoice-no="<%= attendee.invoice_no.to_s %>"
-                        data-receipt-no="<%= attendee.receipt_no.to_s %>"
-                        data-slip-filenames="<%= attendee.payment_slips.attached? ? attendee.payment_slips.map(&:filename).join('|') : '' %>"
-                        data-slip-urls="<%= attendee.payment_slips.attached? ? attendee.payment_slips.map { |s| rails_blob_path(s, disposition: 'inline') }.join('|') : '' %>"
-                        data-slip-count="<%= attendee.payment_slips.size %>"
-                        data-name-thai="<%= attendee.name_thai.to_s %>"
-                        data-tax-id="<%= attendee.tax_id.to_s %>"
-                        data-address="<%= attendee.address.to_s.gsub('"', '&quot;').tr("\n", " ") %>"
-                        data-name-thai-prefill="<%= name_has_thai ? attendee.name : '' %>"
-                        data-payment-date="<%= attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%Y-%m-%d") : '' %>">
-                      <td class="col-checkbox text-center">
-                        <input type="checkbox" class="form-check-input doc-export-checkbox" value="<%= attendee.id %>" aria-label="Select <%= attendee.name %>">
-                      </td>
-                      <td class="col-num text-center cell-nowrap"><%= index + 1 %></td>
-                      <td class="col-name doc-name-cell">
-                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "doc-name-link text-decoration-none", title: "ดู/แก้ไขข้อมูล #{attendee.name}" do %>
-                          <span class="doc-name-line"><strong><%= attendee.name %></strong></span>
-                          <% if attendee.email.present? %>
-                            <span class="doc-email-line text-muted"><%= attendee.email %></span>
-                          <% end %>
-                        <% end %>
-                      </td>
-                      <td class="col-company"><span class="doc-company-inner"><%= attendee.participant_type == "Corp" ? (attendee.company || "—") : "—" %></span></td>
-                      <td class="col-type text-center">
-                        <%= odt_badge(attendee.participant_type || "Indi", variant: (attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %>
-                      </td>
-                      <td class="col-quotation text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.quotation_no.presence || "—" %></td>
-                      <td class="col-invoice text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.invoice_no.presence || "—" %></td>
-                      <td class="col-receipt text-center cell-nowrap doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข"><%= attendee.receipt_no.presence || "—" %></td>
-                      <td class="col-slip text-center doc-slip-cell" data-edit-section="payment-slip" title="<%= attendee.payment_slips.attached? ? 'Click to view or add slips' : 'Click to upload or drag file here' %>">
-                        <% if attendee.payment_slips.attached? %>
-                          <span class="doc-slip-badge doc-slip-pill" title="<%= attendee.payment_slips.size %> file(s) uploaded">
-                            <i class="bi bi-check-circle-fill doc-slip-icon" aria-hidden="true"></i>
-                            <span class="doc-slip-count"><%= attendee.payment_slips.size %></span>
-                          </span>
-                        <% else %>
-                          <span class="doc-slip-upload-hint text-muted"><i class="bi bi-upload" aria-hidden="true"></i></span>
-                        <% end %>
-                      </td>
-                      <td class="col-payment-date text-center cell-nowrap doc-edit-cell" data-edit-section="payment-date" title="Click to edit"><%= attendee.payment_status == "Paid" && attendee.display_payment_date.present? ? attendee.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
-                      <td class="col-tax text-center">
-                        <%= render "admin/attendees/billing_tax_icons", attendee: attendee, training_class: @training_class %>
-                      </td>
-                      <td class="col-actions text-end action-cell">
-                        <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "odt-icon-btn odt-icon-btn--primary me-1", title: "แก้ไข" do %><i class="bi bi-pencil"></i><% end %>
-                        <%= link_to admin_training_class_attendee_path(@training_class, attendee), data: { turbo_method: :delete, turbo_confirm: "ลบ #{attendee.name} ออกจากคลาสนี้?" }, class: "odt-icon-btn odt-icon-btn--danger", title: "ลบ" do %><i class="bi bi-trash"></i><% end %>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-              </div>
-            </div>
-
-            <%# Modal: Edit document numbers (opened when clicking a document cell) %>
+            <%# Modal: Edit document numbers (opened when clicking a document cell in Register) %>
             <div class="modal fade" id="documentEditModal" tabindex="-1" aria-labelledby="documentEditModalLabel" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
@@ -846,17 +637,15 @@
         textEl.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
       } catch (e) {}
     }
-    // Documents tab: select all + export selected to Excel
+    // Documents tab: select all + count (Register mode)
     (function() {
       var selectAll = document.getElementById('doc-select-all');
       var checkboxes = document.querySelectorAll('.doc-export-checkbox');
       var countEl = document.getElementById('doc-selected-count');
-      var exportForm = document.getElementById('doc-export-form');
-      var attendeeIdsContainer = document.getElementById('doc-export-attendee-ids');
       function updateCount() {
         var n = document.querySelectorAll('.doc-export-checkbox:checked').length;
         if (countEl) countEl.textContent = n + ' selected';
-        if (selectAll) selectAll.checked = n > 0 && n === checkboxes.length;
+        if (selectAll && checkboxes.length) selectAll.checked = n > 0 && n === checkboxes.length;
       }
       if (selectAll && checkboxes.length) {
         selectAll.addEventListener('change', function() {
@@ -868,28 +657,53 @@
         cb.addEventListener('change', updateCount);
       });
       updateCount();
-      if (exportForm && attendeeIdsContainer) {
-        exportForm.addEventListener('submit', function(e) {
-          var ids = Array.prototype.slice.call(document.querySelectorAll('.doc-export-checkbox:checked')).map(function(cb) { return cb.value; });
-          if (ids.length === 0) {
-            e.preventDefault();
-            alert('Please select at least one person to export.');
-            return false;
-          }
-          attendeeIdsContainer.innerHTML = '';
-          ids.forEach(function(id) {
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'attendee_ids[]';
-            input.value = id;
-            attendeeIdsContainer.appendChild(input);
-          });
-          var cols = document.querySelectorAll('.doc-column-cb:checked');
-          if (cols.length === 0) {
-            document.querySelectorAll('.doc-column-cb').forEach(function(cb) { cb.checked = true; });
-          }
+    })();
+    // Export to Excel modal: scope + template, submit
+    (function() {
+      var modalEl = document.getElementById('exportExcelModal');
+      var form = document.getElementById('exportExcelForm');
+      var idsContainer = document.getElementById('exportExcelAttendeeIds');
+      var validationEl = document.getElementById('exportScopeValidation');
+      var scopeSelected = document.getElementById('exportScopeSelected');
+      var scopeAll = document.getElementById('exportScopeAll');
+      var templateSummary = document.getElementById('exportTemplateSummary');
+      if (!form || !idsContainer || !modalEl) return;
+      form.addEventListener('submit', function(e) {
+        var scope = scopeAll && scopeAll.checked ? 'all' : 'selected';
+        var ids = scope === 'selected'
+          ? Array.prototype.slice.call(document.querySelectorAll('.doc-export-checkbox:checked')).map(function(cb) { return cb.value; })
+          : (modalEl.getAttribute('data-all-ids') || '').split(',').filter(Boolean);
+        if (scope === 'selected' && ids.length === 0) {
+          e.preventDefault();
+          if (validationEl) { validationEl.hidden = false; validationEl.setAttribute('role', 'alert'); }
+          return false;
+        }
+        if (validationEl) validationEl.hidden = true;
+        idsContainer.innerHTML = '';
+        ids.forEach(function(id) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'attendee_ids[]';
+          input.value = id;
+          idsContainer.appendChild(input);
         });
-      }
+        var templateFull = document.getElementById('exportTemplateFull') && document.getElementById('exportTemplateFull').checked;
+        if (templateFull) {
+          form.querySelectorAll('[data-export-column-summary]').forEach(function(inp) { inp.removeAttribute('name'); });
+        }
+      });
+      document.getElementById('doc-export-selected-btn') && document.getElementById('doc-export-selected-btn').addEventListener('click', function() {
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+      });
+      modalEl.addEventListener('shown.bs.modal', function() {
+        form.querySelectorAll('[data-export-column-summary]').forEach(function(inp) { inp.setAttribute('name', 'columns[]'); });
+        var n = document.querySelectorAll('.doc-export-checkbox:checked').length;
+        if (scopeSelected && scopeAll) {
+          scopeSelected.checked = n > 0;
+          scopeAll.checked = n === 0;
+        }
+      });
     })();
 
     const docEditForm = document.getElementById('documentEditForm');

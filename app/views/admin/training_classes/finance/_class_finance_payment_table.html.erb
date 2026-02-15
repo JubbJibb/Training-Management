@@ -1,45 +1,42 @@
-<%# Payment Status List: Customer (name+email), Segment, Amount, Due, Paid, Days to Pay, Status, Actions. Sticky header, sticky first col, nowrap dates. %>
+<%# Payment Status List: shared ODT table, name cell pattern %>
 <% payment_list = local_assigns[:payment_status_list] || [] %>
 <% training_class = local_assigns[:training_class] %>
-<div class="cfo-section class-finance-payment-section">
-  <h2 class="cfo-section-title">Payment Status List</h2>
-  <div class="cfo-table-wrap class-finance-table-wrap">
-    <% if payment_list.any? %>
-      <table class="odt-table odt-table--sm class-finance-payment-table" role="table" aria-label="Payment status by customer">
-        <thead>
+<%= odt_card(title: "Payment Status List", icon: "table", extra_class: "class-finance-payment-section") do %>
+  <% if payment_list.any? %>
+    <%= odt_table(extra_class: "class-finance-table-wrap odt-table--sm", sticky_header: true) do %>
+      <thead>
+        <tr>
+          <th scope="col" class="odt-th col-lg">Customer</th>
+          <th scope="col" class="odt-th col-xs">Segment</th>
+          <th scope="col" class="odt-th col-sm num">Amount</th>
+          <th scope="col" class="odt-th col-sm">Due Date</th>
+          <th scope="col" class="odt-th col-sm">Paid Date</th>
+          <th scope="col" class="odt-th col-xs num">Days to Pay</th>
+          <th scope="col" class="odt-th col-xs">Status</th>
+          <th scope="col" class="odt-th cell-actions actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% payment_list.each do |row| %>
           <tr>
-            <th scope="col" class="class-finance-payment-table__customer">Customer</th>
-            <th scope="col">Segment</th>
-            <th scope="col" class="text-end class-finance-payment-table__amount">Amount</th>
-            <th scope="col" class="class-finance-payment-table__date">Due Date</th>
-            <th scope="col" class="class-finance-payment-table__date">Paid Date</th>
-            <th scope="col" class="text-end">Days to Pay</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-end">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% payment_list.each do |row| %>
-            <tr>
-              <td class="class-finance-payment-table__customer">
-                <span class="class-finance-payment-table__name" title="<%= row[:contact].to_s %> · <%= row[:email].to_s %>"><%= row[:contact] %></span>
-                <span class="class-finance-payment-table__email" aria-hidden="true"><%= row[:email] %></span>
-              </td>
-              <td><%= odt_badge(row[:segment], variant: row[:segment] == "Corp" ? :primary : :neutral, size: :sm) %></td>
-              <td class="text-end class-finance-payment-table__amount"><%= number_to_thb(row[:amount]) %></td>
-              <td class="class-finance-payment-table__date"><%= row[:due_date].present? ? row[:due_date].strftime("%d/%m/%y") : "—" %></td>
-              <td class="class-finance-payment-table__date"><%= row[:payment_date].present? ? row[:payment_date].strftime("%d/%m/%y") : "—" %></td>
-              <td class="text-end"><%= row[:days_to_pay].nil? ? "—" : row[:days_to_pay] %></td>
-              <td><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : (row[:status] == "Overdue" ? :danger : :warning), size: :sm) %></td>
-              <td class="text-end">
+            <td class="col-lg cell-stack">
+              <span class="cell-stack__primary" title="<%= row[:contact].to_s %> · <%= row[:email].to_s %>"><%= row[:contact] %></span>
+              <span class="cell-stack__secondary" aria-hidden="true"><%= row[:email] %></span>
+            </td>
+              <td class="col-xs"><%= odt_badge(row[:segment], variant: row[:segment] == "Corp" ? :primary : :neutral, size: :sm) %></td>
+              <td class="col-sm odt-table-numeric num"><%= number_to_thb(row[:amount]) %></td>
+              <td class="col-sm truncate"><%= row[:due_date].present? ? row[:due_date].strftime("%d/%m/%y") : "—" %></td>
+              <td class="col-sm truncate"><%= row[:payment_date].present? ? row[:payment_date].strftime("%d/%m/%y") : "—" %></td>
+              <td class="col-xs odt-table-numeric"><%= row[:days_to_pay].nil? ? "—" : row[:days_to_pay] %></td>
+              <td class="col-xs"><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : (row[:status] == "Overdue" ? :danger : :warning), size: :sm) %></td>
+              <td class="cell-actions actions">
                 <%= link_to edit_admin_training_class_attendee_path(training_class, row[:attendee]), class: "odt-icon-btn odt-icon-btn--ghost", title: "Edit" do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
               </td>
             </tr>
           <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <p class="cfo-empty">No attendees in this view.</p>
+      </tbody>
     <% end %>
-  </div>
-</div>
+  <% else %>
+    <p class="cfo-empty mb-0">No attendees in this view.</p>
+  <% end %>
+<% end %>

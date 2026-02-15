@@ -1,0 +1,122 @@
+<% attendee = @attendee || @payment %>
+<% training_class = @training_class || attendee.training_class %>
+<%= odt_card(title: "Payment Summary", icon: "receipt", extra_class: "payment-summary-card financials-payment-summary-card") do %>
+  <div class="attendee-edit-summary__badges mb-3">
+    <%= odt_badge(attendee.payment_status || "Pending", status: (attendee.payment_status == "Paid" ? :paid : :pending), size: :sm) %>
+    <% if attendee.document_status == "Receipt" %>
+      <%= odt_badge("Receipt", status: :receipt, size: :sm) %>
+    <% elsif attendee.document_status.present? %>
+      <%= odt_badge(attendee.document_status, variant: :info, size: :sm) %>
+    <% else %>
+      <%= odt_badge("—", variant: :neutral, size: :sm) %>
+    <% end %>
+  </div>
+
+  <div class="payment-summary-card__inner" id="payment-summary-content">
+    <div class="payment-summary-card__header">
+      <div class="payment-summary-card__logo">
+        <%= image_tag "odt_logo.svg", alt: "ODT", class: "payment-summary-card__logo-img" %>
+      </div>
+      <div class="payment-summary-card__company">
+        <div class="payment-summary-card__company-name">บริษัท ออด-อี (ประเทศไทย) จำกัด</div>
+        <div class="payment-summary-card__company-address">2549/41-43 ถนนพหลโยธิน แขวงลาดยาว เขตจตุจักร กรุงเทพมหานคร 10900</div>
+        <div class="payment-summary-card__company-tax">เลขประจำตัวผู้เสียภาษี : <%= Rails.application.config.x.company_tax_id.presence || "0-1055-56110-71-8" %></div>
+      </div>
+    </div>
+    <div class="payment-summary-card__block">
+      <div class="payment-summary-card__block-title">รายละเอียดการอบรม</div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">หลักสูตร</span>
+        <span class="payment-summary-card__info-value"><%= training_class.title %></span>
+      </div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">วันที่</span>
+        <span class="payment-summary-card__info-value"><%= training_class.date&.strftime("%d/%m/%Y") || "—" %></span>
+      </div>
+    </div>
+    <div class="payment-summary-card__block">
+      <div class="payment-summary-card__block-title">ผู้ลงทะเบียน</div>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">ชื่อ</span>
+        <span class="payment-summary-card__info-value"><%= attendee.name.presence || "—" %></span>
+      </div>
+      <% if attendee.company.present? %>
+        <div class="payment-summary-card__info-row">
+          <span class="payment-summary-card__info-label">บริษัท</span>
+          <span class="payment-summary-card__info-value"><%= attendee.company %></span>
+        </div>
+      <% end %>
+      <div class="payment-summary-card__info-row">
+        <span class="payment-summary-card__info-label">อีเมล</span>
+        <span class="payment-summary-card__info-value"><%= attendee.email.presence || "—" %></span>
+      </div>
+    </div>
+    <div class="payment-summary-card__block payment-summary-card__pricing">
+      <div class="payment-summary-card__block-title">สรุปยอดชำระ</div>
+      <div class="payment-summary-card__pricing-grid">
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">ราคาเริ่มต้น</span>
+          <span class="payment-summary-card__pricing-amount"><%= number_with_delimiter((attendee.base_price * (attendee.seats || 1)).round(2)) %></span>
+        </div>
+        <div class="payment-summary-card__pricing-row payment-summary-card__pricing-row--discount">
+          <span class="payment-summary-card__pricing-label">ส่วนลดรวม</span>
+          <span class="payment-summary-card__pricing-amount payment-summary-card__pricing-amount--discount"><%= number_with_delimiter((attendee.total_discount_amount.to_f * (attendee.seats || 1)).round(2)) %></span>
+        </div>
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">ก่อน VAT</span>
+          <span class="payment-summary-card__pricing-amount"><%= number_with_delimiter(attendee.total_price_before_vat.to_f.round(2)) %></span>
+        </div>
+        <div class="payment-summary-card__pricing-row">
+          <span class="payment-summary-card__pricing-label">VAT (7%)</span>
+          <span class="payment-summary-card__pricing-amount"><%= number_with_delimiter(attendee.total_vat_amount.to_f.round(2)) %></span>
+        </div>
+        <div class="payment-summary-card__pricing-row payment-summary-card__pricing-row--total">
+          <span class="payment-summary-card__pricing-label">ราคาสุทธิ (รวม VAT)</span>
+          <span class="payment-summary-card__pricing-total"><%= number_with_delimiter(attendee.total_final_price.to_f.round(2)) %></span>
+        </div>
+      </div>
+    </div>
+    <div class="payment-summary-card__block payment-summary-card__bank">
+      <div class="payment-summary-card__block-title">ช่องทางชำระเงิน</div>
+      <div class="payment-summary-card__bank-details">
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">ธนาคาร</span>
+          <span class="payment-summary-card__bank-value">ธ.กรุงไทย</span>
+        </div>
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">ชื่อบัญชี</span>
+          <span class="payment-summary-card__bank-value">บริษัท ออด-อี (ประเทศไทย) จำกัด</span>
+        </div>
+      </div>
+      <p class="payment-summary-card__instruction">เมื่อชำระเงินเสร็จแล้ว กรุณานำส่งหลักฐานการชำระเงินมาที่ ODTTraining@odds.team</p>
+    </div>
+  </div>
+
+  <div class="payment-summary-card__actions">
+    <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm payment-summary-card__btn" id="payment-summary-copy" title="Copy summary to clipboard">
+      <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary
+    </button>
+    <%= link_to download_pdf_financials_payment_path(attendee), class: "odt-btn odt-btn--ghost odt-btn--sm payment-summary-card__btn", title: "Download as PDF" do %>
+      <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
+    <% end %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var copyBtn = document.getElementById('payment-summary-copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var el = document.getElementById('payment-summary-content');
+        if (!el) return;
+        var text = el.innerText || el.textContent || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            copyBtn.innerHTML = '<i class="bi bi-check2" aria-hidden="true"></i> Copied';
+            setTimeout(function() { copyBtn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary'; }, 2000);
+          });
+        }
+      });
+    }
+  });
+</script>

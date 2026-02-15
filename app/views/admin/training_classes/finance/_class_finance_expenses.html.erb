@@ -1,43 +1,38 @@
-<%# Expense Breakdown: chart placeholder + Top 5 + Add Expense CTA %>
+<%# Expense Breakdown: chart + Top 5 + Add Expense (same card style) %>
 <%
   expense_list = local_assigns[:expense_list] || []
   cost_by_category = local_assigns[:cost_by_category] || []
   training_class = local_assigns[:training_class]
   top5 = expense_list.first(5)
 %>
-<div class="cfo-section class-finance-expenses-section">
-  <h2 class="cfo-section-title">Expense Breakdown</h2>
-  <div class="cfo-two-col">
-    <div class="cfo-two-col__block">
-      <div class="cfo-chart-placeholder" aria-hidden="true">
-        <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-          <line x1="40" y1="20" x2="40" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
-          <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
-          <% cost_by_category.first(5).each_with_index do |row, i| %>
-            <% h = (row[:pct].to_f / 100.0 * 100).round %>
-            <rect x="<%= 50 + i * 65 %>" y="<%= 140 - h %>" width="50" height="<%= h %>" fill="#13139c" opacity="0.6" rx="4"/>
-          <% end %>
-          <text x="200" y="155" text-anchor="middle" font-size="10" fill="rgba(41,41,41,0.5)">Category</text>
-        </svg>
-      </div>
-      <h3 class="cfo-section-title" style="font-size: 0.8125rem; margin-top: 12px;">Top 5 expenses</h3>
-      <% if top5.any? %>
-        <ul class="class-finance-expense-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.8125rem;">
-          <% top5.each do |e| %>
-            <li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
-              <span><%= e.description.to_s.truncate(30) %></span>
-              <span><%= number_to_thb(e.amount) %></span>
-            </li>
-          <% end %>
-        </ul>
-      <% else %>
-        <p class="cfo-empty" style="padding: 16px 0;">No expenses yet.</p>
+<%= odt_card(title: "Expense Breakdown", icon: "wallet2", extra_class: "class-finance-expenses-section") do %>
+  <div class="cfo-chart-placeholder" aria-hidden="true">
+    <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="20" x2="40" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
+      <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(41,41,41,0.2)" stroke-width="1"/>
+      <% cost_by_category.first(5).each_with_index do |row, i| %>
+        <% h = (row[:pct].to_f / 100.0 * 100).round %>
+        <rect x="<%= 50 + i * 65 %>" y="<%= 140 - h %>" width="50" height="<%= h %>" fill="#13139c" opacity="0.6" rx="4"/>
       <% end %>
-    </div>
+      <text x="200" y="155" text-anchor="middle" font-size="10" fill="rgba(41,41,41,0.5)">Category</text>
+    </svg>
   </div>
-  <p style="margin-top: 12px;">
+  <h3 class="odt-section-header__title" style="font-size: 0.8125rem; margin: var(--space-3) 0 var(--space-2);">Top 5 expenses</h3>
+  <% if top5.any? %>
+    <ul class="class-finance-expense-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.8125rem;">
+      <% top5.each do |e| %>
+        <li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(41,41,41,0.06);">
+          <span><%= e.description.to_s.truncate(30) %></span>
+          <span><%= number_to_thb(e.amount) %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="cfo-empty mb-0" style="padding: 16px 0;">No expenses yet.</p>
+  <% end %>
+  <p class="mb-0 mt-3">
     <%= link_to new_admin_training_class_class_expense_path(training_class), class: "odt-btn odt-btn--primary odt-btn--sm", data: { turbo_frame: "_top" } do %>
       <i class="bi bi-plus-lg odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i><span class="odt-btn__label">Add Expense</span>
     <% end %>
   </p>
-</div>
+<% end %>

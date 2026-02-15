@@ -1,0 +1,45 @@
+<%
+  columns = local_assigns[:columns] || []
+  rows = local_assigns[:rows] || []
+  empty_message = local_assigns[:empty_message] || "No data"
+  table_class = local_assigns[:table_class]
+  wrap_class = ["compact-table-wrap", local_assigns[:wrap_class]].compact.join(" ")
+%>
+<div class="<%= wrap_class %>">
+  <table class="compact-table <%= table_class %>" role="table" aria-label="<%= local_assigns[:aria_label] || 'Data table' %>">
+    <colgroup>
+      <% columns.each do |col| %>
+        <col style="width: <%= col[:width] || 'auto' %>">
+      <% end %>
+    </colgroup>
+    <thead>
+      <tr>
+        <% columns.each do |col| %>
+          <th class="compact-table__th compact-table__th--<%= col[:align] || 'left' %>" scope="col"><%= col[:label] %></th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% if rows.any? %>
+        <% rows.each do |row| %>
+          <tr>
+            <% columns.each do |col| %>
+              <% cell_content = row[col[:key]] %>
+              <td class="compact-table__td compact-table__td--<%= col[:align] || 'left' %>">
+                <% if col[:truncate] %>
+                  <span class="compact-table__truncate" title="<%= cell_content.to_s %>"><%= cell_content %></span>
+                <% else %>
+                  <%= cell_content %>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="<%= columns.size %>" class="compact-table__empty"><%= empty_message %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

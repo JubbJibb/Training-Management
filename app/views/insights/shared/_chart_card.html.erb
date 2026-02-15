@@ -1,0 +1,18 @@
+<%
+  title = local_assigns[:title] || "Chart"
+  chart_id = local_assigns[:chart_id] || "chart_#{SecureRandom.hex(4)}"
+  chart_type = local_assigns[:chart_type] || "bar"
+  labels = local_assigns[:labels] || []
+  datasets = local_assigns[:datasets] || []
+  height = local_assigns[:height] || 280
+%>
+<div class="card odt-card insights-chart-card">
+  <div class="card-header odt-card__header">
+    <h3 class="card-title odt-card__title"><%= title %></h3>
+  </div>
+  <div class="card-body">
+    <div class="insights-chart-container" style="height: <%= height %>px;">
+      <canvas id="<%= chart_id %>" data-chart-type="<%= chart_type %>" data-labels="<%= labels.to_json %>" data-datasets="<%= datasets.to_json %>"></canvas>
+    </div>
+  </div>
+</div>

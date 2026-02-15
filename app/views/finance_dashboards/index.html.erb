@@ -1,44 +1,25 @@
 <% content_for :title, "Financial Dashboard" %>
 
-<div class="cfo-dash-page">
-  <%= render "components/odt/page_header", title: "Financial Dashboard", subtitle: "Revenue · Cashflow · AR · Documents · Corporate Ledger", icon: "cash-coin" %>
+<div class="foh-exec-page finance-dashboard-refactor">
+  <%= render "components/odt/page_header", title: "Financial Dashboard", subtitle: "Revenue · Cash · AR · Risk", icon: "cash-coin" do %>
+    <%= link_to "Add expense", admin_training_classes_path, class: "btn btn-sm btn-primary finance-dashboard-header__btn" %>
+  <% end %>
 
   <%= turbo_frame_tag "finance_dashboard", data: { turbo_action: "advance" } do %>
-    <%= form_with url: finance_dashboard_path, method: :get, local: false, class: "cfo-dash-form", data: { turbo_frame: "finance_dashboard" } do %>
-      <%= render "finance_dashboards/filter_bar" %>
-    <% end %>
+    <%= render "finance_dashboards/filters_collapsible" %>
 
-    <%= render "finance_dashboards/kpi_row", summary: @summary %>
+    <%= render "finance_dashboards/health_banner", health_status: @overview&.dig(:health_status) %>
 
-    <nav class="customer-tabs cfo-dash-tabs" aria-label="Dashboard sections">
-      <div class="customer-tabs__inner" id="financeDashboardTabs" role="tablist">
-        <button class="customer-tabs__tab active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab">
-          <i class="bi bi-graph-up"></i> Overview
-        </button>
-        <button class="customer-tabs__tab" id="tab-documents" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button" role="tab">
-          <i class="bi bi-file-earmark-check"></i> Documents & Action
-        </button>
-        <button class="customer-tabs__tab" id="tab-revenue" data-bs-toggle="tab" data-bs-target="#pane-revenue" type="button" role="tab">
-          <i class="bi bi-pie-chart"></i> Revenue
-        </button>
-        <button class="customer-tabs__tab" id="tab-ledger" data-bs-toggle="tab" data-bs-target="#pane-ledger" type="button" role="tab">
-          <i class="bi bi-building"></i> Corporate Ledger
-        </button>
-      </div>
-    </nav>
+    <%= render "finance_dashboards/kpi_strip_six", summary: @summary %>
 
-    <div class="tab-content cfo-dash-tab-content" id="financeDashboardTabsContent">
-      <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
-        <%= render "finance_dashboards/overview/overview", overview: @overview %>
+    <%= render "finance_dashboards/overdue_mini_table", summary: @summary %>
+
+    <div class="finance-dashboard__row finance-dashboard__row--two-col">
+      <div class="finance-dashboard__col finance-dashboard__col--left">
+        <%= render "finance_dashboards/pl_breakdown", summary: @summary %>
       </div>
-      <div class="tab-pane fade" id="pane-documents" role="tabpanel">
-        <%= render "finance_dashboards/documents_compliance", summary: @summary %>
-      </div>
-      <div class="tab-pane fade" id="pane-revenue" role="tabpanel">
-        <%= render "finance_dashboards/revenue_breakdown", summary: @summary %>
-      </div>
-      <div class="tab-pane fade" id="pane-ledger" role="tabpanel">
-        <%= render "finance_dashboards/corporate_ledger", summary: @summary %>
+      <div class="finance-dashboard__col finance-dashboard__col--right">
+        <%= render "finance_dashboards/expense_summary", summary: @summary %>
       </div>
     </div>
   <% end %>

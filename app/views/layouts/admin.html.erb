@@ -11,14 +11,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <%= stylesheet_link_tag "design_tokens", "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "design_tokens", "design_system", "application", "data-turbo-track": "reload" %>
   </head>
 
   <body class="admin-layout-body">
     <nav class="navbar" role="navigation">
       <div class="nav-container">
         <div class="nav-left">
-          <%= link_to admin_dashboard_index_path, class: "nav-logo-link" do %>
+          <%= link_to operations_calendar_path, class: "nav-logo-link" do %>
             <%= image_tag "odt_logo.svg", alt: "ODT", class: "nav-logo" %>
           <% end %>
         </div>
@@ -27,15 +27,7 @@
           <span class="nav-toggle__bar"></span>
           <span class="nav-toggle__bar"></span>
         </button>
-        <div class="nav-right" id="nav-menu">
-          <%= link_to admin_dashboard_index_path, class: nav_class("admin") do %><i class="bi bi-speedometer2 nav-link-icon"></i> Admin Dashboard<% end %>
-          <%= link_to finance_dashboard_path, class: nav_class("cfo") do %><i class="bi bi-graph-up-arrow nav-link-icon"></i> Financial Dashboard<% end %>
-          <%= link_to admin_training_classes_path, class: nav_class("training_classes") do %><i class="bi bi-calendar-event nav-link-icon"></i> Training Classes<% end %>
-          <%= link_to admin_courses_path, class: nav_class("courses") do %><i class="bi bi-journal-bookmark nav-link-icon"></i> Course Management<% end %>
-          <%= link_to admin_customers_path, class: nav_class("customers") do %><i class="bi bi-people nav-link-icon"></i> Customers<% end %>
-          <%= link_to admin_exports_path, class: nav_class("exports") do %><i class="bi bi-file-earmark-arrow-down nav-link-icon"></i> Exports<% end %>
-          <%= link_to admin_settings_path, class: nav_class("settings") do %><i class="bi bi-tag nav-link-icon"></i> Promotion<% end %>
-        </div>
+        <%= render "shared/main_nav" %>
       </div>
     </nav>
 

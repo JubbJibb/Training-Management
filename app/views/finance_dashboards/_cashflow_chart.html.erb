@@ -1,0 +1,49 @@
+<%
+  rows = overview&.dig(:chart_data) || []
+  s = summary
+  collection_gap = (s[:net_before_vat].to_f - s[:cash_received].to_f).round(2)
+  max_val = rows.flat_map { |r| [r[:revenue].to_f, r[:cash_received].to_f, r[:outstanding].to_f] }.max.to_f
+  max_val = 1 if max_val <= 0
+  w = 600; h = 200; pad = { t: 16, r: 20, b: 28, l: 48 }
+  chart_w = w - pad[:l] - pad[:r]; chart_h = h - pad[:t] - pad[:b]
+  n = rows.size; step_x = n > 1 ? chart_w.to_f / (n - 1) : chart_w
+  base_params = request.query_parameters.slice("training_class_id", "segment", "status", "channel").to_h
+  period_links = [
+    [ "30d", finance_dashboard_path(base_params.merge(start_date: 30.days.ago.to_date, end_date: Date.current, preset: nil)) ],
+    [ "90d", finance_dashboard_path(base_params.merge(start_date: 90.days.ago.to_date, end_date: Date.current, preset: nil)) ],
+    [ "180d", finance_dashboard_path(base_params.merge(start_date: 180.days.ago.to_date, end_date: Date.current, preset: nil)) ]
+  ]
+%>
+<section class="foh-chart-card" aria-label="Cash vs Outstanding Trend">
+  <div class="foh-chart-card__header">
+    <h2 class="foh-section-title">Cash vs Outstanding Trend</h2>
+    <div class="foh-chart-card__toggle">
+      <% period_links.each do |label, url| %>
+        <%= link_to label, url, class: "foh-chart-card__toggle-btn", data: { turbo_frame: "finance_dashboard" } %>
+      <% end %>
+    </div>
+  </div>
+  <div class="foh-chart-card__body">
+    <% if rows.any? %>
+      <svg class="foh-chart-card__svg" viewBox="0 0 <%= w %> <%= h %>" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <% [0.25, 0.5, 0.75].each do |p| %>
+          <line x1="<%= pad[:l] %>" y1="<%= pad[:t] + chart_h * (1 - p) %>" x2="<%= w - pad[:r] %>" y2="<%= pad[:t] + chart_h * (1 - p) %>" class="foh-chart-card__grid" />
+        <% end %>
+        <% rev_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:revenue].to_f / max_val) * chart_h}" }.join(" ") %>
+        <% cash_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:cash_received].to_f / max_val) * chart_h}" }.join(" ") %>
+        <% ar_pts = rows.each_with_index.map { |r, i| "#{pad[:l] + i * step_x},#{pad[:t] + chart_h - (r[:outstanding].to_f / max_val) * chart_h}" }.join(" ") %>
+        <polyline points="<%= rev_pts %>" class="foh-chart-card__line foh-chart-card__line--revenue" fill="none" />
+        <polyline points="<%= cash_pts %>" class="foh-chart-card__line foh-chart-card__line--cash" fill="none" />
+        <polyline points="<%= ar_pts %>" class="foh-chart-card__line foh-chart-card__line--ar" fill="none" />
+      </svg>
+      <div class="foh-chart-card__legend">
+        <span class="foh-chart-card__legend-item foh-chart-card__legend-item--revenue">Net Revenue</span>
+        <span class="foh-chart-card__legend-item foh-chart-card__legend-item--cash">Cash Received</span>
+        <span class="foh-chart-card__legend-item foh-chart-card__legend-item--ar">Outstanding AR</span>
+      </div>
+      <p class="foh-chart-card__gap">Collection Gap (Net − Cash): <strong><%= number_to_thb(collection_gap) %></strong></p>
+    <% else %>
+      <p class="foh-chart-card__empty">Select a period to see trend.</p>
+    <% end %>
+  </div>
+</section>

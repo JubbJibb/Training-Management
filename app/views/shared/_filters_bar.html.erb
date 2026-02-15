@@ -1,0 +1,12 @@
+<%
+  # Optional: fields = [{ label:, name:, type: "text"|"select", options: [] }]
+  # Render block for custom filter fields; otherwise use simple apply/clear.
+  extra_class = ["filters", local_assigns[:extra_class]].compact.join(" ")
+%>
+<div class="<%= extra_class %>" role="search">
+  <%= yield if block_given? %>
+  <div class="filters__actions">
+    <%= link_to "Apply", "#", class: "btn btn--primary btn--sm", data: local_assigns[:apply_data] || {} %>
+    <%= link_to "Clear", "#", class: "btn btn--secondary btn--sm", data: local_assigns[:clear_data] || {} %>
+  </div>
+</div>

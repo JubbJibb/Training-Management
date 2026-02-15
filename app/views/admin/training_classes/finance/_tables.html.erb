@@ -10,31 +10,31 @@
       <%= odt_table(extra_class: "odt-table--sm") do %>
         <thead>
           <tr>
-            <th>Company</th>
-            <th>Contact</th>
-            <th>Quotation</th>
-            <th>Invoice</th>
-            <th>Receipt</th>
-            <th class="text-end">Amount</th>
-            <th>Due</th>
-            <th>Payment Date</th>
-            <th>Status</th>
-            <th class="text-end">Actions</th>
+            <th class="col-lg">Company</th>
+            <th class="col-md">Contact</th>
+            <th class="col-sm">Quotation</th>
+            <th class="col-sm">Invoice</th>
+            <th class="col-sm">Receipt</th>
+            <th class="col-sm odt-table-numeric">Amount</th>
+            <th class="col-sm">Due</th>
+            <th class="col-sm">Payment Date</th>
+            <th class="col-xs">Status</th>
+            <th class="cell-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% payment_list.each do |row| %>
             <tr>
-              <td><%= row[:company] %></td>
-              <td><%= row[:contact] %></td>
-              <td><%= row[:quotation_no] %></td>
-              <td><%= row[:invoice_no] %></td>
-              <td><%= row[:receipt_no] %></td>
-              <td class="text-end"><%= number_to_thb(row[:amount]) %></td>
-              <td><%= row[:due_date].present? ? row[:due_date].strftime("%d/%m/%y") : "—" %></td>
-              <td><%= row[:payment_date].present? ? row[:payment_date].strftime("%d/%m/%Y") : "—" %></td>
-              <td><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : :warning, size: :sm) %></td>
-              <td class="text-end">
+              <td class="col-lg truncate"><%= row[:company] %></td>
+              <td class="col-md truncate"><%= row[:contact] %></td>
+              <td class="col-sm truncate"><%= row[:quotation_no] %></td>
+              <td class="col-sm truncate"><%= row[:invoice_no] %></td>
+              <td class="col-sm truncate"><%= row[:receipt_no] %></td>
+              <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:amount]) %></td>
+              <td class="col-sm truncate"><%= row[:due_date].present? ? row[:due_date].strftime("%d/%m/%y") : "—" %></td>
+              <td class="col-sm truncate"><%= row[:payment_date].present? ? row[:payment_date].strftime("%d/%m/%Y") : "—" %></td>
+              <td class="col-xs"><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : :warning, size: :sm) %></td>
+              <td class="cell-actions">
                 <%= link_to edit_admin_training_class_attendee_path(training_class, row[:attendee]), class: "odt-icon-btn odt-icon-btn--ghost", title: "Edit" do %><i class="bi bi-pencil"></i><% end %>
               </td>
             </tr>
@@ -54,23 +54,23 @@
       <%= odt_table(extra_class: "odt-table--sm") do %>
         <thead>
           <tr>
-            <th>Company</th>
-            <th class="text-end">Total</th>
-            <th class="text-end">Paid</th>
-            <th class="text-end">Outstanding</th>
-            <th>Status</th>
-            <th>Last payment</th>
+            <th class="col-xl">Company</th>
+            <th class="col-sm odt-table-numeric">Total</th>
+            <th class="col-sm odt-table-numeric">Paid</th>
+            <th class="col-sm odt-table-numeric">Outstanding</th>
+            <th class="col-xs">Status</th>
+            <th class="col-sm">Last payment</th>
           </tr>
         </thead>
         <tbody>
           <% corp_billing.each do |row| %>
             <tr>
-              <td><%= row[:company] %></td>
-              <td class="text-end"><%= number_to_thb(row[:total]) %></td>
-              <td class="text-end"><%= number_to_thb(row[:paid]) %></td>
-              <td class="text-end"><%= number_to_thb(row[:outstanding]) %></td>
-              <td><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : (row[:status] == "Partial" ? :warning : :neutral), size: :sm) %></td>
-              <td><%= row[:last_payment].present? ? row[:last_payment].strftime("%d/%m/%y") : "—" %></td>
+              <td class="col-xl truncate"><%= row[:company] %></td>
+              <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:total]) %></td>
+              <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:paid]) %></td>
+              <td class="col-sm odt-table-numeric"><%= number_to_thb(row[:outstanding]) %></td>
+              <td class="col-xs"><%= odt_badge(row[:status], variant: row[:status] == "Paid" ? :success : (row[:status] == "Partial" ? :warning : :neutral), size: :sm) %></td>
+              <td class="col-sm truncate"><%= row[:last_payment].present? ? row[:last_payment].strftime("%d/%m/%y") : "—" %></td>
             </tr>
           <% end %>
         </tbody>
@@ -88,23 +88,23 @@
       <%= odt_table(extra_class: "odt-table--sm") do %>
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Item</th>
-            <th>Category</th>
-            <th class="text-end">Amount</th>
-            <th>Notes</th>
-            <th class="text-end">Actions</th>
+            <th class="col-sm">Date</th>
+            <th class="col-lg">Item</th>
+            <th class="col-sm">Category</th>
+            <th class="col-sm odt-table-numeric">Amount</th>
+            <th class="col-md">Notes</th>
+            <th class="cell-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% expenses.each do |expense| %>
             <tr>
-              <td><%= expense.created_at.strftime("%d/%m/%y") %></td>
-              <td><%= expense.description %></td>
-              <td><%= expense.category.presence || "—" %></td>
-              <td class="text-end"><%= number_to_thb(expense.amount) %></td>
-              <td><%= expense.description.truncate(40) %></td>
-              <td class="text-end">
+              <td class="col-sm truncate"><%= expense.created_at.strftime("%d/%m/%y") %></td>
+              <td class="col-lg truncate"><%= expense.description %></td>
+              <td class="col-sm truncate"><%= expense.category.presence || "—" %></td>
+              <td class="col-sm odt-table-numeric"><%= number_to_thb(expense.amount) %></td>
+              <td class="col-md truncate" title="<%= expense.description %>"><%= expense.description.truncate(40) %></td>
+              <td class="cell-actions">
                 <%= link_to edit_admin_training_class_class_expense_path(training_class, expense), class: "odt-icon-btn odt-icon-btn--ghost", title: "Edit", data: { turbo_frame: "_top" } do %><i class="bi bi-pencil"></i><% end %>
                 <%= link_to admin_training_class_class_expense_path(training_class, expense), data: { turbo_method: :delete, turbo_confirm: "Delete this expense?" }, class: "odt-icon-btn odt-icon-btn--danger", title: "Delete" do %><i class="bi bi-trash"></i><% end %>
               </td>

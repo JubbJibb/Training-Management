@@ -1,0 +1,58 @@
+<div class="odt-filters-row__field">
+  <label for="foh_preset" class="odt-filters-row__label">Period</label>
+  <select name="preset" id="foh_preset" class="odt-filters-row__input">
+    <option value="">Custom range</option>
+    <option value="this_month" <%= "selected" if params[:preset] == "this_month" %>>This month</option>
+    <option value="last_month" <%= "selected" if params[:preset] == "last_month" %>>Last month</option>
+    <option value="this_quarter" <%= "selected" if params[:preset] == "this_quarter" %>>This quarter</option>
+    <option value="this_year" <%= "selected" if params[:preset] == "this_year" %>>This year</option>
+  </select>
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_start_date" class="odt-filters-row__label">Start</label>
+  <input type="date" name="start_date" id="foh_start_date" class="odt-filters-row__input" value="<%= params[:start_date] %>">
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_end_date" class="odt-filters-row__label">End</label>
+  <input type="date" name="end_date" id="foh_end_date" class="odt-filters-row__input" value="<%= params[:end_date] %>">
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_training_class_id" class="odt-filters-row__label">Course</label>
+  <select name="training_class_id" id="foh_training_class_id" class="odt-filters-row__input">
+    <option value="">All</option>
+    <% @training_classes.each do |tc| %>
+      <option value="<%= tc.id %>" <%= "selected" if params[:training_class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date.strftime("%d/%m/%Y") %>)</option>
+    <% end %>
+  </select>
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_segment" class="odt-filters-row__label">Segment</label>
+  <select name="segment" id="foh_segment" class="odt-filters-row__input">
+    <option value="">All</option>
+    <option value="corporate" <%= "selected" if params[:segment] == "corporate" %>>Corporate</option>
+    <option value="individual" <%= "selected" if params[:segment] == "individual" %>>Individual</option>
+  </select>
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_status" class="odt-filters-row__label">Status</label>
+  <select name="status" id="foh_status" class="odt-filters-row__input">
+    <option value="">All</option>
+    <option value="paid" <%= "selected" if params[:status] == "paid" %>>Paid</option>
+    <option value="pending" <%= "selected" if params[:status] == "pending" %>>Pending</option>
+    <option value="overdue" <%= "selected" if params[:status] == "overdue" %>>Overdue</option>
+    <option value="no_document" <%= "selected" if params[:status] == "no_document" %>>No document</option>
+  </select>
+</div>
+<div class="odt-filters-row__field">
+  <label for="foh_channel" class="odt-filters-row__label">Channel</label>
+  <select name="channel" id="foh_channel" class="odt-filters-row__input">
+    <option value="">All</option>
+    <% @channels.each do |ch| %>
+      <option value="<%= ch %>" <%= "selected" if params[:channel] == ch %>><%= ch %></option>
+    <% end %>
+  </select>
+</div>
+<div class="odt-filters-row__actions">
+  <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+  <%= link_to "Clear", finance_dashboard_path, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: "finance_dashboard" } %>
+</div>

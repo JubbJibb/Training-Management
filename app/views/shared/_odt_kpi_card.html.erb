@@ -1,0 +1,14 @@
+<%# ODT Card System v1 — KPI Card Pattern. Single metric: label (uppercase tracking), value (navy), optional highlight. %>
+<%
+  label = local_assigns[:label]
+  value = local_assigns[:value]
+  sub = local_assigns[:sub]
+  highlight = local_assigns[:highlight]
+%>
+<div class="odt-kpi-v1">
+  <span class="odt-kpi-v1__label"><%= label %></span>
+  <span class="odt-kpi-v1__value <%= "odt-kpi-v1__value--highlight" if highlight %>"><%= value %></span>
+  <% if sub.present? %>
+    <span class="odt-kpi-v1__sub"><%= sub %></span>
+  <% end %>
+</div>

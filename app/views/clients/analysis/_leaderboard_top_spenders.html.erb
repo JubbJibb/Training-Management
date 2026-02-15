@@ -1,0 +1,27 @@
+<%# ODT Card System v1 — Top 10 leaderboard: #1 gold, #2-3 navy, bar track/fill, gold tip on #1, revenue + share %. %>
+<% top = local_assigns[:top_spenders] || [] %>
+<% max_rev = top.map { |t| t[:revenue].to_f }.max.to_f %>
+<% total_rev = top.sum { |t| t[:revenue].to_f } %>
+<%= render "shared/odt_card", title: "Top 10 Spenders (Revenue)" do %>
+  <div class="odt-lb-v1">
+    <% top.each_with_index do |t, i| %>
+      <% rev = t[:revenue].to_f %>
+      <% pct_width = max_rev.positive? ? (rev / max_rev * 100) : 0 %>
+      <% share_pct = total_rev.positive? ? (rev / total_rev * 100).round(1) : 0 %>
+      <% row_class = case i when 0 then "odt-lb-v1__row--rank-1" when 1 then "odt-lb-v1__row--rank-2" when 2 then "odt-lb-v1__row--rank-3" else "" end %>
+      <div class="odt-lb-v1__row <%= row_class %>">
+        <span class="odt-lb-v1__rank"><%= i + 1 %></span>
+        <span class="odt-lb-v1__name" title="<%= t[:name] %>"><%= truncate(t[:name].to_s, length: 28) %></span>
+        <span class="odt-lb-v1__bar-wrap">
+          <span class="odt-lb-v1__bar <%= 'odt-lb-v1__bar--gold-tip' if i == 0 %>" style="width: <%= pct_width %>%"></span>
+        </span>
+        <span class="odt-lb-v1__value">
+          <%= number_to_thb(rev) %><span class="odt-lb-v1__share"><%= share_pct %>%</span>
+        </span>
+      </div>
+    <% end %>
+  </div>
+  <% if top.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">No spenders in period.</p>
+  <% end %>
+<% end %>

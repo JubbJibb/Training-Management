@@ -1,0 +1,49 @@
+<%
+  title = local_assigns[:title] || "Table"
+  columns = local_assigns[:columns] || []
+  rows = local_assigns[:rows] || []
+  row_url_proc = local_assigns[:row_url]
+%>
+<div class="card odt-card insights-table-card">
+  <div class="card-header odt-card__header">
+    <h3 class="card-title odt-card__title"><%= title %></h3>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover odt-table mb-0">
+        <thead>
+          <tr>
+            <% columns.each do |col| %>
+              <th><%= col[:label] %></th>
+            <% end %>
+            <% if row_url_proc %><th class="text-end">Action</th><% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |row|
+            row_h = row.is_a?(Hash) ? row : row.to_h
+          %>
+            <tr>
+              <% columns.each do |col|
+                key = col[:key] || col["key"]
+                val = row_h[key] || row_h[key.to_s]
+                val = number_to_thb(val) if col[:format] == :currency
+                val = number_to_percent(val) if col[:format] == :percent
+                val = "—" if val.blank?
+                val = val.to_s
+              %>
+                <td><%= val %></td>
+              <% end %>
+              <% if row_url_proc %>
+                <td class="text-end">
+                  <% url = row_url_proc.call(row_h) %>
+                  <%= link_to "View", url, class: "btn btn-sm btn-outline-primary" if url.present? %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

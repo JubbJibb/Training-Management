@@ -1,0 +1,73 @@
+<% content_for :title, "Instructors" %>
+<%
+  total_instructors = @instructors.size
+  active_instructors = @instructors.count { |name| (@classes_by_instructor[name] || 0) > 0 }
+%>
+
+<%= render "components/odt/page_header", title: "Instructors", subtitle: "Manage program delivery", icon: "person-badge", extra_class: "instructors-page-header" do %>
+  <%= link_to admin_training_classes_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
+    <i class="bi bi-calendar-event odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+    <span class="odt-btn__label">Manage Classes</span>
+  <% end %>
+  <%= link_to new_admin_training_class_path, class: "odt-btn odt-btn--secondary odt-btn--md" do %>
+    <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+    <span class="odt-btn__label">Add Instructor</span>
+  <% end %>
+<% end %>
+
+<div class="instructors-index-page">
+  <section class="instructors-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(
+      cells: [
+        { icon: "people", label: "Total instructors", value: total_instructors, sub: "in directory" },
+        { icon: "person-check", label: "Active instructors", value: active_instructors, sub: "with upcoming classes" },
+        { icon: "percent", label: "Average fill rate", value: "—", sub: "upcoming classes" },
+        { icon: "exclamation-triangle", label: "At-risk", value: 0, sub: "need attention" }
+      ],
+      extra_class: "instructors-kpi-strip"
+    ) %>
+  </section>
+
+  <div class="instructors-directory">
+    <h2 class="instructors-directory__title">Instructor directory</h2>
+    <% if @instructors.any? %>
+      <div class="instructors-card-grid">
+        <% @instructors.each do |name| %>
+          <% upcoming_count = @classes_by_instructor[name].to_i %>
+          <article class="instructor-card">
+            <div class="instructor-card__body">
+              <h3 class="instructor-card__name"><%= name %></h3>
+              <dl class="instructor-card__stats">
+                <div class="instructor-card__stat">
+                  <dt>Upcoming classes</dt>
+                  <dd><%= upcoming_count %></dd>
+                </div>
+                <div class="instructor-card__stat">
+                  <dt>Total classes</dt>
+                  <dd>—</dd>
+                </div>
+                <div class="instructor-card__stat">
+                  <dt>Avg fill rate</dt>
+                  <dd>—</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="instructor-card__actions">
+              <%= link_to admin_training_classes_path(instructor: name), class: "instructor-card__btn instructor-card__btn--primary" do %>
+                <i class="bi bi-calendar-event" aria-hidden="true"></i> View classes
+              <% end %>
+              <%= link_to new_admin_training_class_path(instructor: name), class: "instructor-card__btn instructor-card__btn--secondary" do %>
+                <i class="bi bi-plus-circle" aria-hidden="true"></i> Assign class
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="instructors-empty">
+        <p class="instructors-empty__text">No instructors found. Add training classes with instructor assigned.</p>
+        <%= link_to admin_training_classes_path, class: "odt-btn odt-btn--primary odt-btn--sm" do %>Training Classes<% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

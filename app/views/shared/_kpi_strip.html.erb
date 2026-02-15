@@ -1,0 +1,21 @@
+<%
+  cells = local_assigns[:cells] || []
+  extra_class = local_assigns[:extra_class]
+  css = ["kpi-strip", extra_class].compact
+%>
+<section class="<%= css.join(' ') %>" aria-label="Key metrics">
+  <% cells.each do |cell| %>
+    <div class="kpi <%= "kpi--#{cell[:value_variant]}" if cell[:value_variant].present? %>">
+      <div class="kpi__head">
+        <% if cell[:icon].present? %>
+          <span class="kpi__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span>
+        <% end %>
+        <span class="kpi__label"><%= cell[:label] %></span>
+      </div>
+      <span class="kpi__value"><%= cell[:value] %></span>
+      <% if cell[:sub].present? %>
+        <span class="kpi__sub"><%= cell[:sub] %></span>
+      <% end %>
+    </div>
+  <% end %>
+</section>

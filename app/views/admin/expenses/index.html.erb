@@ -1,0 +1,48 @@
+<% content_for :title, "Expense Control" %>
+<%= render "components/odt/page_header", title: "Expense Control", subtitle: "Class expenses across training", icon: "wallet2" do %>
+  <%= link_to admin_training_classes_path, class: "btn btn--secondary btn--sm" do %>
+    <i class="bi bi-calendar-event" aria-hidden="true"></i> Training Classes
+  <% end %>
+<% end %>
+
+<div class="card card--accent-left">
+  <div class="card__header">
+    <h3 class="card__title"><i class="bi bi-wallet2" aria-hidden="true"></i> Recent expenses</h3>
+    <span class="cell--num"><strong><%= number_to_thb(@total_amount) %></strong> (shown)</span>
+  </div>
+  <div class="card__body">
+    <% if @expenses.any? %>
+      <div class="data-table-wrap data-table-wrap--accent">
+        <table class="data-table" role="table" aria-label="Expenses">
+          <colgroup>
+            <col class="col-md">
+            <col class="col-lg">
+            <col class="col-md">
+            <col class="col-sm">
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Class</th>
+              <th scope="col">Description</th>
+              <th scope="col">Category</th>
+              <th scope="col" class="cell--num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @expenses.each do |exp| %>
+              <tr>
+                <td class="cell--truncate" title="<%= exp.training_class&.title %>"><%= link_to exp.training_class&.title, admin_training_class_path(exp.training_class, tab: "finance"), class: "doc-name-link" %></td>
+                <td class="cell--truncate" title="<%= exp.description %>"><%= exp.description %></td>
+                <td><%= exp.category.presence || "—" %></td>
+                <td class="cell--num"><%= number_to_thb(exp.amount) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="empty-state empty-state--sm">No expenses recorded. Add expenses from a training class Finance tab.</p>
+      <%= link_to admin_training_classes_path, class: "btn btn--secondary btn--sm" do %>Training Classes<% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<%
+  fp = local_assigns[:filter_params] || {}
+  form_url = local_assigns[:form_url] || request.path
+  show_client_channel = local_assigns[:show_client_channel].nil? ? true : local_assigns[:show_client_channel]
+  channels = local_assigns[:channels] || ["All", "Corporate", "Individual", "Online", "Offline"]
+%>
+<div class="insights-filter-bar-wrap">
+  <%= render "components/odt/filters_row", form_url: form_url, form_method: :get, form_options: { data: { turbo_frame: local_assigns[:turbo_frame].presence } }, extra_class: "insights-filter-bar" do %>
+    <div class="odt-filters-row__field">
+      <label for="insights_preset" class="odt-filters-row__label">Period</label>
+      <select name="preset" id="insights_preset" class="odt-filters-row__input">
+        <option value="mtd" <%= "selected" if fp[:preset].to_s == "mtd" %>>MTD</option>
+        <option value="qtd" <%= "selected" if fp[:preset].to_s == "qtd" %>>QTD</option>
+        <option value="ytd" <%= "selected" if fp[:preset].to_s == "ytd" %>>YTD</option>
+        <option value="custom" <%= "selected" if fp[:preset].to_s == "custom" %>>Custom</option>
+      </select>
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="insights_start_date" class="odt-filters-row__label">Start</label>
+      <input type="date" name="start_date" id="insights_start_date" class="odt-filters-row__input" value="<%= fp[:start_date] %>">
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="insights_end_date" class="odt-filters-row__label">End</label>
+      <input type="date" name="end_date" id="insights_end_date" class="odt-filters-row__input" value="<%= fp[:end_date] %>">
+    </div>
+    <% if show_client_channel %>
+      <div class="odt-filters-row__field">
+        <label for="insights_client_type" class="odt-filters-row__label">Client type</label>
+        <select name="client_type" id="insights_client_type" class="odt-filters-row__input">
+          <option value="all" <%= "selected" if fp[:client_type].to_s == "all" %>>All</option>
+          <option value="individual" <%= "selected" if fp[:client_type].to_s == "individual" %>>Individual</option>
+          <option value="corporate" <%= "selected" if fp[:client_type].to_s == "corporate" %>>Corporate</option>
+        </select>
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="insights_channel" class="odt-filters-row__label">Channel</label>
+        <select name="channel" id="insights_channel" class="odt-filters-row__input">
+          <% channels.each do |ch| %>
+            <option value="<%= ch.downcase == 'all' ? 'all' : ch.downcase %>" <%= "selected" if fp[:channel].to_s == ch.downcase %>><%= ch %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="insights_min_revenue" class="odt-filters-row__label">Min revenue</label>
+        <input type="number" name="min_revenue" id="insights_min_revenue" class="odt-filters-row__input" value="<%= fp[:min_revenue] %>" placeholder="Optional" min="0" step="1">
+      </div>
+    <% end %>
+    <div class="odt-filters-row__actions">
+      <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+      <%= link_to "Clear", form_url, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: local_assigns[:turbo_frame].presence } %>
+    </div>
+  <% end %>
+</div>

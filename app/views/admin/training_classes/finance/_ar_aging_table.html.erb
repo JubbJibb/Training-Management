@@ -1,0 +1,58 @@
+<%
+  ar_aging = local_assigns[:ar_aging] || {}
+  d = local_assigns[:d] || {}
+  buckets = ar_aging[:buckets] || []
+  total_ar = (ar_aging[:total_ar] || 0).to_f
+  kpis = d[:kpis] || {}
+  collection_pct = kpis[:collection_rate_pct]
+%>
+<% if buckets.any? { |b| (b[:amount] || 0).positive? } || total_ar.positive? %>
+  <div class="data-table-wrap data-table-wrap--accent">
+    <table class="data-table" role="table" aria-label="AR Aging Summary">
+      <colgroup>
+        <col class="col-md">
+        <col class="col-sm">
+        <col class="col-xs">
+        <col class="col-sm">
+        <col class="col-xs">
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">Bucket</th>
+          <th scope="col" class="cell--num">Amount</th>
+          <th scope="col" class="cell--num">%</th>
+          <th scope="col" class="cell--center">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% buckets.each do |b| %>
+          <% amt = (b[:amount] || 0).to_f %>
+          <% pct = total_ar.positive? ? ((amt / total_ar) * 100).round(1) : 0 %>
+          <% overdue_range = b[:range].to_s != "Not due" && (b[:range].to_s.include?("–") || b[:range].to_s.include?("+")) %>
+          <% status = amt.positive? ? (overdue_range ? "warning" : "info") : "neutral" %>
+          <% status_label = amt.positive? ? (overdue_range ? "Overdue" : "Pending") : "—" %>
+          <tr>
+            <td><%= b[:range] %></td>
+            <td class="cell--num"><%= number_to_thb(amt) %></td>
+            <td class="cell--num"><%= pct %>%</td>
+            <td class="cell--center">
+              <span class="badge badge--<%= status %>"><%= status_label %></span>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total Outstanding</strong></td>
+          <td class="cell--num" colspan="3"><strong><%= number_to_thb(total_ar) %></strong></td>
+        </tr>
+        <tr>
+          <td>Collection Rate</td>
+          <td class="cell--num" colspan="3"><%= collection_pct.nil? ? "—" : number_to_percent(collection_pct) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state empty-state--sm">No AR aging data.</p>
+<% end %>

@@ -3,35 +3,55 @@
 <% w = d[:waterfall] %>
 <% p = d[:profitability] %>
 <% payment_list = d[:payment_status_list] %>
+<% sub = params[:sub].to_s.presence || "overview" %>
+<% sub = "overview" unless %w[overview promo costs].include?(sub) %>
 
-<div class="cfo-finance-page class-finance-dashboard">
-  <%= render "admin/training_classes/finance/cfo_header", training_class: training_class %>
+<div class="finance-tab finance-tab--ds">
+  <%# 1) Section header: title + primary CTA (+ Add Expense) + secondary (Export) %>
+  <% finance_header_actions = capture do %>
+    <%= link_to export_admin_training_class_attendees_path(training_class, format: :csv), class: "btn btn--secondary btn--sm", aria: { label: "Export CSV" } do %>
+      <i class="bi bi-download" aria-hidden="true"></i><span>Export</span>
+    <% end %>
+    <%= link_to new_admin_training_class_class_expense_path(training_class), class: "btn btn--primary btn--sm", data: { turbo_frame: "_top" }, aria: { label: "Add Expense" } do %>
+      <i class="bi bi-plus-lg" aria-hidden="true"></i><span>+ Add Expense</span>
+    <% end %>
+  <% end %>
+  <%= render "shared/section_header", title: "Financial Dashboard", subtitle: "เงินของคลาสนี้", actions: finance_header_actions %>
 
-  <div class="class-finance-card class-finance-dashboard-container">
-    <div class="class-finance-card__header">
-      <h2 class="class-finance-card__title">ภาพรวมการเงิน</h2>
-    </div>
-    <div class="class-finance-card__body">
-      <%= render "admin/training_classes/finance/class_finance_kpi_cards", kpis: k, waterfall: w, profitability: p, payment_status_list: payment_list %>
-
-      <div class="class-finance-two-col cfo-two-col">
-        <%= render "admin/training_classes/finance/class_finance_pl_breakdown", waterfall: w, profitability: p, cost_by_category: d[:cost_by_category] %>
-        <%= render "admin/training_classes/finance/class_finance_revenue_discounts", segment_split: d[:segment_split], promotions_performance: d[:promotions_performance] %>
-      </div>
-
-      <div class="class-finance-cash-section">
-        <%= render "admin/training_classes/finance/class_finance_payment_intelligence", payment_intelligence: d[:payment_intelligence] %>
-        <%= render "admin/training_classes/finance/class_finance_payment_table", payment_status_list: payment_list, training_class: training_class %>
-      </div>
-
-      <div class="class-finance-main-with-sidebar">
-        <div class="class-finance-main">
-          <%= render "admin/training_classes/finance/class_finance_expenses", expense_list: d[:expense_list], cost_by_category: d[:cost_by_category], training_class: training_class %>
+  <%= form_with url: finance_admin_training_class_path(training_class), method: :get, local: false, data: { turbo_frame: "class_finance_tab" }, class: "finance-tab__filters" do |f| %>
+    <%= hidden_field_tag :sub, sub %>
+    <div class="filters filters--compact">
+      <div class="filters__row">
+        <div class="filters__group">
+          <label class="filters__label" for="finance_filter_type">Type</label>
+          <%= select_tag :type, options_for_select([["All", ""], ["Corporate", "Corp"], ["Individual", "Indi"]], params[:type]), id: "finance_filter_type", class: "filters__input", aria: { label: "Filter by type" } %>
         </div>
-        <aside class="class-finance-sidebar">
-          <%= render "admin/training_classes/finance/class_finance_insights", insights: d[:insights] %>
-        </aside>
+        <div class="filters__group">
+          <label class="filters__label" for="finance_filter_status">Payment</label>
+          <%= select_tag :status, options_for_select([["All", ""], ["Paid", "Paid"], ["Pending", "Pending"], ["Overdue", "Overdue"]], params[:status]), id: "finance_filter_status", class: "filters__input", aria: { label: "Filter by payment status" } %>
+        </div>
+        <div class="filters__actions">
+          <button type="submit" class="btn btn--secondary btn--sm">Apply</button>
+          <%= link_to "Clear", finance_admin_training_class_path(training_class, sub: sub), class: "btn btn--ghost btn--sm", data: { turbo_frame: "class_finance_tab" }, aria: { label: "Clear filters" } %>
+        </div>
       </div>
     </div>
-  </div>
+  <% end %>
+
+  <%# 2) KPI strip (6 cards) — always visible %>
+  <section class="finance-tab__kpi" aria-label="Key metrics">
+    <%= render "admin/training_classes/finance/class_finance_kpi_strip", kpis: k, waterfall: w, profitability: p, payment_status_list: payment_list %>
+  </section>
+
+  <%# 3) Sub-tabs: Overview | Promo & Segment | Costs %>
+  <%= render "admin/training_classes/finance/finance_sub_tabs", training_class: training_class, current_sub: sub %>
+
+  <%# 4) Sub-tab content %>
+  <% if sub == "overview" %>
+    <%= render "admin/training_classes/finance/overview", finance_dashboard: d, training_class: training_class %>
+  <% elsif sub == "promo" %>
+    <%= render "admin/training_classes/finance/promo", finance_dashboard: d, training_class: training_class %>
+  <% else %>
+    <%= render "admin/training_classes/finance/costs", finance_dashboard: d, training_class: training_class %>
+  <% end %>
 </div>

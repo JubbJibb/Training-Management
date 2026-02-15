@@ -1,0 +1,30 @@
+<%# ODT Card System v1 — Segment mix donuts. Chart init targets .ca-exec-donuts canvas. %>
+<% seg = local_assigns[:segment_mix] || {} %>
+<% corp_indi = seg[:corporate_vs_individual] || {} %>
+<% one_repeat = seg[:one_time_vs_repeat] || {} %>
+<% new_ret = seg[:new_vs_returning] || {} %>
+<%= render "shared/odt_card", title: "Segment mix", extra_class: "ca-exec-donuts" do %>
+  <div class="ca-exec-donuts__grid">
+    <div class="ca-exec-donut-wrap">
+      <canvas id="ca_exec_donut_corp_indi" width="160" height="160"
+        data-chart-type="doughnut"
+        data-labels='["Corporate", "Individual"]'
+        data-datasets='[{"label":"Revenue","data":[<%= corp_indi[:corporate].to_f %>,<%= corp_indi[:individual].to_f %>]}]'></canvas>
+      <p class="ca-exec-donut-wrap__label">Corporate vs Individual</p>
+    </div>
+    <div class="ca-exec-donut-wrap">
+      <canvas id="ca_exec_donut_one_repeat" width="160" height="160"
+        data-chart-type="doughnut"
+        data-labels='["One-time", "Repeat"]'
+        data-datasets='[{"label":"Clients","data":[<%= one_repeat[:one_time].to_i %>,<%= one_repeat[:repeat].to_i %>]}]'></canvas>
+      <p class="ca-exec-donut-wrap__label">One-time vs Repeat</p>
+    </div>
+    <div class="ca-exec-donut-wrap">
+      <canvas id="ca_exec_donut_new_ret" width="160" height="160"
+        data-chart-type="doughnut"
+        data-labels='["New", "Returning"]'
+        data-datasets='[{"label":"Period","data":[<%= new_ret[:new].to_i %>,<%= new_ret[:returning].to_i %>]}]'></canvas>
+      <p class="ca-exec-donut-wrap__label">New vs Returning (period)</p>
+    </div>
+  </div>
+<% end %>

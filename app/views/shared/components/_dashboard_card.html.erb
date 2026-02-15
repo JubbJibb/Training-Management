@@ -1,0 +1,26 @@
+<%
+  title = local_assigns[:title]
+  icon = local_assigns[:icon]
+  header_action = local_assigns[:header_action]
+  extra_class = local_assigns[:extra_class]
+  card_css = ["dashboard-card"]
+  card_css << extra_class if extra_class.present?
+%>
+<div class="<%= card_css.join(" ") %>">
+  <% if title.present? || header_action.present? %>
+    <div class="dashboard-card__header">
+      <% if title.present? %>
+        <h3 class="dashboard-card__title">
+          <% if icon.present? %><i class="bi bi-<%= icon %> dashboard-card__icon" aria-hidden="true"></i><% end %>
+          <%= title %>
+        </h3>
+      <% end %>
+      <% if header_action.present? %>
+        <div class="dashboard-card__action"><%= header_action %></div>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="dashboard-card__body">
+    <%= yield %>
+  </div>
+</div>

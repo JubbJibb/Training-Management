@@ -1,13 +1,25 @@
 <%
-  message = local_assigns[:message] || "No data"
-  icon = local_assigns[:icon]
-  extra_class = local_assigns[:extra_class]
-  css = ["shared-empty-state"]
-  css << extra_class if extra_class.present?
+  title = local_assigns[:title] || "No data"
+  hint = local_assigns[:hint]
+  icon = local_assigns[:icon] || "inbox"
+  cta_label = local_assigns[:cta_label]
+  cta_url = local_assigns[:cta_url]
+  cta_primary = local_assigns[:cta_primary] != false
+  extra_class = ["empty-state", local_assigns[:extra_class]].compact.join(" ")
 %>
-<div class="<%= css.join(' ') %>" role="status">
-  <% if icon.present? %>
-    <span class="shared-empty-state__icon" aria-hidden="true"><i class="bi bi-<%= icon %>"></i></span>
+<div class="<%= extra_class %>" role="status">
+  <span class="empty-state__icon" aria-hidden="true"><i class="bi bi-<%= icon %>"></i></span>
+  <p class="empty-state__title"><%= title %></p>
+  <% if hint.present? %>
+    <p class="empty-state__hint"><%= hint %></p>
   <% end %>
-  <p class="shared-empty-state__text"><%= message %></p>
+  <% if cta_label.present? && cta_url.present? %>
+    <div class="empty-state__cta">
+      <%= link_to cta_url, class: "btn #{cta_primary ? 'btn--primary' : 'btn--secondary'}" do %>
+        <i class="bi bi-plus-circle" aria-hidden="true"></i>
+        <%= cta_label %>
+      <% end %>
+    </div>
+  <% end %>
+  <%= yield if block_given? %>
 </div>

@@ -1,0 +1,57 @@
+<%
+  title = local_assigns[:title]
+  columns = local_assigns[:columns] || []
+  rows = local_assigns[:rows] || []
+  empty_message = local_assigns[:empty_message] || "No data in selected period."
+  extra_class = local_assigns[:extra_class]
+  table_css = ["insight-odt-table"]
+  table_css << extra_class if extra_class.present?
+%>
+<div class="insight-odt-table-wrap">
+  <% if title.present? %>
+    <h3 class="insight-odt-table__heading"><%= title %></h3>
+  <% end %>
+  <% if rows.blank? %>
+    <%= render "shared/empty_state", title: empty_message, icon: "table", extra_class: "insight-odt-table__empty" %>
+  <% else %>
+    <div class="insight-odt-table__scroll">
+      <table class="<%= table_css.join(' ') %>" role="table">
+        <thead>
+          <tr>
+            <% columns.each do |col| %>
+              <th scope="col" class="<%= col[:class].to_s %>"><%= col[:label] %></th>
+            <% end %>
+            <% if block_given? %><th scope="col" class="text-end">Action</th><% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |row|
+            row_h = row.is_a?(Hash) ? row : row.to_h
+          %>
+            <tr>
+              <% columns.each do |col|
+                key = col[:key] || col["key"]
+                next if key == :_action
+                val = row_h[key] || row_h[key.to_s]
+                if col[:format] == :currency
+                  val = number_to_thb(val) rescue val.to_s
+                elsif col[:format] == :percent
+                  val = val.is_a?(Numeric) ? "#{val}%" : val.to_s
+                end
+                val = "—" if val.blank?
+                val = val.to_s
+              %>
+                <td class="<%= col[:cell_class].to_s %>"><%= val %></td>
+              <% end %>
+              <% if block_given? %>
+                <td class="insight-odt-table__action">
+                  <%= capture { yield row_h } %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,86 @@
+<%
+  # ODT Grid Table – div-based table using CSS Grid for column sizing.
+  # columns: [{ key:, label:, type: "text"|"stack"|"num"|"badge"|"actions"|"html", width: "fit"|"sm"|"md"|"lg"|"xl" }]
+  # width: "fit" => minmax(max-content, max-content), "sm" => 72px, "md" => 120px, "lg" => minmax(180px, 1fr), "xl" => minmax(260px, 2fr)
+  # rows: array of hashes; keys match column key. Stack uses key + "#{key}_secondary" or "#{key}_meta". Badge uses key + "#{key}_badge_class".
+  # row_actions: array of HTML strings (same length as rows) for the actions column.
+  # extra_class: optional CSS class on the wrapper.
+  columns = local_assigns[:columns] || []
+  rows = local_assigns[:rows] || []
+  row_actions = local_assigns[:row_actions] || []
+  extra_class = local_assigns[:extra_class]
+
+  width_templates = {
+    "fit" => "minmax(max-content, max-content)",
+    "sm"  => "minmax(72px, max-content)",
+    "md"  => "minmax(120px, max-content)",
+    "lg"  => "minmax(180px, 1fr)",
+    "xl"  => "minmax(260px, 2fr)"
+  }
+  col_template = columns.map { |c| width_templates[c[:width].to_s] || width_templates["md"] }.join(" ")
+  wrap_css = ["odt-grid-table-wrap", extra_class].compact.join(" ")
+%>
+<div class="<%= wrap_css %>" role="region" aria-label="Data table">
+  <div class="odt-grid-table" style="--odt-cols: <%= col_template %>;">
+    <div class="odt-grid-row odt-grid-head" role="row">
+      <% columns.each_with_index do |col, col_idx| %>
+        <%
+          type = (col[:type] || "text").to_s
+          align = (col[:align] || (type == "num" || type == "actions" ? "right" : "left")).to_s
+          head_cell_class = "odt-grid-cell odt-grid-cell--head"
+          head_cell_class += " odt-grid-cell--head-first" if col_idx == 0
+          head_cell_class += " odt-grid-cell--head-last" if col_idx == columns.size - 1
+          head_cell_class += " odt-grid-cell--num" if type == "num"
+          head_cell_class += " odt-grid-cell--actions" if type == "actions"
+          head_cell_class += " odt-grid-cell--right" if align == "right"
+          head_cell_class += " odt-grid-cell--center" if align == "center"
+        %>
+        <div class="<%= head_cell_class %>" role="columnheader" scope="col" style="grid-column: <%= col_idx + 1 %>;"><span class="th-inner"><%= col[:label] %></span></div>
+      <% end %>
+    </div>
+    <% rows.each_with_index do |row, i| %>
+      <div class="odt-grid-row<%= " odt-grid-row--last" if i == rows.size - 1 %>" role="row">
+        <% columns.each_with_index do |col, col_idx| %>
+          <%
+            key = col[:key]
+            type = (col[:type] || "text").to_s
+            align = (col[:align] || (type == "num" || type == "actions" ? "right" : "left")).to_s
+            cell_class = "odt-grid-cell"
+            cell_class += " odt-grid-cell--num" if type == "num"
+            cell_class += " odt-grid-cell--actions" if type == "actions"
+            cell_class += " odt-grid-cell--stack" if type == "stack"
+            cell_class += " odt-grid-cell--right" if align == "right"
+            cell_class += " odt-grid-cell--center" if align == "center"
+            cell_class += " odt-grid-cell--last-row" if i == rows.size - 1
+            val = row[key]
+            val_secondary = row[:"#{key}_secondary"] || row[:"#{key}_meta"]
+            badge_class = row[:"#{key}_badge_class"]
+            cell_title = row[:"#{key}_title"]
+            actions_html = type == "actions" ? (row_actions[i].to_s.html_safe) : nil
+          %>
+          <div class="<%= cell_class %>" role="cell" style="grid-column: <%= col_idx + 1 %>;" <%= "title=\"#{ERB::Util.html_escape(cell_title)}\"".html_safe if cell_title.present? %>>
+            <% if type == "actions" %>
+              <%= actions_html %>
+            <% elsif type == "stack" %>
+              <div class="cell-stack">
+                <span class="cell-stack__primary truncate"><%= val.to_s %></span>
+                <% if val_secondary.present? %><span class="cell-stack__secondary cell-sub truncate"><%= val_secondary %></span><% end %>
+              </div>
+            <% elsif type == "num" %>
+              <div class="cell-stack">
+                <span class="cell-stack__primary num"><%= val.to_s %></span>
+                <% if val_secondary.present? %><span class="cell-stack__secondary cell-sub truncate"><%= val_secondary %></span><% end %>
+              </div>
+            <% elsif type == "badge" %>
+              <span class="badge badge-attendees <%= badge_class.to_s %>"><%= val.to_s %></span>
+            <% elsif type == "html" %>
+              <%= val.respond_to?(:html_safe?) && val.html_safe? ? val : raw(val.to_s) %>
+            <% else %>
+              <span class="truncate"><%= val.to_s %></span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

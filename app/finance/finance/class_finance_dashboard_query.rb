@@ -215,7 +215,17 @@ class Finance::ClassFinanceDashboardQuery
   end
 
   def expense_list
-    @training_class.class_expenses.order(created_at: :desc).to_a
+    scope = @training_class.class_expenses.order(created_at: :desc)
+    scope = scope.where(category: @filters[:expense_category]) if @filters[:expense_category].to_s.present?
+    if @filters[:expense_date_from].present?
+      from = Date.parse(@filters[:expense_date_from].to_s) rescue nil
+      scope = scope.where("created_at >= ?", from.beginning_of_day) if from
+    end
+    if @filters[:expense_date_to].present?
+      to = Date.parse(@filters[:expense_date_to].to_s) rescue nil
+      scope = scope.where("created_at <= ?", to.end_of_day) if to
+    end
+    scope.to_a
   end
 
   def payment_status_list
@@ -279,17 +289,23 @@ class Finance::ClassFinanceDashboardQuery
         promo_hash[key][:revenue] += rev
       end
     end
+    net = net_before_vat
     rows = promo_hash.values.map do |h|
       rev = h[:revenue].round(2)
       cost = h[:discount_cost].round(2)
       seats = h[:seats_used]
       avg = seats.positive? ? (rev / seats).round(2) : 0
       margin_pct = rev.positive? ? (((rev - cost) / rev) * 100).round(1) : nil
+      promo = h[:promotion]
+      promotion_type = promo.respond_to?(:discount_type) ? promo.discount_type : nil
       h.merge(
         discount_cost: cost,
         revenue: rev,
         avg_per_seat: avg,
-        margin_impact_pct: margin_pct
+        margin_impact_pct: margin_pct,
+        promotion_type: promotion_type,
+        net_revenue_share_pct: net.positive? ? ((rev / net) * 100).round(1) : nil,
+        avg_discount_per_seat: seats.positive? ? (cost / seats).round(2) : 0
       ).except(:promotion)
     end
     return [] if rows.empty?

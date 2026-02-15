@@ -1,12 +1,50 @@
 <%
-  css = ["table-wrap", "odt-table-wrap"]
-  css << extra_class if extra_class.present?
-  opts = (options || {}).dup
-  opts[:class] = [css, opts[:class]].flatten.compact.join(" ")
+  # Shared ODT Table: one system for all admin tables.
+  # Options: extra_class, sticky_header (boolean), columns (optional array of { label:, width: :xs|:sm|:md|:lg|:xl, align: :left|:right|:center, truncate: boolean, class: "..." }).
+  # When columns is present, block should contain only <tbody>...</tbody>. When absent, block contains full <thead> + <tbody>.
+  # Row highlight: add class "odt-tr--selected" or "odt-tr--active" on <tr>.
+  # Name cell: <td class="cell-stack"><span class="cell-stack__primary">Name</span><span class="cell-stack__secondary">email</span></td>
+  # Amount cell: <td class="odt-table-numeric cell-stack"><span class="cell-stack__primary">฿1,000</span><span class="cell-stack__secondary">incl. VAT</span></td>
+  extra_class = local_assigns[:extra_class]
+  sticky_header = local_assigns[:sticky_header]
+  columns = local_assigns[:columns]
+  table_id = local_assigns[:table_id]
+  options = local_assigns[:options] || {}
+
+  wrap_css = ["table-wrap", "odt-table-wrap"]
+  wrap_css << "odt-table-wrap--sticky" if sticky_header
+  wrap_css << extra_class if extra_class.present?
+  opts = options.dup
+  opts[:class] = [wrap_css, opts[:class]].flatten.compact.join(" ")
+
+  table_css = ["table", "data-table", "table-hover", "table-sortable-filterable", "odt-table", "mb-0"].compact
+  thead_from_columns = columns.present?
 %>
 <div <%= tag.attributes(opts) %>>
-  <div class="table-responsive">
-    <table class="table data-table table-hover table-sortable-filterable odt-table mb-0">
+  <div class="table-responsive odt-table-scroll">
+    <% table_attrs = { class: table_css.join(" "), role: "table", border: 0, cellspacing: 0, cellpadding: 0 }; table_attrs[:id] = table_id if table_id.present? %>
+<table <%= tag.attributes(table_attrs) %>>
+      <% if thead_from_columns %>
+        <thead>
+          <tr>
+            <% columns.each do |col| %>
+              <%
+                width = col[:width]
+                align = col[:align]
+                truncate = col[:truncate]
+                extra = col[:class].to_s
+                cell_class = ["odt-th"]
+                cell_class << "col-#{width}" if width.present?
+                cell_class << "odt-table-numeric num" if align == :right
+                cell_class << "text-center" if align == :center
+                cell_class << "truncate" if truncate
+                cell_class << extra if extra.present?
+              %>
+              <th scope="col" class="<%= cell_class.compact.uniq.join(' ') %>"><span class="th-inner"><%= col[:label] %></span></th>
+            <% end %>
+          </tr>
+        </thead>
+      <% end %>
       <%= content %>
     </table>
   </div>

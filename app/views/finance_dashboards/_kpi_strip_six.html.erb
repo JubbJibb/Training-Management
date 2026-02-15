@@ -1,0 +1,16 @@
+<%
+  s = summary
+  kpis = [
+    { icon: "currency-exchange", label: "Total Revenue (incl VAT)", value: number_to_thb(s[:total_incl_vat]), sub: "Net #{number_to_thb(s[:net_before_vat])} + VAT #{number_to_thb(s[:vat_amount])}" },
+    { icon: "receipt", label: "Net Revenue (before VAT)", value: number_to_thb(s[:net_before_vat]), sub: "Discount #{number_to_percent(s[:discount_rate_pct])} · #{number_to_thb(s[:discount_total])}" },
+    { icon: "wallet2", label: "Cash Received", value: number_to_thb(s[:cash_received]), sub: "Collection #{number_to_percent(s[:collection_rate_pct])}" },
+    { icon: "clock-history", label: "Outstanding AR", value: number_to_thb(s[:outstanding]), sub: "#{s[:invoices_pending_count]} invoices pending" },
+    { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(s[:overdue_amount]), sub: "#{s[:overdue_count]} overdue#{s[:max_overdue_days] ? " · max #{s[:max_overdue_days]}d" : ""}", variant: "danger" },
+    { icon: "graph-up", label: "Net Profit", value: s[:profit_before_vat].nil? ? "—" : number_to_thb(s[:profit_before_vat]), sub: s[:margin_pct].nil? ? "—" : "Margin #{number_to_percent(s[:margin_pct])}" }
+  ]
+%>
+<div class="finance-kpi-strip" role="region" aria-label="Key financial metrics">
+  <% kpis.each do |kpi| %>
+    <%= render "shared/components/kpi_card", label: kpi[:label], value: kpi[:value], sub: kpi[:sub], icon: kpi[:icon], variant: kpi[:variant] %>
+  <% end %>
+</div>

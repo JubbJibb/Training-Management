@@ -1,0 +1,136 @@
+<% content_for :title, "Business Insights" %>
+<%
+  data = @data || {}
+  kpis = data[:kpis] || {}
+  chart_data = data[:chart_data] || {}
+  top_programs = data[:top_programs] || []
+  date_range = @date_range || {}
+  fp = @filter_params || {}
+  trend = chart_data[:revenue_trend] || []
+  rev_by_program = chart_data[:revenue_by_program] || []
+  total_rev = kpis[:total_revenue].to_f
+  client_count = (data[:total_clients] || 0).to_i
+  client_count = 1 if client_count.zero? && total_rev.positive?
+  avg_rev_per_client = client_count.positive? ? (total_rev / client_count).round(2) : 0
+  kpi_cells = [
+    { icon: "currency-dollar", label: "Total Revenue", value: number_to_thb(total_rev), sub: "in period" },
+    { icon: "graph-up", label: "Revenue Growth %", value: kpis[:revenue_growth_pct].present? ? "#{kpis[:revenue_growth_pct]}%" : "—", sub: "vs previous period" },
+    { icon: "people", label: "Total Clients", value: (data[:total_clients] || "—").to_s, sub: "in period" },
+    { icon: "person-plus", label: "New Clients", value: (data[:new_clients] || "—").to_s, sub: "in period" },
+    { icon: "arrow-repeat", label: "Repeat Rate %", value: kpis[:repeat_client_rate].present? ? "#{kpis[:repeat_client_rate]}%" : "—", sub: "" },
+    { icon: "person-wallet", label: "Avg Revenue / Client", value: number_to_thb(avg_rev_per_client), sub: "" }
+  ]
+%>
+<div class="insights-page">
+  <%= render "components/odt/page_header", title: "Business Insights", subtitle: "Performance overview for classes, clients, and channels", icon: "graph-up-arrow" %>
+
+  <%= render "insights/shared/filter_bar", filter_params: fp, form_url: insights_business_path, turbo_frame: "insights_main" %>
+
+  <section class="insights-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "insights-kpi-strip") %>
+  </section>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Revenue Trend</h3>
+        <p class="insight-card__subtitle">By week or month in selected period</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if trend.any? %>
+        <div class="insight-chart-placeholder">
+          <ul class="insight-chart-list">
+            <% trend.first(12).each do |point| %>
+              <li><strong><%= point[:label] %></strong> <%= number_to_thb(point[:value].to_f) %></li>
+            <% end %>
+          </ul>
+          <p class="insight-chart-note">Chart library can be connected for visual line chart.</p>
+        </div>
+      <% else %>
+        <%= render "insights/shared/empty_chart", message: "No revenue trend data in selected period." %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="insight-two-col">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Revenue by Channel</h3>
+          <p class="insight-card__subtitle">Top channels by share</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if rev_by_program.any? %>
+          <% total_ch = rev_by_program.sum { |h| h[:value].to_f } %>
+          <% (rev_by_program.first(5) + (rev_by_program.size > 5 ? [{ label: "Other", value: rev_by_program.drop(5).sum { |h| h[:value].to_f } }] : [])).each do |h| %>
+            <% pct = total_ch.positive? ? ((h[:value].to_f / total_ch) * 100).round(1) : 0 %>
+            <div class="insight-progress-row">
+              <span class="insight-progress-row__label"><%= h[:label] %></span>
+              <span class="insight-progress-row__value"><%= number_to_thb(h[:value].to_f) %> (<%= pct %>%)</span>
+              <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= pct %>%;"></div></div>
+            </div>
+          <% end %>
+        <% else %>
+          <%= render "shared/empty_state", title: "No channel data", icon: "pie-chart", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Course Contribution</h3>
+          <p class="insight-card__subtitle">Top 5 courses by revenue</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if rev_by_program.any? %>
+          <% total_ch = rev_by_program.sum { |x| x[:value].to_f } %>
+          <% rev_by_program.first(5).each do |h| %>
+            <% pct = total_ch.positive? ? ((h[:value].to_f / total_ch) * 100).round(1) : 0 %>
+            <div class="insight-progress-row">
+              <span class="insight-progress-row__label"><%= h[:label] %></span>
+              <span class="insight-progress-row__value"><%= number_to_thb(h[:value].to_f) %> (<%= pct %>%)</span>
+              <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= pct %>%;"></div></div>
+            </div>
+          <% end %>
+        <% else %>
+          <%= render "shared/empty_state", title: "No course data", icon: "journal-bookmark", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%
+    table_rows = top_programs.map do |r|
+      {
+        class_title: r[:title],
+        class_date: r[:date].respond_to?(:strftime) ? r[:date].strftime("%b %d, %Y") : (r[:date].to_s.presence || "—"),
+        seats_sold: r[:seats_sold].to_i,
+        fill_rate: r[:fill_rate].nil? ? "—" : "#{r[:fill_rate]}%",
+        revenue: r[:revenue],
+        profit: r[:profit],
+        id: r[:id]
+      }
+    end
+    table_columns = [
+      { key: :class_title, label: "Class", cell_class: "" },
+      { key: :class_date, label: "Date" },
+      { key: :seats_sold, label: "Seats Sold" },
+      { key: :fill_rate, label: "Fill Rate %" },
+      { key: :revenue, label: "Revenue", format: :currency },
+      { key: :profit, label: "Profit", format: :currency }
+    ]
+  %>
+  <%= render "insights/shared/odt_table", title: "Top Performing Classes (Revenue)", columns: table_columns, rows: table_rows, empty_message: "No classes in selected period." do |row_h| %>
+    <% if row_h[:id].present? %>
+      <%= link_to "View Class", admin_training_class_path(row_h[:id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    <% else %>
+      —
+    <% end %>
+  <% end %>
+</div>

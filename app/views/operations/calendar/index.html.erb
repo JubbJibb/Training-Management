@@ -1,0 +1,88 @@
+<% content_for :title, "Training Calendar" %>
+
+<div class="cal-page">
+  <header class="cal-header">
+    <div class="cal-header__accent"></div>
+    <div class="cal-header__inner">
+      <div class="cal-header__left">
+        <h1 class="cal-header__title">Training Calendar</h1>
+        <p class="cal-header__subtitle">
+          <%= @view == "month" ? @month_start.strftime("%B %Y") : "Week of #{@week_start.strftime("%b %d")} – #{@week_end.strftime("%b %d, %Y")}" %>
+        </p>
+        <span class="cal-header__underline"></span>
+      </div>
+      <div class="cal-header__nav">
+        <% prev_date = @view == "month" ? @month_start - 1.month : @week_start - 1.week %>
+        <% next_date = @view == "month" ? @month_start + 1.month : @week_start + 1.week %>
+        <%= link_to operations_calendar_path(@filters.merge(start_date: prev_date.to_s, view: @view)), class: "cal-header__nav-btn", data: { turbo_frame: "_top" } do %>
+          <i class="bi bi-chevron-left"></i> Previous
+        <% end %>
+        <span class="cal-header__nav-current">
+          <%= @view == "month" ? @month_start.strftime("%B %Y") : @week_start.strftime("%b %d") %> – <%= @week_end.strftime("%b %d") %>
+        </span>
+        <%= link_to operations_calendar_path(@filters.merge(start_date: next_date.to_s, view: @view)), class: "cal-header__nav-btn", data: { turbo_frame: "_top" } do %>
+          Next <i class="bi bi-chevron-right"></i>
+        <% end %>
+        <%= link_to operations_calendar_path(@filters.merge(start_date: Date.current.to_s)), class: "cal-header__nav-btn cal-header__nav-btn--today", data: { turbo_frame: "_top" } do %>
+          Today
+        <% end %>
+      </div>
+    </div>
+  </header>
+
+  <div class="cal-toolbar">
+    <%= render "operations/calendar/filter_bar", filter_params: @filters, instructor_options: @instructor_options, location_options: @location_options %>
+    <div class="cal-legend">
+      <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--public"></span> Public</span>
+      <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--corporate"></span> Corporate</span>
+      <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--full"></span> Full</span>
+      <span class="cal-legend__item"><span class="cal-legend__dot cal-legend__dot--cancelled"></span> Cancelled</span>
+    </div>
+  </div>
+
+  <div class="cal-kpi">
+    <div class="cal-kpi__card">
+      <span class="cal-kpi__label">Total classes this month</span>
+      <span class="cal-kpi__value"><%= @kpi_total_classes %></span>
+    </div>
+    <div class="cal-kpi__card">
+      <span class="cal-kpi__label">Seats sold</span>
+      <span class="cal-kpi__value"><%= @kpi_seats_sold %></span>
+    </div>
+    <div class="cal-kpi__card">
+      <span class="cal-kpi__label">Revenue forecast</span>
+      <span class="cal-kpi__value"><%= number_to_currency(@kpi_revenue_forecast) %></span>
+    </div>
+  </div>
+
+  <div class="cal-body">
+    <div class="cal-main">
+      <% if @events.empty? %>
+        <div class="cal-empty">
+          <% if request.query_parameters.except("view", "start_date").values.any?(&:present?) %>
+            <p class="cal-empty__text">No results for selected filters.</p>
+          <% else %>
+            <p class="cal-empty__text">No classes scheduled in this period.</p>
+          <% end %>
+        </div>
+      <% else %>
+        <% if @view == "week" %>
+          <%= render "operations/calendar/week_grid", week_start: @week_start, week_end: @week_end, events_by_date: @events_by_date %>
+        <% else %>
+          <%= render "operations/calendar/month_grid", month_start: @month_start, month_end: @month_end, events_by_date: @events_by_date %>
+        <% end %>
+      <% end %>
+    </div>
+    <aside class="cal-aside">
+      <div class="cal-panel-wrap">
+        <%= turbo_frame_tag "calendar_side_panel", src: nil, loading: :lazy do %>
+          <div class="cal-panel-empty">
+            <span class="cal-panel-empty__icon">📅</span>
+            <p class="cal-panel-empty__title">Select a training class</p>
+            <p class="cal-panel-empty__sub">to view details and manage it.</p>
+          </div>
+        <% end %>
+      </div>
+    </aside>
+  </div>
+</div>

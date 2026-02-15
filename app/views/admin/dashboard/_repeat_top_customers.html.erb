@@ -2,48 +2,45 @@
   tab = params[:customer_tab].presence || "repeat"
 %>
 <%= turbo_frame_tag "dashboard_repeat_top" do %>
-  <div class="dashboard-section-container">
-    <%= render "shared/section_header", title: "Repeat & Top Customers" %>
-    <div class="dashboard-section-container__body">
-      <nav class="customer-tabs dashboard-tabs-inner" aria-label="Repeat or Top customers">
-        <div class="customer-tabs__inner">
-          <%= link_to admin_dashboard_index_path(request.query_parameters.merge(customer_tab: "repeat")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'repeat'}", data: { turbo_frame: "dashboard_repeat_top" } do %>
-            Repeat
-          <% end %>
-          <%= link_to admin_dashboard_index_path(request.query_parameters.merge(customer_tab: "top")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'top'}", data: { turbo_frame: "dashboard_repeat_top" } do %>
-            Top Customers
-          <% end %>
-        </div>
-      </nav>
-      <% if tab == "top" %>
-        <% if @top_customers_by_revenue.any? %>
-          <ul class="dashboard-customer-list" aria-label="Top customers by revenue">
-            <% @top_customers_by_revenue.each_with_index do |c, i| %>
-              <li class="dashboard-customer-list__item">
-                <span class="dashboard-customer-list__rank"><%= i + 1 %></span>
-                <%= link_to c.name, admin_customer_path(c), class: "dashboard-link" %>
-                <span class="dashboard-customer-list__meta"><%= number_to_currency((c.respond_to?(:total_spent) ? c.total_spent : 0), unit: "฿", format: "%n %u") %></span>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <%= render "shared/empty_state", message: "No data.", icon: "person" %>
+  <%= odt_card(title: "Repeat & Top Customers", icon: "people") do %>
+    <nav class="customer-tabs dashboard-tabs-inner" aria-label="Repeat or Top customers">
+      <div class="customer-tabs__inner">
+        <%= link_to admin_dashboard_index_path(request.query_parameters.merge(customer_tab: "repeat")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'repeat'}", data: { turbo_frame: "dashboard_repeat_top" } do %>
+          Repeat
         <% end %>
+        <%= link_to admin_dashboard_index_path(request.query_parameters.merge(customer_tab: "top")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'top'}", data: { turbo_frame: "dashboard_repeat_top" } do %>
+          Top Customers
+        <% end %>
+      </div>
+    </nav>
+    <% if tab == "top" %>
+      <% if @top_customers_by_revenue.any? %>
+        <ul class="dashboard-customer-list" aria-label="Top customers by revenue">
+          <% @top_customers_by_revenue.each_with_index do |c, i| %>
+            <li class="dashboard-customer-list__item">
+              <span class="dashboard-customer-list__rank"><%= i + 1 %></span>
+              <%= link_to c.name, admin_customer_path(c), class: "dashboard-link" %>
+              <span class="dashboard-customer-list__meta"><%= number_to_currency((c.respond_to?(:total_spent) ? c.total_spent : 0), unit: "฿", format: "%n %u") %></span>
+            </li>
+          <% end %>
+        </ul>
       <% else %>
-        <% if @repeat_customers.any? %>
-          <ul class="dashboard-customer-list" aria-label="Repeat customers">
-            <% @repeat_customers.each_with_index do |c, i| %>
-              <li class="dashboard-customer-list__item">
-                <span class="dashboard-customer-list__rank"><%= i + 1 %></span>
-                <%= link_to c.name, admin_customer_path(c), class: "dashboard-link" %>
-                <span class="dashboard-customer-list__meta"><%= c.respond_to?(:attendee_count) ? c.attendee_count : c.attendees.attendees.count %> classes</span>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <%= render "shared/empty_state", message: "No repeat customers yet.", icon: "arrow-repeat" %>
-        <% end %>
+        <%= render "shared/empty_state", message: "No data.", icon: "person" %>
       <% end %>
-    </div>
-  </div>
+    <% else %>
+      <% if @repeat_customers.any? %>
+        <ul class="dashboard-customer-list" aria-label="Repeat customers">
+          <% @repeat_customers.each_with_index do |c, i| %>
+            <li class="dashboard-customer-list__item">
+              <span class="dashboard-customer-list__rank"><%= i + 1 %></span>
+              <%= link_to c.name, admin_customer_path(c), class: "dashboard-link" %>
+              <span class="dashboard-customer-list__meta"><%= c.respond_to?(:attendee_count) ? c.attendee_count : c.attendees.attendees.count %> classes</span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <%= render "shared/empty_state", message: "No repeat customers yet.", icon: "arrow-repeat" %>
+      <% end %>
+    <% end %>
+  <% end %>
 <% end %>

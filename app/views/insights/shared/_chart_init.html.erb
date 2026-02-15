@@ -1,0 +1,44 @@
+<script>
+(function() {
+  function initCharts() {
+    if (typeof Chart === 'undefined') return;
+    document.querySelectorAll('.insights-chart-card canvas[data-chart-type]').forEach(function(canvas) {
+      if (canvas.chart) { canvas.chart.destroy(); canvas.chart = null; }
+      var type = canvas.getAttribute('data-chart-type') || 'bar';
+      var labels = [];
+      try { labels = JSON.parse(canvas.getAttribute('data-labels') || '[]'); } catch (e) {}
+      var datasets = [];
+      try { datasets = JSON.parse(canvas.getAttribute('data-datasets') || '[]'); } catch (e) {}
+      if (!datasets.length && canvas.getAttribute('data-values')) {
+        var values = [];
+        try { values = JSON.parse(canvas.getAttribute('data-values')); } catch (e) {}
+        datasets = [{ label: 'Value', data: values }];
+      }
+      var colors = ['#13139c', '#F5C400', '#059669', '#6b7280', '#dc2626', '#7c3aed'];
+      datasets.forEach(function(ds, i) {
+        if (!ds.backgroundColor) ds.backgroundColor = colors[i % colors.length];
+        if (!ds.borderColor && type === 'line') ds.borderColor = colors[i % colors.length];
+        if (type === 'line') ds.fill = false;
+        if (type === 'line') ds.tension = 0.2;
+      });
+      new Chart(canvas, {
+        type: type,
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: type === 'bar' ? { y: { beginAtZero: true } } : { y: { beginAtZero: true } },
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCharts);
+  } else {
+    initCharts();
+  }
+  document.addEventListener('turbo:frame-render', function() { setTimeout(initCharts, 50); });
+  document.addEventListener('turbo:load', initCharts);
+})();
+</script>

@@ -1,0 +1,24 @@
+<%# ODT Card System v1 — Base Card wrapper. Optional header_actions. Yields content. %>
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  accent = (local_assigns[:accent] || :navy).to_sym
+  header_actions = local_assigns[:header_actions]
+  extra_class = local_assigns[:extra_class]
+  card_css = ["odt-card-v1"]
+  card_css << "odt-card-v1--accent-gold" if accent == :gold
+  card_css << extra_class if extra_class.present?
+%>
+<div class="<%= card_css.join(" ") %>">
+  <% if title.present? %>
+    <div class="odt-card-v1__header">
+      <%= render "shared/odt_card_header", title: title, subtitle: subtitle, accent: accent %>
+      <% if header_actions.present? %>
+        <div class="odt-card-v1__header-actions"><%= header_actions %></div>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="odt-card-v1__body">
+    <%= yield %>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+<%
+  week_start = local_assigns[:week_start]
+  week_end = local_assigns[:week_end]
+  events_by_date = local_assigns[:events_by_date] || {}
+  week_days = (week_start..week_end).to_a
+%>
+<div class="calendar-week-grid" role="grid" aria-label="Calendar week view">
+  <div class="calendar-week-grid__row calendar-week-grid__row--head">
+    <% week_days.each do |day| %>
+      <div class="calendar-week-grid__head-cell">
+        <span class="calendar-week-grid__day-name"><%= day.strftime("%a") %></span>
+        <span class="calendar-week-grid__day-num"><%= day.day %></span>
+        <span class="calendar-week-grid__month"><%= day.strftime("%b") %></span>
+      </div>
+    <% end %>
+  </div>
+  <div class="calendar-week-grid__row calendar-week-grid__row--body">
+    <% week_days.each do |day| %>
+      <div class="calendar-week-grid__cell" data-date="<%= day.iso8601 %>">
+        <div class="calendar-week-grid__events">
+          <% (events_by_date[day] || []).each do |ev| %>
+            <%= render "operations/calendar/event_card", event: ev %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

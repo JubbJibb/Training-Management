@@ -1,0 +1,6 @@
+<%
+  text = local_assigns[:text]
+  variant = local_assigns[:variant] || "neutral" # success, warning, info, neutral, danger
+  extra_class = ["badge", "badge--#{variant}", local_assigns[:extra_class]].compact.join(" ")
+%>
+<span class="<%= extra_class %>"><%= text %></span>

@@ -8,16 +8,16 @@
 <nav class="customer-tabs odt-section" aria-label="Customer segments">
   <div class="customer-tabs__inner">
     <%= link_to admin_customers_path(base_params.merge(segment: "all")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'all'}", data: { turbo_frame: "customers_table" } do %>
-      All
+      <i class="bi bi-people-fill customer-tabs__icon" aria-hidden="true"></i> All
     <% end %>
     <%= link_to admin_customers_path(base_params.merge(segment: "indi")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'indi'}", data: { turbo_frame: "customers_table" } do %>
-      Individual
+      <i class="bi bi-person customer-tabs__icon" aria-hidden="true"></i> Individual
     <% end %>
     <%= link_to admin_customers_path(base_params.merge(segment: "corp")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'corp'}", data: { turbo_frame: "customers_table" } do %>
-      Corporate
+      <i class="bi bi-building customer-tabs__icon" aria-hidden="true"></i> Corporate
     <% end %>
     <%= link_to admin_customers_path(base_params.merge(segment: "top_spenders")), class: "customer-tabs__tab #{'customer-tabs__tab--active' if segment == 'top_spenders'}", data: { turbo_frame: "customers_table" } do %>
-      Top Spenders
+      <i class="bi bi-trophy customer-tabs__icon" aria-hidden="true"></i> Top Spenders
     <% end %>
   </div>
 </nav>

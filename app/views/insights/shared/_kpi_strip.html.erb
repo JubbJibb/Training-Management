@@ -1,0 +1,7 @@
+<%
+  cells = local_assigns[:cells]
+  extra_class = local_assigns[:extra_class] || "insights-kpi-strip"
+%>
+<section class="dashboard-kpi-section" aria-label="Key metrics">
+  <%= odt_kpi_strip(cells: cells, extra_class: extra_class) %>
+</section>

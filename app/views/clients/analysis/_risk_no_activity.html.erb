@@ -1,0 +1,23 @@
+<%# ODT Card System v1 — Risk card (warning): subtle gold left accent, KPI + top 5. %>
+<% list = local_assigns[:risk_no_activity] || [] %>
+<% top5 = list.first(5) %>
+<% total_rev = list.sum { |r| r[:revenue].to_f } %>
+<%= render "shared/odt_card", title: "High value, no activity 90+ days", accent: :gold do %>
+  <div class="odt-risk-v1">
+    <div class="odt-risk-v1__kpi">
+      <%= render "shared/odt_kpi_card", label: "Clients", value: list.size %>
+      <%= render "shared/odt_kpi_card", label: "Combined revenue", value: number_to_thb(total_rev) %>
+    </div>
+    <ul class="odt-risk-v1__list">
+      <% top5.each do |r| %>
+        <li class="odt-risk-v1__row">
+          <span class="odt-risk-v1__name"><%= r[:customer] %></span>
+          <span class="odt-risk-v1__meta"><%= number_to_thb(r[:revenue]) %> · <%= r[:last_activity].respond_to?(:strftime) ? r[:last_activity].strftime("%d %b %Y") : r[:last_activity] %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+  <% if list.empty? %>
+    <p class="odt-card-v1__empty" style="margin: 0; font-size: var(--font-size-base); color: var(--odt-muted);">None.</p>
+  <% end %>
+<% end %>

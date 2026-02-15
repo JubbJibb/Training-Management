@@ -1,4 +1,4 @@
-<%# P&L Breakdown: card with blue-accent header + timeline-style list (like Payment Status) %>
+<%# P&L Breakdown: list style (same card/section header as Admin Dashboard) %>
 <%
   w = waterfall
   prof = profitability
@@ -6,11 +6,7 @@
   rev_per_seat = w[:avg_revenue_per_seat].to_f
   profit_per_seat = prof[:profit_per_seat]
 %>
-<div class="class-finance-pl-card class-finance-card cfo-two-col__block" role="region" aria-labelledby="pl-breakdown-title">
-  <div class="class-finance-card__header" id="pl-breakdown-title">
-    <h2 class="class-finance-card__title">P&L Breakdown</h2>
-  </div>
-  <div class="class-finance-card__body">
+<%= odt_card(title: "P&L Breakdown", icon: "list-check", extra_class: "class-finance-pl-card") do %>
     <ul class="class-finance-pl-timeline" aria-label="P&L calculation ladder">
       <li class="class-finance-pl-timeline__item">
         <span class="class-finance-pl-timeline__dot class-finance-pl-timeline__dot--primary" aria-hidden="true"></span>
@@ -76,5 +72,4 @@
       <span>Profit per seat: <%= profit_per_seat.nil? ? "—" : number_to_thb(profit_per_seat) %></span>
       <span>Revenue per seat: <%= rev_per_seat.nil? || rev_per_seat.zero? ? "—" : number_to_thb(rev_per_seat) %></span>
     </footer>
-  </div>
-</div>
+<% end %>

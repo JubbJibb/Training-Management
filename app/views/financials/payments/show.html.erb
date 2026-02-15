@@ -1,0 +1,68 @@
+<% content_for :title, "Payment Summary" %>
+<%
+  attendee = @payment
+  training_class = attendee.training_class
+  default_to = attendee.email.presence
+  default_subject = "Payment Summary — #{training_class.title} (#{training_class.date&.strftime('%Y-%m-%d') || '—'})"
+  email_warning = default_to.blank?
+%>
+
+<div class="financials-payment-page">
+  <%= render "components/odt/page_header", title: "Payment Summary", subtitle: "#{training_class.title} · #{attendee.name}", icon: "receipt" do %>
+    <%= link_to financials_payment_tracking_path, class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Payment Tracking
+    <% end %>
+  <% end %>
+
+  <% if flash[:notice] %>
+    <div class="financials-payment-flash financials-payment-flash--success" role="alert">
+      <i class="bi bi-check-circle" aria-hidden="true"></i> <%= flash[:notice] %>
+    </div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="financials-payment-flash financials-payment-flash--alert" role="alert">
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <%= render "financials/payments/summary_card" %>
+
+  <div class="financials-send-section">
+    <div class="financials-send-section__accent"></div>
+    <h2 class="financials-send-section__title">Send Payment Summary</h2>
+    <p class="financials-send-section__subtitle">Email will be sent from ODTTraining@odds.team with the Payment Summary PDF attached.</p>
+
+    <% if email_warning %>
+      <div class="financials-send-section__warning" role="status">
+        <i class="bi bi-info-circle" aria-hidden="true"></i> Customer email is missing. Please enter a valid To address.
+      </div>
+    <% end %>
+
+    <%= form_with url: send_summary_financials_payment_path(attendee), method: :post, local: true, class: "financials-send-form" do |f| %>
+      <div class="financials-send-form__field">
+        <label for="send_to" class="financials-send-form__label">To <span class="required">*</span></label>
+        <input type="email" name="to" id="send_to" class="financials-send-form__input" value="<%= default_to %>" placeholder="customer@example.com" required>
+      </div>
+      <div class="financials-send-form__field">
+        <label for="send_cc" class="financials-send-form__label">CC</label>
+        <input type="text" name="cc" id="send_cc" class="financials-send-form__input" placeholder="Optional">
+      </div>
+      <div class="financials-send-form__field">
+        <label for="send_subject" class="financials-send-form__label">Subject</label>
+        <input type="text" name="subject" id="send_subject" class="financials-send-form__input" value="<%= default_subject %>">
+      </div>
+      <div class="financials-send-form__field">
+        <label for="send_message" class="financials-send-form__label">Message (optional)</label>
+        <textarea name="message" id="send_message" class="financials-send-form__textarea" rows="4" placeholder="e.g. Dear {{customer name}}, please find your payment summary for {{class name}} ({{date}}). Total: {{total}}."></textarea>
+      </div>
+      <div class="financials-send-form__attachment">
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Payment Summary PDF (attached)
+      </div>
+      <div class="financials-send-form__actions">
+        <button type="submit" class="odt-btn odt-btn--primary odt-btn--md">
+          <i class="bi bi-send" aria-hidden="true"></i> Send Email
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>

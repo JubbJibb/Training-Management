@@ -1,0 +1,155 @@
+<% content_for :title, "Financial Insights" %>
+<%
+  data = @data || {}
+  kpis = data[:kpis] || {}
+  chart_data = data[:chart_data] || {}
+  overdue_invoices = data[:overdue_invoices] || []
+  fp = @filter_params || {}
+  ar_aging = chart_data[:ar_aging] || []
+  cash_trend = chart_data[:cash_in_vs_out] || []
+  kpi_cells = [
+    { icon: "cash-stack", label: "Collected Revenue", value: number_to_thb(kpis[:collected_revenue].to_f), sub: "paid" },
+    { icon: "receipt", label: "Booked Revenue", value: number_to_thb(kpis[:booked_revenue].to_f), sub: "quoted/invoiced" },
+    { icon: "clock-history", label: "Outstanding", value: number_to_thb(kpis[:outstanding].to_f), sub: "AR" },
+    { icon: "exclamation-triangle", label: "Overdue", value: number_to_thb(kpis[:overdue].to_f), sub: "AR overdue" },
+    { icon: "calendar-check", label: "Avg Payment Days", value: (kpis[:avg_payment_days] || "—").to_s, sub: "" },
+    { icon: "percent", label: "Gross Margin %", value: kpis[:net_margin_pct].present? ? "#{kpis[:net_margin_pct]}%" : "—", sub: "" }
+  ]
+  outstanding_top = (data[:outstanding_top_accounts] || overdue_invoices.first(10)).map do |r|
+    { company: r[:client] || r[:company].to_s, amount: r[:amount], days_overdue: r[:days_overdue].to_i, status: r[:days_overdue].to_i > 0 ? "Overdue" : "Outstanding", attendee_id: r[:attendee_id], customer_id: r[:customer_id] }
+  end
+  profit_rows = (data[:profit_by_class] || []).map do |r|
+    { class_title: r[:title], revenue: r[:revenue], expenses: r[:expenses], profit: r[:profit], margin_pct: r[:margin_pct], id: r[:id] }
+  end
+%>
+<div class="insights-page">
+  <%= render "components/odt/page_header", title: "Financial Insights", subtitle: "Cash flow, receivables, and profitability", icon: "currency-dollar" %>
+
+  <%= render "insights/shared/filter_bar", filter_params: fp, form_url: insights_financial_path, turbo_frame: "insights_main" %>
+
+  <section class="insights-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "insights-kpi-strip") %>
+  </section>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Cash Flow Trend</h3>
+        <p class="insight-card__subtitle">Paid amount per period</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if cash_trend.any? %>
+        <div class="insight-chart-placeholder">
+          <ul class="insight-chart-list">
+            <% cash_trend.first(12).each do |point| %>
+              <li><strong><%= point[:label] %></strong> In: <%= number_to_thb(point[:cash_in].to_f) %> · Out: <%= number_to_thb(point[:cash_out].to_f) %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% else %>
+        <%= render "insights/shared/empty_chart", message: "No cash flow data in selected period." %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="insight-two-col">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">AR Aging</h3>
+          <p class="insight-card__subtitle">Buckets by days overdue</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if ar_aging.any? %>
+          <% total_ar = ar_aging.sum { |b| b[:amount].to_f } %>
+          <% ar_aging.each do |b| %>
+            <% pct = total_ar.positive? ? ((b[:amount].to_f / total_ar) * 100).round(1) : 0 %>
+            <div class="insight-progress-row">
+              <span class="insight-progress-row__label"><%= b[:range] %> days</span>
+              <span class="insight-progress-row__value"><%= number_to_thb(b[:amount].to_f) %> (<%= b[:count].to_i %>)</span>
+              <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= [pct, 100].min %>%;"></div></div>
+            </div>
+          <% end %>
+        <% else %>
+          <%= render "shared/empty_state", title: "No AR aging data", icon: "clock-history", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Outstanding Top Accounts</h3>
+          <p class="insight-card__subtitle">Top 10 by amount</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <% if outstanding_top.any? %>
+          <div class="insight-odt-table__scroll">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th class="text-end">Amount</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% outstanding_top.each do |r| %>
+                  <tr>
+                    <td><%= r[:company] %></td>
+                    <td class="text-end"><%= number_to_thb(r[:amount].to_f) %></td>
+                    <td><%= r[:days_overdue] %></td>
+                    <td><span class="insight-badge insight-badge--<%= r[:status] == "Overdue" ? "overdue" : "outstanding" %>"><%= r[:status] %></span></td>
+                    <td class="text-end">
+                      <% if r[:customer_id].present? %>
+                        <%= link_to "View", admin_customer_path(r[:customer_id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                      <% else %>
+                        —
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "No outstanding accounts", icon: "people", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if data[:profit_by_class].nil? && !data.key?(:profit_by_class) %>
+    <div class="insight-odt-table-wrap">
+      <h3 class="insight-odt-table__heading">Profit by Class</h3>
+      <%= render "shared/empty_state", title: "No expense data tracked yet.", hint: "Track class expenses to see profit and margin.", icon: "pie-chart", extra_class: "insight-odt-table__empty" %>
+    </div>
+  <% else %>
+    <%= render "insights/shared/odt_table", title: "Profit by Class", columns: [
+      { key: :class_title, label: "Class" },
+      { key: :revenue, label: "Revenue", format: :currency },
+      { key: :expenses, label: "Expenses", format: :currency },
+      { key: :profit, label: "Profit", format: :currency },
+      { key: :margin_pct, label: "Margin %" }
+    ], rows: profit_rows, empty_message: "No class data." do |row_h| %>
+      <% if row_h[:id].present? %>
+        <%= link_to "View Class Finance", finance_admin_training_class_path(row_h[:id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+      <% else %>
+        —
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if fp[:overdue_only].present? || fp[:outstanding_only].present? %>
+    <div class="insight-filter-chips mt-3">
+      <%= link_to "Clear filters", insights_financial_path, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    </div>
+  <% end %>
+</div>

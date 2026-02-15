@@ -7,17 +7,17 @@
           <%= odt_table(extra_class: "odt-table--sm mb-0") do %>
             <thead>
               <tr>
-                <th>Period</th>
-                <th class="odt-table-numeric">Net Revenue (before VAT)</th>
-                <th class="odt-table-numeric">Cash received</th>
+                <th class="col-md">Period</th>
+                <th class="col-sm odt-table-numeric">Net Revenue (before VAT)</th>
+                <th class="col-sm odt-table-numeric">Cash received</th>
               </tr>
             </thead>
             <tbody>
               <% ts.each do |r| %>
                 <tr>
-                  <td><%= r[:label] %></td>
-                  <td class="odt-table-numeric"><%= number_to_thb(r[:net_revenue]) %></td>
-                  <td class="odt-table-numeric"><%= number_to_thb(r[:cash_received]) %></td>
+                  <td class="col-md truncate"><%= r[:label] %></td>
+                  <td class="col-sm odt-table-numeric"><%= number_to_thb(r[:net_revenue]) %></td>
+                  <td class="col-sm odt-table-numeric"><%= number_to_thb(r[:cash_received]) %></td>
                 </tr>
               <% end %>
             </tbody>
@@ -34,17 +34,17 @@
           <%= odt_table(extra_class: "odt-table--sm mb-0") do %>
             <thead>
               <tr>
-                <th>Days overdue</th>
-                <th class="odt-table-numeric">Amount</th>
-                <th class="odt-table-numeric">Count</th>
+                <th class="col-md">Days overdue</th>
+                <th class="col-sm odt-table-numeric">Amount</th>
+                <th class="col-sm odt-table-numeric">Count</th>
               </tr>
             </thead>
             <tbody>
               <% buckets.each do |b| %>
                 <tr>
-                  <td><%= odt_badge(b[:range], variant: b[:amount].positive? ? :warning : :neutral, size: :sm) %></td>
-                  <td class="odt-table-numeric"><%= number_to_thb(b[:amount]) %></td>
-                  <td class="odt-table-numeric"><%= b[:count] %></td>
+                  <td class="col-md"><%= odt_badge(b[:range], variant: b[:amount].positive? ? :warning : :neutral, size: :sm) %></td>
+                  <td class="col-sm odt-table-numeric"><%= number_to_thb(b[:amount]) %></td>
+                  <td class="col-sm odt-table-numeric"><%= b[:count] %></td>
                 </tr>
               <% end %>
             </tbody>

@@ -1,0 +1,22 @@
+<%
+  unpaid_rows = local_assigns[:unpaid_rows] || []
+  training_class = local_assigns[:training_class]
+%>
+<% if unpaid_rows.any? %>
+  <ul class="mini-list" role="list" aria-label="Top unpaid invoices">
+    <% unpaid_rows.each do |row| %>
+      <li class="mini-list__item">
+        <div class="mini-list__main">
+          <span class="mini-list__label cell--truncate" title="<%= row[:contact] %>"><%= row[:contact] %></span>
+          <span class="mini-list__meta">Inv. <%= row[:invoice_no] %> · Due <%= row[:due_date].present? ? row[:due_date].strftime("%d/%m/%y") : "—" %></span>
+        </div>
+        <span class="mini-list__value cell--num"><%= number_to_thb(row[:amount]) %></span>
+        <%= link_to edit_admin_training_class_attendee_path(training_class, row[:attendee]), class: "icon-btn", aria: { label: "View invoice for #{row[:contact]}" }, title: "View" do %>
+          <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p class="empty-state empty-state--sm">No unpaid invoices.</p>
+<% end %>

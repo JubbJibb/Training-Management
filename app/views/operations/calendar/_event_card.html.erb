@@ -1,0 +1,43 @@
+<%
+  event = local_assigns[:event]
+  time_str = if event.start_time.present? && event.end_time.present?
+    "#{event.start_time.strftime('%H:%M')}–#{event.end_time.strftime('%H:%M')}"
+  else
+    nil
+  end
+  cancelled = event.status_label == "Cancelled"
+  fill_pct = event.fill_rate_percent || 0
+  max_seats = event.max_attendees.to_i
+  registered = event.total_registered_seats
+  is_full = max_seats.positive? && fill_pct >= 100
+  progress_class = if is_full
+    "cal-event-card__fill-bar--full"
+  elsif fill_pct >= 50 && fill_pct < 100
+    "cal-event-card__fill-bar--mid"
+  else
+    "cal-event-card__fill-bar--low"
+  end
+%>
+<%= link_to operations_calendar_event_path(event), class: "cal-event-card #{'cal-event-card--cancelled' if cancelled}", data: { turbo_frame: "calendar_side_panel" } do %>
+  <div class="cal-event-card__inner">
+    <span class="cal-event-card__title" title="<%= event.title %>"><%= event.title %></span>
+    <% if time_str.present? %>
+      <span class="cal-event-card__time"><%= time_str %></span>
+    <% end %>
+    <% if max_seats.positive? %>
+      <div class="cal-event-card__fill">
+        <span class="cal-event-card__fill-pct"><%= fill_pct %>%</span>
+        <div class="cal-event-card__fill-track">
+          <div class="cal-event-card__fill-bar <%= progress_class %>" style="--fill: <%= [fill_pct, 100].min %>;"></div>
+        </div>
+        <span class="cal-event-card__fill-seats"><%= registered %> / <%= max_seats %> seats</span>
+        <% if is_full %>
+          <span class="cal-event-card__badge cal-event-card__badge--full">FULL</span>
+        <% end %>
+      </div>
+    <% end %>
+    <% if cancelled %>
+      <span class="cal-event-card__badge cal-event-card__badge--cancelled">Cancelled</span>
+    <% end %>
+  </div>
+<% end %>

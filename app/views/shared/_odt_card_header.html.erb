@@ -1,0 +1,13 @@
+<%# ODT Card System v1 — Title Block (left accent bar, no gold underline). %>
+<%
+  title = local_assigns[:title]
+  subtitle = local_assigns[:subtitle]
+  accent = (local_assigns[:accent] || :navy).to_sym
+  accent_class = accent == :gold ? "odt-card-v1__title-block--accent-gold" : ""
+%>
+<div class="odt-card-v1__title-block <%= accent_class %>">
+  <h3 class="odt-card-v1__title"><%= title %></h3>
+  <% if subtitle.present? %>
+    <p class="odt-card-v1__subtitle"><%= subtitle %></p>
+  <% end %>
+</div>

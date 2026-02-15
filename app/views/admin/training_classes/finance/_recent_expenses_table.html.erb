@@ -1,0 +1,37 @@
+<%
+  expense_list = local_assigns[:expense_list] || []
+  training_class = local_assigns[:training_class]
+  recent = expense_list.first(5)
+%>
+<% if recent.any? %>
+  <div class="data-table-wrap data-table-wrap--accent">
+    <table class="data-table" role="table" aria-label="Recent expenses">
+      <colgroup>
+        <col class="col-sm">
+        <col class="col-lg">
+        <col class="col-md">
+        <col class="col-sm">
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Item</th>
+          <th scope="col">Category</th>
+          <th scope="col" class="cell--num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% recent.each do |expense| %>
+          <tr>
+            <td><%= expense.created_at.strftime("%d/%m/%y") %></td>
+            <td class="cell--truncate" title="<%= expense.description %>"><%= expense.description %></td>
+            <td class="cell--truncate" title="<%= expense.category %>"><%= expense.category.presence || "—" %></td>
+            <td class="cell--num"><%= number_to_thb(expense.amount) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state empty-state--sm">No expenses yet.</p>
+<% end %>
