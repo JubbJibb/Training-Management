@@ -1,0 +1,43 @@
+<%
+  vat_choice = @attendee.vat_excluded.nil? ? "" : (@attendee.vat_excluded ? "1" : "0")
+%>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-tag" aria-hidden="true"></i>
+    <span>Pricing & Discounts</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <div class="attendee-edit-field mb-3">
+      <%= f.label :vat_excluded, "VAT สำหรับการชำระเงิน", class: "attendee-edit-field__label" %>
+      <%= f.select :vat_excluded,
+          [
+            ["ตามคลาส (#{@attendee.training_class.vat_excluded? ? 'ไม่รวม VAT' : 'รวม VAT 7%'})", ""],
+            ["รวม VAT (7%)", "0"],
+            ["ไม่รวม VAT (VAT excluded)", "1"]
+          ],
+          { selected: vat_choice },
+          { class: "form-select form-control-odt" } %>
+      <p class="attendee-edit-field__hint mt-1 mb-0">เลือกว่ายอดชำระของคนนี้รวม VAT หรือไม่</p>
+    </div>
+    <div class="attendee-edit-promotions">
+      <% if @promotions.any? %>
+        <% @promotions.each do |promotion| %>
+          <div class="form-check attendee-edit-promo-item">
+            <%= check_box_tag "attendee[promotion_ids][]", promotion.id, @attendee.promotions.include?(promotion),
+                class: "form-check-input promotion-checkbox",
+                id: "promotion_#{promotion.id}",
+                data: { discount_type: promotion.discount_type, discount_value: promotion.discount_value, promotion_name: promotion.name } %>
+            <%= label_tag "promotion_#{promotion.id}", promotion.display_name, class: "form-check-label" %>
+            <small class="attendee-edit-field__hint d-block ms-4"><%= promotion.description %></small>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="attendee-edit-surface__hint mb-0">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          No promotions yet. <%= link_to "Create promotion", admin_settings_path, target: "_blank" %>.
+        </p>
+      <% end %>
+    </div>
+    <p class="attendee-edit-field__hint mt-2 mb-0">You can select more than one promotion.</p>
+  </div>
+</div>

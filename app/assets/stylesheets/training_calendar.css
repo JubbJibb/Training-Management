@@ -1,0 +1,266 @@
+/* Training Calendar (ops) – ใช้ Theme Color: --odt-accent, --odt-bg, --odt-blue */
+
+:root {
+  --tc-primary: var(--odt-blue);
+  --tc-primary-light: rgba(19, 19, 156, 0.08);
+  --tc-primary-hover: rgba(19, 19, 156, 0.06);
+  --tc-yellow: var(--odt-accent);
+  --tc-yellow-soft: rgba(255, 199, 0, 0.15);
+  --tc-page-bg: var(--odt-bg);
+  --tc-card: #ffffff;
+  --tc-text: #333333;
+  --tc-text-muted: #6b7280;
+  --tc-border: rgba(19, 19, 156, 0.15);
+  /* Calendar header / active / today – ใช้ odt-blue */
+  --tc-indigo: var(--odt-blue);
+  --tc-indigo-50: rgba(19, 19, 156, 0.06);
+  --tc-indigo-200: rgba(19, 19, 156, 0.2);
+  /* ความสูงขั้นต่ำของช่อง = ความสูงของการ์ด 1 อีเวนต์ (ให้วันว่างสูงเท่าวันที่มี 1 Event) */
+  --tc-one-event-height: 70px;
+}
+
+.tc-page { min-height: 80vh; padding: 0 24px 24px 0; }
+
+/* Calendar card: toolbar + grid อยู่บนปฏิทิน – มุมโค้งแบบ reference */
+.tc-calendar-card { background: var(--tc-card); border: 1px solid var(--tc-indigo-200); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+/* Toolbar บน Calendar (ย้าย function มาอยู่บนปฏิทิน) */
+.tc-calendar-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 16px; border-bottom: 1px solid #e5e7eb; background: #fafafa; }
+.tc-calendar-toolbar__nav { display: flex; align-items: center; gap: 4px; }
+.tc-calendar-toolbar__nav-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; font-size: 0.9375rem; color: var(--tc-primary); background: var(--tc-card); border: 1px solid var(--tc-border); border-radius: 8px; text-decoration: none; transition: background 0.2s, border-color 0.2s; }
+.tc-calendar-toolbar__nav-btn:hover { background: var(--tc-primary-hover); border-color: var(--tc-primary); }
+.tc-calendar-toolbar__nav-btn--today { width: auto; padding: 0 10px; margin-left: 2px; color: var(--tc-text); }
+.tc-calendar-toolbar__nav-label { font-size: 0.875rem; font-weight: 600; color: var(--tc-primary); padding: 0 6px; }
+.tc-calendar-toolbar__view { display: flex; align-items: center; gap: 8px; }
+.tc-calendar-toolbar__view-label { font-size: 0.6875rem; color: var(--tc-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.tc-calendar-toolbar__toggle { display: flex; border-radius: 8px; overflow: hidden; padding: 2px; background: var(--tc-indigo-50); gap: 1px; }
+.tc-calendar-toolbar__toggle-btn { padding: 10px 20px; font-size: 0.875rem; font-weight: 500; color: var(--tc-indigo); background: var(--tc-indigo-50); text-decoration: none; border: none; border-radius: 6px; transition: background 0.2s, color 0.2s; }
+.tc-calendar-toolbar__toggle-btn:hover { background: var(--tc-indigo-200); color: var(--tc-indigo); }
+.tc-calendar-toolbar__toggle-btn.is-active { color: #fff; background: var(--tc-indigo); }
+.tc-calendar-toolbar__search { flex: 1 1 200px; min-width: 180px; max-width: 280px; }
+.tc-calendar-toolbar__search-form { position: relative; display: flex; }
+.tc-calendar-toolbar__search-input { width: 100%; height: 34px; padding: 0 32px 0 10px; font-size: 0.8125rem; border: 1px solid var(--tc-border); border-radius: 6px; }
+.tc-calendar-toolbar__search-input::placeholder { color: #9ca3af; }
+.tc-calendar-toolbar__search-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--tc-text-muted); cursor: pointer; }
+.tc-calendar-toolbar__actions { display: flex; gap: 6px; }
+.tc-calendar-toolbar__btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; font-size: 0.8125rem; font-weight: 500; border-radius: 6px; border: 1px solid var(--tc-border); background: var(--tc-card); color: var(--tc-text); cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.tc-calendar-toolbar__btn--secondary:hover { background: var(--tc-primary-hover); border-color: var(--tc-primary); color: var(--tc-primary); }
+
+/* KPI strip */
+.tc-kpis { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.tc-kpis__card { flex: 1 1 120px; min-width: 100px; padding: 12px 16px; background: var(--tc-card); border: 1px solid var(--tc-border); border-radius: 8px; }
+.tc-kpis__label { display: block; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tc-text-muted); margin-bottom: 4px; }
+.tc-kpis__value { font-size: 1.125rem; font-weight: 700; color: var(--tc-primary); }
+
+/* Filter chips */
+.tc-chips { margin-bottom: 12px; }
+.tc-chips__list { display: flex; flex-wrap: wrap; gap: 8px; }
+.tc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 0.8125rem; background: var(--tc-primary-light); color: var(--tc-primary); border-radius: 20px; }
+.tc-chip__remove { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0; font-size: 1rem; line-height: 1; background: none; border: none; color: var(--tc-text-muted); cursor: pointer; border-radius: 50%; }
+.tc-chip__remove:hover { color: var(--tc-primary); background: rgba(255,255,255,0.6); }
+
+/* Main layout: Upcoming (left) + Calendar + Drawer (right) – แบบ reference */
+.tc-body { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+.tc-body--with-upcoming { grid-template-columns: minmax(0, 280px) 1fr; }
+@media (max-width: 1023px) { .tc-body { grid-template-columns: 1fr; } .tc-body--with-upcoming { grid-template-columns: 1fr; } }
+.tc-upcoming-col { min-width: 0; }
+.tc-main { min-width: 0; }
+
+/* Upcoming Events (ซ้าย) – ไม่มีกล่อง, ขนาดเล็ก */
+.tc-upcoming { padding: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.tc-upcoming__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; color: #1e40af; margin: 0 0 4px; }
+.tc-upcoming__subtitle { font-size: 0.8125rem; color: #ca8a04; margin: 0 0 14px; line-height: 1.4; font-weight: 500; }
+.tc-upcoming__list { display: flex; flex-direction: column; gap: 10px; }
+.tc-upcoming__empty { font-size: 0.8125rem; color: var(--tc-text-muted); margin: 0; }
+.tc-upcoming-card { display: block; padding: 10px 0; background: none; border: none; border-radius: 0; box-shadow: none; text-decoration: none; color: inherit; transition: color 0.15s; border-bottom: 1px solid #eee; }
+.tc-upcoming-card:last-child { border-bottom: none; }
+.tc-upcoming-card:hover { color: var(--tc-primary); }
+.tc-upcoming-card__row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.tc-upcoming-card__meta { display: flex; align-items: center; gap: 8px; }
+.tc-upcoming-card__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.tc-upcoming-card__dot.tc-upcoming-dot--purple { background: var(--odt-blue); }
+.tc-upcoming-card__dot.tc-upcoming-dot--sky { background: var(--odt-accent); }
+.tc-upcoming-card__dot.tc-upcoming-dot--emerald { background: var(--odt-soft, #f5bf00); }
+.tc-upcoming-card__datetime { font-size: 0.75rem; font-weight: 500; color: var(--tc-text-muted); margin: 0; }
+.tc-upcoming-card__name { font-size: 0.9375rem; font-weight: 600; line-height: 1.25; color: var(--tc-text); margin: 0 0 2px; }
+.tc-upcoming-card__desc { font-size: 0.75rem; color: var(--tc-text-muted); margin: 0; line-height: 1.3; }
+.tc-aside { position: sticky; top: 16px; }
+@media (max-width: 1023px) { .tc-aside { position: fixed; inset: 0; z-index: 100; background: var(--tc-card); overflow: auto; transform: translateX(100%); transition: transform 0.25s ease; } }
+@media (max-width: 1023px) { .tc-aside.is-open { transform: translateX(0); } }
+.tc-drawer-wrap { background: var(--tc-card); border: 1px solid var(--tc-border); border-radius: 8px; overflow: hidden; min-height: 200px; }
+.tc-drawer-placeholder { padding: 24px; text-align: center; font-size: 0.875rem; color: var(--tc-text-muted); }
+.tc-drawer-placeholder__text { margin: 0; }
+
+/* Drawer empty / form */
+.tc-drawer-empty { padding: 32px 24px; text-align: center; }
+.tc-drawer-empty__icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+.tc-drawer-empty__title { margin: 0; font-size: 0.9375rem; font-weight: 600; color: var(--tc-text); }
+.tc-drawer-empty__sub { margin: 4px 0 0; font-size: 0.8125rem; color: var(--tc-text-muted); }
+.tc-drawer-form-wrap { display: flex; flex-direction: column; min-height: 280px; }
+.tc-drawer__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
+.tc-drawer__title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--tc-text); flex: 1; }
+.tc-drawer__close { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; font-size: 1.5rem; line-height: 1; color: var(--tc-text-muted); background: none; border: none; text-decoration: none; cursor: pointer; border-radius: 6px; }
+.tc-drawer__close:hover { color: var(--tc-primary); background: var(--tc-primary-hover); }
+.tc-drawer__tabs { display: flex; border-bottom: 1px solid #e5e7eb; padding: 0 16px; }
+.tc-drawer__tab { padding: 10px 16px; font-size: 0.8125rem; font-weight: 500; color: var(--tc-text-muted); background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tc-drawer__tab:hover { color: var(--tc-text); }
+.tc-drawer__tab.is-active { color: var(--tc-primary); border-bottom-color: var(--tc-primary); }
+.tc-drawer__content { flex: 1; padding: 16px 20px; overflow: auto; }
+.tc-drawer__panel { display: none; }
+.tc-drawer__panel.is-active { display: block; }
+.tc-drawer__fields { display: flex; flex-direction: column; gap: 12px; }
+.tc-drawer__field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--tc-text-muted); margin-bottom: 4px; }
+.tc-drawer__input { width: 100%; height: 36px; padding: 0 10px; font-size: 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; }
+.tc-drawer__muted { font-size: 0.875rem; color: var(--tc-text-muted); margin: 0; }
+.tc-drawer__footer { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid #e5e7eb; background: var(--tc-page-bg); }
+.tc-drawer__btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 8px; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
+.tc-drawer__btn--primary { background: var(--tc-primary); color: #fff; border-color: var(--tc-primary); }
+.tc-drawer__btn--secondary { background: var(--tc-card); color: var(--tc-text); border-color: #e5e7eb; }
+.tc-drawer__btn--secondary:hover { border-color: var(--tc-primary); color: var(--tc-primary); }
+
+/* Calendar grid – header ใช้สไตล์เดียวกับ admin/training_classes (navy + เส้นทอง) */
+.tc-grid { background: var(--tc-card); border: 1px solid var(--tc-indigo-200); border-radius: 12px; overflow: hidden; }
+.tc-calendar-card .tc-grid { border: none; border-radius: 0; }
+.tc-grid__head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  background: #012a71;
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-bottom: 3px solid #ffc700;
+}
+.tc-grid__head-cell { padding: 8px 6px; font-size: 0.75rem; text-align: center; }
+.tc-grid__body { display: grid; }
+.tc-grid--month .tc-grid__body { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(var(--tc-one-event-height), auto); }
+.tc-grid--month .tc-grid__row { display: contents; }
+.tc-grid--month .tc-grid__cell { min-height: var(--tc-one-event-height); padding: 6px 8px; border-right: 1px solid var(--tc-indigo-200); border-bottom: 1px solid var(--tc-indigo-200); box-sizing: border-box; display: flex; flex-direction: column; transition: background 0.2s; cursor: pointer; }
+.tc-grid--month .tc-grid__cell:hover { background: var(--tc-indigo-50); }
+.tc-grid--month .tc-grid__cell--span { min-width: 0; }
+.tc-grid--month .tc-grid__cell--span .tc-event-card { flex: 1; min-width: 0; }
+/* Class 1 วัน: ไม่ยืดตามเซลล์ span และไม่ล้นช่อง */
+.tc-grid--month .tc-grid__cell--span .tc-event-card--single-day { flex: none; min-width: 0; max-width: 100%; }
+.tc-grid--month .tc-grid__events .tc-event-card--single-day { align-self: flex-start; min-width: 0; }
+.tc-grid__cell:nth-child(7n) { border-right: none; }
+.tc-grid__cell--other { background: #f9fafb; }
+.tc-grid__cell--today { background: var(--tc-indigo-50); }
+.tc-grid__cell--today .tc-grid__day-num { background: var(--tc-indigo); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.625rem; }
+.tc-grid__day-num { font-size: 0.625rem; font-weight: 600; color: var(--tc-text); margin-bottom: 2px; }
+.tc-grid__events { display: flex; flex-direction: column; gap: 2px; flex: 1; min-height: 0; }
+/* Week view header – สีเดียวกับ table (navy + เส้นทอง) */
+.tc-grid--week .tc-grid__row--head { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: #012a71; color: #fff; border-bottom: 3px solid #ffc700; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.tc-grid--week .tc-grid__row--head .tc-grid__head-cell { color: #fff; }
+.tc-grid--week .tc-grid__row--head .tc-grid__day-name,
+.tc-grid--week .tc-grid__row--head .tc-grid__month { color: rgba(255,255,255,0.95); }
+.tc-grid--week .tc-grid__row--head .tc-grid__day-num { color: #fff; }
+.tc-grid--week .tc-grid__row--body { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(120px, 1fr); }
+.tc-grid--week .tc-grid__cell { min-height: 120px; padding: 8px; border-right: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; cursor: pointer; box-sizing: border-box; }
+.tc-grid--week .tc-grid__cell:hover { background: var(--tc-primary-hover); }
+.tc-grid__time-col { padding: 4px 8px; font-size: 0.6875rem; color: var(--tc-text-muted); }
+.tc-grid__day-name { display: block; font-size: 0.6875rem; color: var(--tc-text-muted); }
+.tc-grid__month { font-size: 0.6875rem; color: var(--tc-text-muted); }
+.tc-more-link { font-size: 0.625rem; color: var(--tc-primary); text-decoration: none; margin-top: 1px; display: inline-block; }
+.tc-more-link:hover { text-decoration: underline; }
+
+/* Event card – ความสูงกระชับมาก ข้อมูลครบ */
+.tc-event-card {
+  display: block;
+  height: var(--tc-one-event-height);
+  min-height: var(--tc-one-event-height);
+  padding: 2px 6px;
+  font-size: 0.625rem;
+  background: #ebf0f8;
+  border: none;
+  border-left: 2px solid #1e3a8a;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #374151;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.tc-event-card:hover { background: #d6e0f0; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+.tc-event-card--cancelled { opacity: 0.7; background: #f3f4f6; color: var(--tc-text-muted); border-left-color: #9ca3af; }
+.tc-event-card--cancelled.tc-event-card--public,
+.tc-event-card--cancelled.tc-event-card--private { background: #f3f4f6; border-left-color: #9ca3af; }
+.tc-event-card__dot { display: inline-block; width: 4px; height: 4px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.tc-event-card__dot--public { background: #1e3a8a; }
+.tc-event-card__title { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #111827; font-size: 0.625rem; line-height: 1.2; }
+.tc-event-card__time { font-size: 0.5625rem; color: #6b7280; display: block; margin-top: 0; line-height: 1.15; }
+.tc-event-card__seats { font-size: 0.5625rem; color: #6b7280; line-height: 1.15; }
+.tc-event-card__bar { height: 2px; background: rgba(0,0,0,0.08); border-radius: 1px; margin-top: 1px; overflow: hidden; }
+.tc-event-card__bar-fill { height: 100%; background: currentColor; border-radius: 1px; }
+/* Bar fill colors – same as admin/training_classes index (r0-25, r25-60, r60-85, r85-100) */
+.tc-event-card--fill-r0-25 .tc-event-card__bar-fill { background: #9ca3af; }
+.tc-event-card--fill-r25-60 .tc-event-card__bar-fill { background: #ffc700; }
+.tc-event-card--fill-r60-85 .tc-event-card__bar-fill { background: #13139c; }
+.tc-event-card--fill-r85-100 .tc-event-card__bar-fill { background: linear-gradient(90deg, #13139c 0%, #ffc700 100%); }
+.tc-event-card__badge { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; margin-left: 2px; padding: 0 3px; border-radius: 2px; line-height: 1.2; }
+.tc-event-card__badge--public { background: #dbeafe; color: #1e40af; }
+.tc-event-card__badge--private { background: #f3e8ff; color: #6b21a8; }
+.tc-event-card__badge--full { background: var(--odt-accent); color: var(--tc-text); }
+.tc-event-card__badge--cancelled { background: #e5e7eb; color: var(--tc-text-muted); }
+/* chip variants – ใช้พื้นหลังเหมือนกัน มีแค่ขอบน้ำเงิน */
+.tc-event-card--chip-purple { background: #ebf0f8; border-left-color: #1e3a8a; }
+.tc-event-card--chip-emerald { background: #ebf0f8; border-left-color: #1e3a8a; }
+.tc-event-card--chip-sky { background: #ebf0f8; border-left-color: #1e3a8a; }
+/* Public = สีน้ำเงิน, Private = สีเหลือง (override เมื่อมี class นี้) */
+.tc-event-card--public { background: #dbeafe; border-left-color: #1e40af; }
+.tc-event-card--public:hover { background: #bfdbfe; }
+.tc-event-card--private { background: #fef9c3; border-left-color: #ca8a04; }
+.tc-event-card--private:hover { background: #fef08a; }
+.tc-event-card--public .tc-event-card__dot { background: #1e40af; }
+.tc-event-card--private .tc-event-card__dot { background: #ca8a04; }
+
+/* Agenda */
+.tc-agenda { padding: 16px; }
+.tc-agenda__day { margin-bottom: 20px; }
+.tc-agenda__day-title { margin: 0 0 12px; font-size: 0.9375rem; font-weight: 700; color: var(--tc-text); }
+.tc-agenda__list { list-style: none; margin: 0; padding: 0; }
+.tc-agenda__item { margin-bottom: 8px; }
+.tc-agenda__empty { margin: 24px 0; font-size: 0.875rem; color: var(--tc-text-muted); text-align: center; }
+
+/* Filter drawer (off-canvas) */
+.tc-filters-drawer { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+.tc-filters-drawer.is-open { pointer-events: auto; }
+.tc-filters-drawer__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s; }
+.tc-filters-drawer.is-open .tc-filters-drawer__backdrop { opacity: 1; }
+.tc-filters-drawer__panel { position: absolute; top: 0; right: 0; bottom: 0; width: 320px; max-width: 100%; background: var(--tc-card); box-shadow: -4px 0 24px rgba(0,0,0,0.12); transform: translateX(100%); transition: transform 0.25s ease; overflow: auto; }
+.tc-filters-drawer.is-open .tc-filters-drawer__panel { transform: translateX(0); }
+.tc-filters-drawer__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
+.tc-filters-drawer__title { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--tc-text); }
+.tc-filters-drawer__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--tc-text-muted); border-radius: 8px; }
+.tc-filters-drawer__close:hover { color: var(--tc-primary); background: var(--tc-primary-hover); }
+.tc-filters-drawer__form { padding: 20px; }
+.tc-filters-drawer__field { margin-bottom: 16px; }
+.tc-filters-drawer__field label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--tc-text); margin-bottom: 6px; }
+.tc-filters-drawer__input { width: 100%; height: 38px; padding: 0 12px; font-size: 0.875rem; border: 1px solid #e5e7eb; border-radius: 8px; }
+.tc-filters-drawer__field--checkbox label { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
+.tc-filters-drawer__actions { display: flex; gap: 8px; margin-top: 24px; }
+
+/* Day popover */
+.tc-day-popover-frame { display: block; margin-top: 8px; }
+.tc-day-popover { padding: 16px; background: var(--tc-card); border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 280px; }
+.tc-day-popover__title { margin: 0 0 12px; font-size: 0.9375rem; font-weight: 700; color: var(--tc-text); }
+.tc-day-popover__list { list-style: none; margin: 0; padding: 0; }
+.tc-day-popover__link { display: block; padding: 8px 0; font-size: 0.875rem; color: var(--tc-primary); text-decoration: none; border-bottom: 1px solid #f3f4f6; }
+.tc-day-popover__link:last-child { border-bottom: none; }
+.tc-day-popover__link:hover { text-decoration: underline; }
+
+/* Quick add popover */
+.tc-quick-add { padding: 20px; background: var(--tc-card); border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 280px; position: relative; }
+.tc-quick-add__title { margin: 0 0 16px; font-size: 1rem; font-weight: 700; color: var(--tc-text); }
+.tc-quick-add__field { margin-bottom: 12px; }
+.tc-quick-add__field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--tc-text-muted); margin-bottom: 4px; }
+.tc-quick-add__input { width: 100%; height: 36px; padding: 0 10px; font-size: 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; }
+.tc-quick-add__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.tc-quick-add__btn { padding: 8px 14px; font-size: 0.875rem; font-weight: 500; border-radius: 8px; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
+.tc-quick-add__btn--primary { background: var(--tc-primary); color: #fff; border-color: var(--tc-primary); }
+.tc-quick-add__btn--secondary { background: var(--tc-card); color: var(--tc-text); border-color: #e5e7eb; }
+.tc-quick-add__close { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: none; border: none; color: var(--tc-text-muted); cursor: pointer; border-radius: 6px; }
+.tc-quick-add__close:hover { color: var(--tc-primary); background: var(--tc-primary-hover); }
+.tc-quick-add--fixed { position: fixed; }
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }

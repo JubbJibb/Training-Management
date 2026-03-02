@@ -6,9 +6,11 @@
 
 /* ---- Wrapper: horizontal scroll only when necessary ---- */
 .table-wrap {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   overflow-y: visible;
-  min-width: 0;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -17,6 +19,7 @@
 .data-table {
   table-layout: fixed;
   width: 100%;
+  max-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }

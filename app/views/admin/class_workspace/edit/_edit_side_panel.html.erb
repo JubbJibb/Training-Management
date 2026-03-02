@@ -1,0 +1,33 @@
+<%# Side panel: status chip, public page state, last updated %>
+<% status_pill = @training_class.status_pill %>
+<div class="odt-edit-side">
+  <div class="odt-edit-card odt-edit-card--compact">
+    <div class="odt-edit-card__strip"></div>
+    <div class="odt-edit-card__body">
+      <header class="odt-edit-card__header">
+        <span class="odt-edit-card__title"><i class="bi bi-eye" aria-hidden="true"></i> Publishing</span>
+      </header>
+      <div class="odt-edit-card__content">
+        <div class="odt-edit-meta-row">
+          <span class="odt-edit-meta__label">Status</span>
+          <span class="odt-edit-chip odt-edit-chip--<%= status_pill.parameterize %>"><%= status_pill %></span>
+        </div>
+        <div class="odt-edit-meta-row odt-edit-public-block">
+          <span class="odt-edit-meta__label">Public page</span>
+          <% if @training_class.public_enabled? && @training_class.public_slug.present? %>
+            <span class="odt-edit-meta__value odt-edit-meta__value--on">Enabled</span>
+            <%= link_to "View public page", public_class_path(@training_class.public_slug), class: "odt-edit-link", target: "_blank", rel: "noopener" %>
+          <% else %>
+            <span class="odt-edit-meta__value odt-edit-meta__value--off">Disabled</span>
+          <% end %>
+        </div>
+        <% if @training_class.updated_at.present? %>
+          <div class="odt-edit-meta-row">
+            <span class="odt-edit-meta__label">Last updated</span>
+            <span class="odt-edit-meta__value"><%= l(@training_class.updated_at, format: :short) %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

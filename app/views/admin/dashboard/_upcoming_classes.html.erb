@@ -20,7 +20,7 @@
             <% max_seats = tc.max_attendees || filled %>
             <% fill_pct = max_seats.positive? ? (filled.to_f / max_seats * 100).round(0) : 0 %>
             <tr>
-              <td class="col-lg truncate"><strong><%= link_to tc.title, admin_training_class_path(tc), class: "dashboard-link" %></strong></td>
+              <td class="col-lg truncate"><strong><%= link_to tc.title, admin_class_workspace_path(tc), class: "dashboard-link" %></strong></td>
               <td class="col-sm truncate"><%= tc.date.strftime("%b %d, %Y") %></td>
               <td class="col-md">
                 <div class="dashboard-seats-cell">

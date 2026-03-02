@@ -1,0 +1,27 @@
+<%
+  summary = local_assigns[:summary] || {}
+  period = summary[:period_label] || "ช่วงที่เลือก"
+  reg = summary[:registered].to_i
+  paid = summary[:paid].to_i
+  attended = summary[:attended].to_i
+  conv = summary[:conversion_pct].to_f
+  top_ch = summary[:top_channel].to_s
+  top_course = summary[:top_course].to_s
+  repeat_pct = summary[:repeat_pct].to_f
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Summary</h3>
+      <p class="insight-card__subtitle">ช่วงที่เลือก: funnel และตัวเลขหลัก</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <p class="insight-summary-narrative" style="margin: 0; font-size: 0.9375rem; line-height: 1.5; color: #374151;">
+      <span style="font-weight: 600; color: #13139c;"><%= period %></span>: มีลงทะเบียน <strong><%= reg %></strong> → ชำระเงิน <strong><%= paid %></strong> → เข้าเรียน <strong><%= attended %></strong>
+      <span style="color: #6b7280;">(conversion <%= number_to_percent(conv) %>)</span>.
+      ช่องทางที่เด่น: <strong><%= top_ch %></strong>. คอร์สที่ขายดี: <strong><%= top_course %></strong>. Repeat rate: <strong><%= number_to_percent(repeat_pct) %></strong>
+    </p>
+  </div>
+</div>

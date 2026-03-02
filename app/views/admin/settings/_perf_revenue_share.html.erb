@@ -4,22 +4,33 @@
   values = share[:values] || []
   total = share[:total].to_f
   chart_data = { labels: labels, values: values, total: total }.to_json
+  # สีต้องตรงกับ Chart.js ใน admin/settings/index (โทนน้ำเงินแบบตัวอย่าง)
+  chart_colors = ["#1e40af", "#93c5fd", "#1e3a8a", "#3b82f6", "#60a5fa", "#2563eb", "#dbeafe"]
+  legend_items = labels.each_with_index.map { |label, i| { label: label, color: chart_colors[i % chart_colors.size] } }
 %>
-<section class="perf-revenue-share" aria-labelledby="perf-revenue-share-title">
-  <h3 id="perf-revenue-share-title" class="perf-section-title">Revenue contribution by promotion</h3>
+<%= render "shared/pie_chart_card",
+  title: "Revenue contribution by promotion",
+  extra_class: "perf-revenue-share",
+  show_download: true,
+  filter_items: [],
+  preset_label: @perf_query&.period_label.presence || "This month",
+  preset_dropdown_items: [
+    { label: "This month", url: admin_settings_path(period: "this_month") },
+    { label: "Last month", url: admin_settings_path(period: "last_month") },
+    { label: "YTD", url: admin_settings_path(period: "ytd") }
+  ],
+  report_link_url: admin_settings_path,
+  report_link_text: "Traffic analysis" do %>
   <% if labels.any? && total.positive? %>
-    <div class="perf-revenue-share__content">
+    <%= render "shared/donut_chart_flowbite",
+      center_value: number_to_thb(total),
+      center_subtitle: "Total revenue",
+      legend_items: legend_items do %>
       <div class="perf-revenue-share__chart" data-perf-donut>
         <script type="application/json" data-perf-donut-source><%= raw chart_data %></script>
         <canvas id="perfDonutCanvas" width="200" height="200" role="img" aria-label="Donut chart of revenue by promotion"></canvas>
       </div>
-      <div class="perf-revenue-share__legend" role="list">
-        <% labels.each_with_index do |label, i| %>
-          <% pct = total.positive? ? (values[i].to_f / total * 100).round(0) : 0 %>
-          <div class="perf-revenue-share__legend-item" role="listitem"><span class="perf-revenue-share__dot"></span> <%= label %> — <%= pct %>%</div>
-        <% end %>
-      </div>
-    </div>
+    <% end %>
     <noscript>
       <%= odt_table(extra_class: "perf-revenue-share__table") do %>
         <thead>
@@ -47,4 +58,4 @@
       <p>No promotion revenue in this period.</p>
     </div>
   <% end %>
-</section>
+<% end %>

@@ -1,0 +1,131 @@
+<% content_for :title, "Accounts Receivable" %>
+<%
+  buckets = @aging&.dig(:buckets) || []
+  total_out = @aging&.dig(:total_outstanding) || 0
+  kpi_cells = [
+    { icon: "receipt", label: "Total outstanding", value: number_to_thb(total_out), sub: "AR", value_variant: (total_out > 0 ? "danger" : nil) }
+  ]
+  buckets.first(4).each { |b| kpi_cells << { icon: "clock-history", label: "#{b[:label]} days", value: number_to_thb(b[:amount]), sub: "#{b[:count]} items" } }
+%>
+<div class="tc-index-page financials-page financials-ar">
+  <%= render "components/odt/page_header", title: "Accounts Receivable", subtitle: "Aging · Batch actions", icon: "receipt" do %>
+  <% end %>
+
+  <%= turbo_frame_tag "financials_ar", data: { turbo_action: "advance" } do %>
+    <section class="tc-index-kpi-section" aria-label="Key metrics">
+      <%= odt_kpi_strip(cells: kpi_cells, extra_class: "tc-index-kpi-strip financials-ar-kpi") %>
+    </section>
+
+    <div class="tc-index-filter-wrap">
+      <%= render "financials/accounts_receivable/filter_bar" %>
+    </div>
+
+    <div class="tc-index-bulk-bar" id="financials-ar-bulk-bar" style="display: none;" role="region" aria-label="Bulk actions">
+      <span class="tc-index-bulk-bar__count" id="financials-ar-selected-count">0</span> selected
+      <button type="button" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary" data-action="ar-bulk#sendReminder">Send reminder</button>
+      <button type="button" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary" data-action="ar-bulk#exportSelected">Export selected</button>
+    </div>
+
+    <div class="tc-index-content">
+      <% if (@ar_items || []).any? %>
+        <div class="tc-index-saas-table-wrap tc-index-saas-table-wrap--sticky">
+          <table class="tc-index-saas-table odt-premium-table" id="financials-ar-table" role="table" aria-label="Accounts receivable">
+            <colgroup>
+              <col style="width: 4%;">
+              <col style="width: 18%;">
+              <col style="width: 18%;">
+              <col style="width: 12%;">
+              <col style="width: 10%;">
+              <col style="width: 10%;">
+              <col style="width: 8%;">
+              <col style="width: 8%;">
+              <col style="width: 12%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col" class="tc-saas-th tc-saas-th--center">
+                  <input type="checkbox" id="financials-ar-select-all" aria-label="Select all" title="Select all">
+                </th>
+                <th scope="col" class="tc-saas-th">Customer</th>
+                <th scope="col" class="tc-saas-th">Class / Course</th>
+                <th scope="col" class="tc-saas-th">QT / INV No</th>
+                <th scope="col" class="tc-saas-th tc-saas-th--revenue">Amount due</th>
+                <th scope="col" class="tc-saas-th">Due date</th>
+                <th scope="col" class="tc-saas-th">Aging</th>
+                <th scope="col" class="tc-saas-th">Status</th>
+                <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% (@ar_items || []).each do |row| %>
+                <% overdue = row[:due_date].respond_to?(:to_date) && row[:due_date].to_date < Date.current rescue false %>
+                <tr class="tc-saas-tr <%= 'financials-ar-row--overdue' if overdue %>">
+                  <td class="tc-saas-td tc-saas-td--center">
+                    <input type="checkbox" name="ar_ids[]" value="<%= row[:attendee].id %>" class="financials-ar-row-check" form="financials-ar-bulk-form" aria-label="Select row">
+                  </td>
+                  <td class="tc-saas-td tc-saas-td--class">
+                    <div class="tc-saas-class-cell">
+                      <span class="tc-saas-class-link"><%= row[:customer_name].to_s.truncate(30) %></span>
+                      <span class="tc-saas-class-meta"><span class="badge bg-secondary"><%= row[:customer_type] == 'Corporate' ? 'Corp' : 'Indi' %></span></span>
+                    </div>
+                  </td>
+                  <td class="tc-saas-td">
+                    <span class="tc-saas-class-link"><%= row[:class_title] %></span>
+                    <span class="tc-saas-class-meta"><%= row[:class_date]&.strftime("%Y-%m-%d") %></span>
+                  </td>
+                  <td class="tc-saas-td"><%= row[:quotation_no] %> / <%= row[:invoice_no] %></td>
+                  <td class="tc-saas-td tc-saas-td--revenue"><span class="tc-saas-revenue"><%= number_to_thb(row[:amount_due]) %></span></td>
+                  <td class="tc-saas-td"><span class="tc-saas-date"><%= row[:due_date]&.strftime("%b %d, %Y") %></span></td>
+                  <td class="tc-saas-td"><span class="badge bg-light text-dark"><%= row[:aging_bucket] %></span></td>
+                  <td class="tc-saas-td">
+                    <span class="badge <%= row[:payment_status] == 'Paid' ? 'bg-success' : 'bg-warning text-dark' %>"><%= row[:payment_status] %></span>
+                  </td>
+                  <td class="tc-saas-td tc-saas-td--actions">
+                    <div class="tc-saas-actions">
+                      <%= link_to row[:link], class: "tc-saas-actions-btn", title: "View", aria: { label: "View" } do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
+                      <%= link_to row[:link], class: "tc-saas-actions-btn", title: "Send reminder", aria: { label: "Send reminder" } do %><i class="bi bi-send" aria-hidden="true"></i><% end %>
+                      <%= link_to row[:edit_link], class: "tc-saas-actions-btn", title: "Mark paid", aria: { label: "Mark paid" } do %><i class="bi bi-check-circle" aria-hidden="true"></i><% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="tc-index-empty">
+          <%= render "financials/shared/empty_state", message: "No outstanding receivables", icon: "inbox" %>
+        </div>
+      <% end %>
+    </div>
+    <%= form_with url: financials_accounts_receivable_path, method: :get, id: "financials-ar-bulk-form", data: { turbo_frame: "financials_ar" } do %><% end %>
+  <% end %>
+</div>
+<style>
+  .financials-ar-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .financials-ar-kpi .odt-kpi-strip__value--danger { color: #dc2626; }
+  .tc-index-bulk-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; margin-bottom: var(--space-2); flex-wrap: wrap; }
+  .tc-index-bulk-bar__count { font-weight: 600; color: var(--odt-blue); }
+  .financials-ar-row--overdue { background: rgba(220, 38, 38, 0.06); }
+  .financials-ar-row--overdue:hover { background: rgba(220, 38, 38, 0.1); }
+  .tc-index-filter-bar__field--checkbox { width: auto; min-width: 0; }
+  .tc-index-filter-bar__checkbox-label { font-size: var(--font-size-sm); color: var(--color-ink); display: inline-flex; align-items: center; gap: 6px; }
+</style>
+<script>
+  (function() {
+    var table = document.getElementById('financials-ar-table');
+    var bulkBar = document.getElementById('financials-ar-bulk-bar');
+    var selectAll = document.getElementById('financials-ar-select-all');
+    var countEl = document.getElementById('financials-ar-selected-count');
+    if (!bulkBar) return;
+    var rowChecks = table ? table.querySelectorAll('.financials-ar-row-check') : [];
+    function updateBulkBar() {
+      var n = table ? Array.prototype.filter.call(rowChecks, function(c) { return c.checked; }).length : 0;
+      if (countEl) countEl.textContent = n;
+      bulkBar.style.display = n > 0 ? 'flex' : 'none';
+      if (selectAll) { selectAll.checked = n === rowChecks.length && rowChecks.length > 0; selectAll.indeterminate = n > 0 && n < rowChecks.length; }
+    }
+    if (selectAll && table) selectAll.addEventListener('change', function() { rowChecks.forEach(function(c) { c.checked = selectAll.checked; }); updateBulkBar(); });
+    rowChecks.forEach(function(c) { c.addEventListener('change', updateBulkBar); });
+  })();
+</script>

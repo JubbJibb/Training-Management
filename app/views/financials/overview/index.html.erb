@@ -1,0 +1,170 @@
+<% content_for :title, "Financial Overview" %>
+<%
+  basis = params[:basis].to_s.presence || "accrual"
+  basis_params = params.permit(:period, :date_from, :date_to, :client_type, :status).to_h
+%>
+<div class="insights-page financials-page financials-overview">
+  <%= render "components/odt/page_header", title: "Financial Overview", subtitle: "Revenue · Costs · Cash & AR", icon: "graph-up" %>
+
+  <%= turbo_frame_tag "financials_overview", data: { turbo_action: "advance" } do %>
+    <%= render "financials/shared/filter_bar", form_url: financials_overview_path, turbo_frame: "financials_overview", show_status_filter: true, include_basis_hidden: true %>
+
+    <div class="fin-overview-toggle-row">
+      <span class="fin-overview-toggle__label">Basis</span>
+      <div class="fin-overview-toggle" role="group" aria-label="Accrual or Cash basis">
+        <%= link_to "Accrual", financials_overview_path(basis_params.merge(basis: "accrual")), class: "fin-overview-toggle__btn #{'fin-overview-toggle__btn--active' if basis == 'accrual'}", data: { turbo_frame: "financials_overview" }, aria: { pressed: (basis == "accrual") } %>
+        <%= link_to "Cash", financials_overview_path(basis_params.merge(basis: "cash")), class: "fin-overview-toggle__btn #{'fin-overview-toggle__btn--active' if basis == 'cash'}", data: { turbo_frame: "financials_overview" }, aria: { pressed: (basis == "cash") } %>
+      </div>
+    </div>
+
+    <%= render "financials/overview/kpi_row" %>
+
+    <div class="modal fade" id="financialsKpiDetailModal" tabindex="-1" aria-labelledby="financialsKpiDetailModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="financialsKpiDetailModalLabel">KPI detail</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <%= turbo_frame_tag "kpi_detail_content" do %>
+              <p class="text-muted mb-0">Click a KPI box above to see the list of items.</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-two-col">
+      <div class="insight-card">
+        <div class="insight-card__header">
+          <div class="insight-card__accent"></div>
+          <div class="insight-card__head-text">
+            <h3 class="insight-card__title">Mini P&amp;L</h3>
+            <p class="insight-card__subtitle">Revenue vs costs in period</p>
+          </div>
+        </div>
+        <div class="insight-card__body">
+          <%
+            revenue = (@kpis[:revenue_mtd] || @kpis[:revenue] || 0).to_f
+            costs = (@kpis[:expense_mtd] || 0).to_f
+            profit = revenue - costs
+            margin_pct = revenue.positive? ? (profit / revenue * 100).round(1) : 0
+          %>
+          <table class="insight-odt-table" role="table">
+            <tbody>
+              <tr><td>Revenue</td><td class="text-end"><%= number_to_thb(revenue) %></td></tr>
+              <tr><td>Costs</td><td class="text-end"><%= number_to_thb(costs) %></td></tr>
+              <tr><td><strong>Profit</strong></td><td class="text-end"><strong><%= number_to_thb(profit) %></strong></td></tr>
+              <tr><td>Margin</td><td class="text-end"><%= margin_pct %>%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-card__header">
+          <div class="insight-card__accent"></div>
+          <div class="insight-card__head-text">
+            <h3 class="insight-card__title">Cash &amp; AR snapshot</h3>
+            <p class="insight-card__subtitle">Paid, unpaid, overdue</p>
+          </div>
+        </div>
+        <div class="insight-card__body">
+          <%
+            cash = (@kpis[:collected_mtd] || 0).to_f
+            outstanding = (@kpis[:outstanding] || 0).to_f
+          %>
+          <div class="fin-snapshot-rows">
+            <div class="fin-snapshot-row"><span class="fin-snapshot-row__label">Paid (MTD)</span><span class="fin-snapshot-row__value"><%= number_to_thb(cash) %></span></div>
+            <div class="fin-snapshot-row"><span class="fin-snapshot-row__label">Unpaid / Outstanding</span><span class="fin-snapshot-row__value"><%= number_to_thb(outstanding) %></span></div>
+            <div class="fin-snapshot-row"><span class="fin-snapshot-row__label">Due soon</span><span class="fin-snapshot-row__value">—</span></div>
+            <div class="fin-snapshot-row fin-snapshot-row--overdue"><span class="fin-snapshot-row__label">Overdue</span><span class="fin-snapshot-row__value"><%= (@kpis[:overdue_count] || 0) %> · <%= number_to_thb(@kpis[:overdue] || 0) %></span></div>
+          </div>
+          <%= link_to "View AR", financials_accounts_receivable_path(params.permit(:period, :date_from, :date_to, :client_type)), class: "odt-btn odt-btn--primary odt-btn--sm mt-3" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">AR Aging</h3>
+          <p class="insight-card__subtitle">Overdue buckets</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <div class="fin-aging-inline">
+          <% (@ar_aging_buckets || []).each do |b| %>
+            <div class="fin-aging-item">
+              <span class="fin-aging-item__range"><%= b[:range] %> days</span>
+              <span class="fin-aging-item__value"><%= number_to_thb(b[:amount]) %> (<%= b[:count] %>)</span>
+            </div>
+          <% end %>
+          <% if (@ar_aging_buckets || []).empty? %>
+            <p class="text-muted mb-0">No overdue AR in period</p>
+          <% end %>
+        </div>
+        <%= link_to "Go to AR", financials_accounts_receivable_path(params.permit(:period, :date_from, :date_to, :client_type)), class: "odt-btn odt-btn--ghost odt-btn--sm mt-2" %>
+      </div>
+    </div>
+
+    <div class="insight-two-col">
+      <%= render "financials/overview/revenue_composition" %>
+      <%= render "financials/overview/cost_composition" %>
+    </div>
+
+    <div class="insight-two-col">
+      <%= render "financials/overview/trend" %>
+      <%= render "financials/overview/top_overdue" %>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Actions</h3>
+          <p class="insight-card__subtitle">Quick links</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <div class="d-flex flex-wrap gap-2">
+          <%= link_to "Add Expense", financials_expenses_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+          <%= link_to "Record Payment", financials_payments_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+          <%= link_to "Generate Invoice", financials_accounts_receivable_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+          <%= link_to "Export", financials_export_history_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
+        </div>
+      </div>
+    </div>
+
+    <%= render "financials/overview/alerts" %>
+  <% end %>
+</div>
+
+<style>
+  .financials-overview-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(5, 1fr); }
+  .fin-overview-toggle-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: var(--space-4); }
+  .fin-overview-toggle__label { font-size: 0.875rem; color: #6b7280; }
+  .fin-overview-toggle { display: inline-flex; border: 1px solid #eef0ff; border-radius: 8px; overflow: hidden; }
+  .fin-overview-toggle__btn { padding: 6px 14px; font-size: 0.875rem; background: #fff; border: none; cursor: pointer; color: #6b7280; text-decoration: none; }
+  .fin-overview-toggle__btn:hover { background: rgba(19,19,156,0.06); color: #13139c; }
+  .fin-overview-toggle__btn--active { background: rgba(19,19,156,0.08); color: #13139c; font-weight: 500; }
+  .fin-overview-toggle__btn:focus-visible { outline: 2px solid #13139c; outline-offset: 2px; }
+  .fin-aging-inline { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+  .fin-aging-item { font-size: 0.9375rem; }
+  .fin-aging-item__range { font-weight: 600; color: #13139c; margin-right: 0.5rem; }
+  .fin-snapshot-rows { display: flex; flex-direction: column; gap: var(--space-2); }
+  .fin-snapshot-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9375rem; }
+  .fin-snapshot-row--overdue .fin-snapshot-row__value { color: #dc2626; font-weight: 600; }
+  .insight-card__body .insight-odt-table { margin: 0; }
+  .insight-card__body .insight-odt-table tbody td { padding: 8px 0; border-bottom: none; }
+  .insight-card__body .insight-odt-table tbody tr:last-child td { border-bottom: none; }
+  .financials-overview-kpi .odt-kpi-strip__value--danger { color: #dc2626; }
+  .financials-overview-kpi .odt-kpi-strip__value,
+  .financials-overview-kpi .odt-kpi-strip__sub { text-align: right; width: 100%; }
+  .odt-kpi-strip--clickable .odt-kpi-strip__cell--link { text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: flex-start; cursor: pointer; border-radius: 8px; padding: 0.5rem; transition: background 0.15s ease; }
+  .odt-kpi-strip--clickable .odt-kpi-strip__cell--link:hover { background: rgba(19,19,156,0.06); }
+  .fin-kpi-detail__title { margin-bottom: 1rem; font-weight: 600; }
+  .fin-kpi-detail .insight-odt-table { margin: 0; }
+  .fin-kpi-detail__row--cost .badge { font-size: 0.7rem; }
+</style>

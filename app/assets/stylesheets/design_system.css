@@ -76,7 +76,7 @@
   height: 32px;
   padding: 0;
   border: none;
-  border-radius: var(--radius-xs);
+  border-radius: 9999px;
   background: transparent;
   color: var(--odt-muted);
   text-decoration: none;
@@ -240,7 +240,10 @@
 /* ========== DATA TABLE ========== */
 .data-table-wrap {
   width: 100%;
-  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: #fff;
   border: 1px solid var(--border-light);
   border-radius: var(--ds-card-radius);
@@ -248,6 +251,7 @@
 }
 .data-table {
   width: 100%;
+  max-width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
   font-size: var(--font-size-base);
@@ -277,6 +281,13 @@
 .data-table tbody tr:hover {
   background-color: var(--odt-blue-tint);
   border-left-color: var(--odt-blue);
+}
+.data-table tbody tr:hover td,
+.data-table tbody tr:hover td a,
+.data-table tbody tr:hover td span {
+  color: #eab308;
+  font-weight: 700;
+  text-decoration: none;
 }
 /* Column width utilities (use with <col> or th/td) */
 .data-table col.col-xs, .data-table .col-xs { width: var(--ds-col-xs); min-width: var(--ds-col-xs); }

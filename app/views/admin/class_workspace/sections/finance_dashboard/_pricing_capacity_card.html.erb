@@ -1,0 +1,32 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  result = summary.dig(:result) || {}
+  price = training_class.price.to_f
+  seats_sold = training_class.total_registered_seats.to_i
+  max_seats = training_class.max_attendees.to_i
+  remaining = [max_seats - seats_sold, 0].max
+  potential = price.positive? ? (remaining * price) : 0
+  extra_seats = 3
+  projected_paid = rev[:paid].to_f + (price * extra_seats) if price.positive?
+  projected_profit = (result[:profit].to_f + (price * extra_seats)) if price.positive? && projected_paid
+%>
+<div class="finance-dash-card">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__header">
+    <span class="finance-dash-card__title"><i class="bi bi-tag" aria-hidden="true"></i> Pricing & Capacity</span>
+  </div>
+  <div class="finance-dash-card__body">
+    <div class="finance-dash-grid finance-dash-grid--2">
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-currency-exchange"></i></span><span class="finance-dash-metric__label">Seat price</span><span class="finance-dash-metric__value"><%= number_to_thb(price) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-people"></i></span><span class="finance-dash-metric__label">Seats sold</span><span class="finance-dash-metric__value"><%= seats_sold %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-box"></i></span><span class="finance-dash-metric__label">Remaining</span><span class="finance-dash-metric__value"><%= max_seats.positive? ? remaining : "—" %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-graph-up"></i></span><span class="finance-dash-metric__label">Potential revenue</span><span class="finance-dash-metric__value"><%= number_to_thb(potential) %></span></div>
+    </div>
+    <h4 class="finance-dash-subheading">What-if</h4>
+    <p class="finance-dash-whatif">
+      <i class="bi bi-calculator"></i> +<%= extra_seats %> seats → projected paid <%= projected_paid ? number_to_thb(projected_paid) : "—" %>, profit <%= projected_profit ? number_to_thb(projected_profit) : "—" %>
+    </p>
+  </div>
+</div>

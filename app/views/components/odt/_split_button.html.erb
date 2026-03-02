@@ -1,0 +1,35 @@
+<%
+  # Split button: primary action (left) + dropdown (right).
+  # primary: { url:, icon:, title:, label:, data: {} }
+  # dropdown_items: [ { label:, icon:, url:, method: :get|:delete|:patch, confirm:, data: {} }, ... ]
+  primary = local_assigns[:primary] || {}
+  dropdown_items = local_assigns[:dropdown_items] || []
+  btn_class = local_assigns[:button_class] || "attendees-ledger__action"
+  split_class = local_assigns[:split_class] || "attendees-ledger__split-btn"
+%>
+<div class="<%= split_class %> dropdown">
+  <% if primary[:url].present? %>
+    <%= link_to primary[:url], class: "#{btn_class} #{split_class}__main", title: primary[:title], aria: { label: primary[:label] || primary[:title] }, data: (primary[:data] || {}) do %>
+      <i class="bi bi-<%= primary[:icon] %>" aria-hidden="true"></i>
+    <% end %>
+  <% end %>
+  <button type="button" class="<%= btn_class %> <%= split_class %>__toggle" data-split-dropdown aria-expanded="false" aria-label="<%= local_assigns[:more_label] || 'More actions' %>">
+    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <% dropdown_items.each do |item| %>
+      <li>
+        <% method = (item[:method] || :get).to_s.downcase %>
+        <% if method == "delete" || method == "patch" %>
+          <%= link_to item[:url], class: "dropdown-item #{'dropdown-item-danger' if method == 'delete'}", data: (item[:data] || {}).merge(turbo_method: method.to_sym, turbo_confirm: item[:confirm]) do %>
+            <% if item[:icon].present? %><i class="bi bi-<%= item[:icon] %> me-2" aria-hidden="true"></i><% end %><%= item[:label] %>
+          <% end %>
+        <% else %>
+          <%= link_to item[:url], class: "dropdown-item", data: (item[:data] || {}), target: item[:target] do %>
+            <% if item[:icon].present? %><i class="bi bi-<%= item[:icon] %> me-2" aria-hidden="true"></i><% end %><%= item[:label] %>
+          <% end %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>

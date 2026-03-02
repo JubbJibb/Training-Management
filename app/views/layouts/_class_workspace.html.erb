@@ -1,0 +1,101 @@
+<% content_for :title, @training_class.title %>
+<%
+  date_str = @training_class.date.strftime("%b %d, %Y")
+  date_str += " – #{@training_class.end_date.strftime("%b %d, %Y")}" if @training_class.end_date.present? && @training_class.end_date != @training_class.date
+  seats_confirmed = @training_class.total_registered_seats
+  seats_capacity = @training_class.max_attendees.to_i
+  section = @section || "overview"
+  status_pill = @training_class.status_pill
+  class_status = (seats_capacity.positive? && seats_confirmed >= seats_capacity) ? "Full" : status_pill
+  fill_pct = @training_class.fill_rate_percent
+  revenue_display = number_to_thb(@training_class.net_revenue)
+%>
+<div class="class-workspace">
+  <header class="class-workspace__command-bar command-bar">
+    <div class="command-bar__row command-bar__row--1">
+      <%= link_to admin_classes_path, class: "command-bar__back" do %>
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Classes
+      <% end %>
+      <h1 class="command-bar__title"><%= @training_class.title %></h1>
+      <span class="command-bar__pill command-bar__pill--<%= status_pill.parameterize %>"><%= status_pill %></span>
+    </div>
+    <div class="command-bar__row command-bar__row--2">
+      <span class="command-bar__chip"><i class="bi bi-calendar3"></i> <%= date_str %></span>
+      <span class="command-bar__chip"><i class="bi bi-clock"></i> <%= @training_class.duration %></span>
+      <% if @training_class.instructor.present? %><span class="command-bar__chip"><i class="bi bi-person"></i> <%= @training_class.instructor %></span><% end %>
+      <span class="command-bar__chip"><%= fill_pct.nil? ? "—" : "#{fill_pct}% fill" %></span>
+      <span class="command-bar__chip command-bar__chip--revenue"><i class="bi bi-currency-exchange"></i> <%= revenue_display %></span>
+    </div>
+    <div class="command-bar__row command-bar__row--3">
+      <div class="command-bar__actions">
+        <%= link_to admin_class_workspace_edit_path(@training_class), class: "odt-btn odt-btn--primary odt-btn--sm" do %><i class="bi bi-pencil"></i> Edit Class<% end %>
+        <% attendees_for_mailto = @training_class.attendees.attendees.to_a %>
+        <%= link_to mailto_send_reminder_all_attendees(@training_class, attendees_for_mailto), class: "odt-btn odt-btn--secondary odt-btn--sm", target: "_blank", rel: "noopener", title: "Open mail with all attendee emails" do %><i class="bi bi-send"></i> Send Reminder<% end %>
+        <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-toast="Invoice generated (mock)"><i class="bi bi-receipt"></i> Generate Invoice</button>
+        <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-toast="Export started (mock)"><i class="bi bi-download"></i> Export</button>
+        <div class="dropdown d-inline">
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">More</button>
+          <ul class="dropdown-menu">
+            <li><button type="button" class="dropdown-item" data-toast="Duplicate (mock)">Duplicate class</button></li>
+            <li><button type="button" class="dropdown-item" data-toast="Registration closed (mock)">Close registration</button></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><button type="button" class="dropdown-item text-danger" data-confirm="Cancel this class?" data-toast="Cancelled (mock)">Cancel class</button></li>
+          </ul>
+        </div>
+      </div>
+      <div id="workspace-public-block" class="command-bar__share">
+        <%= render "admin/class_workspace/shared/public_link_block", training_class: @training_class %>
+      </div>
+    </div>
+  </header>
+
+  <div class="class-workspace__body">
+    <aside class="class-workspace__sidebar">
+      <div class="class-workspace__sidebar-summary sidebar-summary">
+        <div class="sidebar-summary__row">
+          <span class="sidebar-summary__label">Seats</span>
+          <span class="sidebar-summary__value"><%= seats_confirmed %> / <%= seats_capacity.positive? ? seats_capacity : "—" %></span>
+        </div>
+        <div class="sidebar-summary__row">
+          <span class="sidebar-summary__label">Status</span>
+          <span class="sidebar-summary__value"><%= class_status %></span>
+        </div>
+      </div>
+      <nav class="class-workspace__nav" aria-label="Class sections">
+        <%= link_to admin_class_workspace_overview_path(@training_class), class: "class-workspace__nav-item #{section == 'overview' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-info-circle"></i> Overview<% end %>
+        <%= link_to admin_class_workspace_attendees_path(@training_class), class: "class-workspace__nav-item #{section == 'attendees' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-people-fill"></i> Attendees<% end %>
+        <%= link_to admin_class_workspace_leads_path(@training_class), class: "class-workspace__nav-item #{section == 'leads' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-person-plus"></i> Potential Customers<% end %>
+        <%= link_to admin_class_workspace_documents_path(@training_class), class: "class-workspace__nav-item #{section == 'documents' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-file-earmark-text"></i> Financial Documents<% end %>
+        <%= link_to admin_class_workspace_finance_path(@training_class), class: "class-workspace__nav-item #{section == 'finance' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-cash-coin"></i> Financial Dashboard<% end %>
+        <%= link_to admin_class_workspace_edit_path(@training_class), class: "class-workspace__nav-item #{section == 'edit' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-pencil"></i> Edit class<% end %>
+      </nav>
+    </aside>
+
+    <main class="class-workspace__main" id="class-workspace-main">
+      <%= yield %>
+    </main>
+  </div>
+</div>
+<script>
+(function() {
+  var wrap = document.getElementById('class-workspace-main')?.closest('.class-workspace');
+  if (!wrap) return;
+  wrap.addEventListener('click', function(e) {
+    var target = e.target.closest('[data-toast]');
+    if (target) { e.preventDefault(); var msg = target.getAttribute('data-toast') || 'Done'; var n = document.createElement('div'); n.className = 'alert alert-success alert-dismissible fade show position-fixed'; n.style.cssText = 'top:1rem;right:1rem;z-index:9999;min-width:200px;'; n.setAttribute('role','alert'); n.innerHTML = msg + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button>'; document.body.appendChild(n); setTimeout(function(){ n.remove(); }, 3000); return; }
+    target = e.target.closest('[data-confirm]'); if (target && (target.tagName === 'BUTTON' || target.tagName === 'A') && !confirm(target.getAttribute('data-confirm') || 'Are you sure?')) e.preventDefault();
+    target = e.target.closest('[data-copy-btn]'); if (target) { e.preventDefault(); var val = target.getAttribute('data-copy-value') || target.closest('.public-link-block')?.querySelector('[data-copy-target]')?.value || ''; if (val && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(val).then(function(){ var n = document.createElement('div'); n.className = 'alert alert-success alert-dismissible fade show position-fixed'; n.style.cssText = 'top:1rem;right:1rem;z-index:9999;'; n.innerHTML = 'Copied! <button type="button" class="btn-close" data-bs-dismiss="alert"></button>'; document.body.appendChild(n); setTimeout(function(){ n.remove(); }, 2000); }); } return; }
+  });
+  wrap.querySelectorAll('[data-description-toggle]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var block = btn.closest('.description-block');
+      var content = block && block.querySelector('.description-block__content');
+      if (!content) return;
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      content.classList.toggle('description-block__content--collapsed', expanded);
+      btn.textContent = expanded ? 'Read more' : 'Read less';
+      btn.setAttribute('aria-expanded', !expanded);
+    });
+  });
+})();
+</script>

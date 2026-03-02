@@ -1,0 +1,8 @@
+<% view = local_assigns[:view] || "month" %>
+<% if view == "month" %>
+  <%= render "operations/training_calendar/calendar_month", range: range, events_by_date: events_by_date, month_start: month_start, month_end: month_end, filters: filters %>
+<% elsif view == "agenda" %>
+  <%= render "operations/training_calendar/calendar_agenda", range: range, events: events, events_by_date: events_by_date, week_start: week_start, week_end: week_end, filters: filters %>
+<% else %>
+  <%= render "operations/training_calendar/calendar_week", range: range, events_by_date: events_by_date, week_start: week_start, week_end: week_end, filters: filters %>
+<% end %>

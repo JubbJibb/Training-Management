@@ -1,0 +1,31 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  attendees_count = local_assigns[:confirmed] || klass.total_registered_seats
+  capacity = local_assigns[:capacity] || klass.max_attendees.to_i
+  seats_utilization_percent = klass.fill_rate_percent.to_i
+  seats_utilization_percent = [[seats_utilization_percent, 100].min, 0].max
+  revenue_capacity = capacity.positive? && klass.price.present? ? number_to_thb(capacity * klass.price) : "—"
+%>
+<%= turbo_frame_tag "attendance_card" do %>
+  <div class="odt-card">
+    <header class="odt-card__header">
+      <div class="odt-card__header-inner">
+        <i class="bi bi-people-fill" aria-hidden="true"></i>
+        <h2 class="odt-card__title">Attendance</h2>
+      </div>
+    </header>
+    <div class="odt-card__body">
+      <div class="odt-attendance-hero"><%= attendees_count %> / <%= capacity.positive? ? capacity : "—" %></div>
+      <% if capacity.positive? %>
+        <div class="odt-progress" role="progressbar" aria-valuenow="<%= seats_utilization_percent %>" aria-valuemin="0" aria-valuemax="100">
+          <div class="odt-progress__bar" style="width: <%= seats_utilization_percent %>%;"></div>
+        </div>
+      <% end %>
+      <p class="odt-attendance-caption">Revenue capacity: <%= revenue_capacity %></p>
+      <div class="odt-attendance-actions">
+        <%= link_to "Manage Attendees", admin_class_workspace_attendees_path(klass), class: "odt-btn odt-btn--primary odt-btn--sm" %>
+        <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-toast="Export started (mock)">Export CSV</button>
+      </div>
+    </div>
+  </div>
+<% end %>

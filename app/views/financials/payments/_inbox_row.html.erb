@@ -1,0 +1,46 @@
+<%
+  p = local_assigns[:payment]
+  workflow_status = PaymentWorkflowStatus.for(p)
+  label = PaymentWorkflowStatus.label(p)
+  first_slip = p.payment_slips.attached? ? p.payment_slips.first : nil
+  can_issue_receipt = p.document_status != "Receipt" && (p.respond_to?(:slip_verified_at) && p.slip_verified_at.present? || p.payment_status == "Paid")
+  selected = local_assigns[:selected]
+  row_class = "pi-row pi-row--#{workflow_status}"
+  row_class += " pi-row--selected" if selected
+%>
+<div class="<%= row_class %>" data-payment-id="<%= p.id %>" data-panel-url="<%= panel_financials_payment_path(p) %>" data-detail-url="<%= financials_payment_path(p) %>" role="button" tabindex="0">
+  <div class="pi-row__check" onclick="event.stopPropagation()">
+    <input type="checkbox" name="payment_ids[]" value="<%= p.id %>" class="pi-row-check" aria-label="Select payment">
+  </div>
+  <div class="pi-row__body">
+    <div class="pi-row__line1">
+      <span class="pi-row__customer"><%= (p.billing_name.presence || p.name).to_s.truncate(40) %></span>
+      <span class="pi-row__class"><%= p.training_class.title.to_s.truncate(36) %></span>
+    </div>
+    <div class="pi-row__line2">
+      <span class="pi-row__amount"><%= number_to_thb(p.total_final_price) %></span>
+      <span class="pi-row__status pi-status pi-status--<%= workflow_status %>"><%= label %></span>
+    </div>
+    <div class="pi-row__line3">
+      <span class="pi-row__doc pi-doc-badge"><%= p.document_status.presence || "—" %></span>
+      <span class="pi-row__due">Due <%= p.due_date&.strftime("%Y-%m-%d") || "—" %></span>
+      <% if p.payment_slips.attached? %>
+        <span class="pi-row__slip" title="Has slip"><i class="bi bi-paperclip" aria-hidden="true"></i></span>
+      <% end %>
+    </div>
+  </div>
+  <div class="pi-row__actions" onclick="event.stopPropagation()">
+    <%= link_to financials_payment_path(p), class: "pi-row__action", title: "Preview", aria: { label: "Preview" }, data: { turbo_frame: "_top" } do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
+    <% if workflow_status == "awaiting_verification" && first_slip %>
+      <%= button_to verify_slip_financials_payment_path(p), method: :patch, form_class: "pi-row__action-form", title: "Verify", aria: { label: "Verify" }, data: { turbo_frame: "_top" } do %><i class="bi bi-check-lg" aria-hidden="true"></i><% end %>
+    <% else %>
+      <span class="pi-row__action pi-row__action--disabled" title="Verify"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+    <% end %>
+    <% if can_issue_receipt %>
+      <%= button_to issue_receipt_financials_payment_path(p), method: :patch, form_class: "pi-row__action-form", title: "Issue receipt", aria: { label: "Issue receipt" }, data: { turbo_frame: "_top" } do %><i class="bi bi-receipt" aria-hidden="true"></i><% end %>
+    <% else %>
+      <span class="pi-row__action pi-row__action--disabled" title="Issue receipt"><i class="bi bi-receipt" aria-hidden="true"></i></span>
+    <% end %>
+    <%= link_to financials_payment_path(p), class: "pi-row__action", title: "Send to customer", aria: { label: "Send" }, data: { turbo_frame: "_top" } do %><i class="bi bi-send" aria-hidden="true"></i><% end %>
+  </div>
+</div>

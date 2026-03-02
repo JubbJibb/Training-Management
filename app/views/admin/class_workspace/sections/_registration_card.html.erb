@@ -1,0 +1,57 @@
+<%
+  reg = local_assigns[:registration]
+  training_class = local_assigns[:training_class] || @training_class
+  card_id = "reg-card-#{reg.group_key.to_s.parameterize}"
+  panel_id = "reg-attendees-#{reg.group_key.to_s.parameterize}"
+%>
+<article class="reg-card" id="<%= card_id %>">
+  <header class="reg-card__header">
+    <div class="reg-card__header-main">
+      <h3 class="reg-card__title"><%= reg.display_name %></h3>
+      <div class="reg-card__badges">
+        <%= odt_badge(reg.type_label, variant: :neutral, size: :sm) %>
+        <%= odt_badge("#{reg.seat_count} #{reg.seat_count == 1 ? 'seat' : 'seats'}", variant: :info, size: :sm) %>
+        <%= odt_badge(reg.payment_status, status: (reg.payment_status == "Paid" ? :paid : :pending), size: :sm) %>
+        <% if reg.source.present? && reg.source != "—" %><%= odt_badge(reg.source, variant: :warning, size: :sm) %><% end %>
+      </div>
+    </div>
+  </header>
+
+  <div class="reg-card__body">
+    <div class="reg-card__contact">
+      <div class="reg-card__contact-row"><span class="reg-card__contact-label">Name</span><span class="reg-card__contact-value"><%= reg.contact_name %></span></div>
+      <div class="reg-card__contact-row"><span class="reg-card__contact-label">Email</span><span class="reg-card__contact-value"><%= reg.contact_email %></span></div>
+      <% if reg.contact_phone.present? %><div class="reg-card__contact-row"><span class="reg-card__contact-label">Phone</span><span class="reg-card__contact-value"><%= reg.contact_phone %></span></div><% end %>
+    </div>
+
+    <div class="reg-card__actions">
+      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm" data-toast="View invoice (mock)"><i class="bi bi-receipt"></i> View invoice</button>
+      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm" data-toast="Send receipt (mock)"><i class="bi bi-send"></i> Send receipt</button>
+      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm" data-toast="Send message (mock)"><i class="bi bi-chat-left-text"></i> Send message</button>
+    </div>
+
+    <details class="reg-card__attendees" id="<%= panel_id %>" data-reg-card-details>
+      <summary class="reg-card__attendees-summary">
+        <span class="reg-card__attendees-summary-text"><%= reg.attendees.size %> <%= reg.attendees.size == 1 ? 'attendee' : 'attendees' %></span>
+        <i class="bi bi-chevron-down reg-card__attendees-chevron" aria-hidden="true"></i>
+      </summary>
+      <div class="reg-card__attendees-panel">
+        <div class="reg-card__attendees-heading">
+          <span class="reg-card__attendees-col reg-card__attendees-col--name">Name</span>
+          <span class="reg-card__attendees-col reg-card__attendees-col--checkin">Check-in</span>
+          <span class="reg-card__attendees-col reg-card__attendees-col--cert">Certificate</span>
+        </div>
+        <% reg.attendees.each do |a| %>
+          <div class="reg-card__attendee-row">
+            <span class="reg-card__attendees-col reg-card__attendees-col--name">
+              <%= link_to a.name, edit_admin_training_class_attendee_path(training_class, a), class: "reg-card__attendee-link" %>
+              <% if a.email.present? && a.email != reg.contact_email %><span class="reg-card__attendee-meta"><%= a.email %></span><% end %>
+            </span>
+            <span class="reg-card__attendees-col reg-card__attendees-col--checkin"><%= a.attendance_status.presence || "—" %></span>
+            <span class="reg-card__attendees-col reg-card__attendees-col--cert">—</span>
+          </div>
+        <% end %>
+      </div>
+    </details>
+  </div>
+</article>

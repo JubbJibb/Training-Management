@@ -1,0 +1,62 @@
+<%
+  range = local_assigns[:range]
+  events_by_date = local_assigns[:events_by_date] || {}
+  month_start = local_assigns[:month_start] || range.begin.beginning_of_month
+  month_end = local_assigns[:month_end] || range.begin.end_of_month
+  filters = local_assigns[:filters] || {}
+  grid_start = month_start.beginning_of_week(:monday)
+  grid_end = month_end.end_of_week(:monday)
+  grid_days = (grid_start..grid_end).to_a
+  weekdays = %w[Mon Tue Wed Thu Fri Sat Sun]
+  max_visible = 6
+  today = Date.current
+%>
+<div class="tc-grid tc-grid--month" role="grid" aria-label="Calendar month view">
+  <div class="tc-grid__head" role="row">
+    <% weekdays.each do |day| %>
+      <div class="tc-grid__head-cell" role="columnheader"><%= day %></div>
+    <% end %>
+  </div>
+  <div class="tc-grid__body">
+    <% grid_days.each_slice(7) do |week| %>
+      <div class="tc-grid__row" role="row">
+        <% week.each_with_index do |day, idx| %>
+          <%
+            # Skip this cell if it's the "continuation" of a multi-day event (event started on a previous day in this row)
+            is_continuation = idx.positive? && week[0...idx].any? { |d| (events_by_date[d] || []).any? { |e| (e.end_date || e.date) >= day && e.date < day } }
+            next if is_continuation
+            other_month = day.month != month_start.month
+            is_today = day == today
+            # Only show events that *start* on this day (multi-day = one card spanning columns)
+            start_evs = (events_by_date[day] || []).select { |e| e.date == day }
+            visible_events = start_evs.first(max_visible)
+            more_count = start_evs.size - max_visible
+            # Span: if first event is multi-day, span to cover its days (capped by end of row)
+            multi = start_evs.find { |e| (e.end_date || e.date) > e.date }
+            span = 1
+            if multi
+              end_d = multi.end_date || multi.date
+              span = [(end_d - day + 1).to_i, (week.last - day + 1).to_i].min
+            end
+            span_style = span > 1 ? "grid-column: span #{span};" : ""
+          %>
+          <div class="tc-grid__cell tc-day <%= 'tc-grid__cell--span' if span > 1 %> <%= 'tc-grid__cell--other' if other_month %> <%= 'tc-grid__cell--today' if is_today %>" style="<%= span_style %>" data-date="<%= day.iso8601 %>" data-tc-calendar-target="cell" data-action="click->tc-calendar#onCellClick" role="gridcell" tabindex="-1">
+            <div class="tc-grid__day-num"><%= day.day %></div>
+            <div class="tc-grid__events">
+              <% visible_events.each do |ev| %>
+                <% chip = %w[chip-purple chip-emerald chip-sky][ev.id % 3] %>
+                <% single_day = ev.end_date.blank? || ev.end_date == ev.date %>
+                <%= render "operations/training_calendar/event_card", event: ev, chip_variant: chip, single_day: single_day, cell_span: span %>
+              <% end %>
+              <% if more_count.positive? %>
+                <%= link_to operations_training_calendar_day_popover_path(date: day.iso8601), class: "tc-more-link", data: { turbo_frame: "tc_day_popover" } do %>
+                  +<%= more_count %> more
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

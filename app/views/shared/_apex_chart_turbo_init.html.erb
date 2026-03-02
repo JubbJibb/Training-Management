@@ -1,0 +1,154 @@
+<%# Persistent script in <head>: runs ApexCharts init on turbo:load so charts render after Turbo navigation (when footer_scripts are not re-executed). %>
+<script>
+(function() {
+  var APEX_CDN = 'https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js';
+  var brandColor = '#13139c';
+  var accentColor = '#ffc700';
+  var colors = [brandColor, '#2563eb', '#059669', accentColor, '#6b7280', '#dc2626'];
+
+  function getApexOptions(el) {
+    var type = (el.getAttribute('data-apex-type') || 'line').toLowerCase();
+    var stacked = el.getAttribute('data-apex-stacked') === 'true';
+    var labels = [];
+    var datasets = [];
+    try { labels = JSON.parse(el.getAttribute('data-labels') || '[]'); } catch (e) {}
+    try { datasets = JSON.parse(el.getAttribute('data-datasets') || '[]'); } catch (e) {}
+
+    if (type === 'donut' || type === 'pie') {
+      var series = datasets.map(function(d) { return (d.data && d.data[0]) || 0; });
+      var segmentLabels = datasets.map(function(d) { return d.label || ''; });
+      var segmentColors = datasets.map(function(d, i) { return d.color || colors[i % colors.length]; });
+      return {
+        chart: {
+          type: 'donut',
+          height: '100%',
+          fontFamily: 'Inter, sans-serif',
+          toolbar: { show: false },
+          animations: { enabled: true }
+        },
+        series: series,
+        labels: segmentLabels,
+        colors: segmentColors,
+        legend: { show: false },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: type === 'donut' ? '70%' : '0%',
+              labels: { show: false }
+            },
+            dataLabels: { minAngleToShowLabel: 8 }
+          }
+        },
+        dataLabels: { enabled: false },
+        tooltip: { enabled: true }
+      };
+    }
+
+    var series = datasets.map(function(ds, i) {
+      return {
+        name: ds.label || 'Series ' + (i + 1),
+        data: ds.data || [],
+        color: ds.color || ds.borderColor || colors[i % colors.length]
+      };
+    });
+
+    var base = {
+      chart: {
+        height: '100%',
+        maxWidth: '100%',
+        type: type === 'area' ? 'area' : type === 'bar' ? 'bar' : 'line',
+        fontFamily: 'Inter, sans-serif',
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: { enabled: true }
+      },
+      series: series,
+      xaxis: {
+        categories: labels,
+        labels: { show: true, style: { fontSize: '12px', colors: '#6b7280' } },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#6b7280' },
+          formatter: function(v) { return typeof v === 'number' && v >= 1000 ? (v/1000).toFixed(1) + 'k' : v; }
+        }
+      },
+      grid: {
+        show: true,
+        strokeDashArray: 4,
+        padding: { left: 8, right: 8, top: 0, bottom: 0 }
+      },
+      tooltip: {
+        enabled: true,
+        x: { show: false }
+      },
+      legend: { position: 'bottom', fontSize: '12px' },
+      dataLabels: { enabled: false }
+    };
+
+    if (type === 'line' || type === 'area') {
+      base.stroke = { width: 4, curve: 'smooth' };
+      base.fill = type === 'area' ? {
+        type: 'gradient',
+        gradient: { opacityFrom: 0.45, opacityTo: 0.05, shade: brandColor, gradientToColors: [brandColor] }
+      } : { type: 'solid', opacity: 0 };
+    }
+
+    if (type === 'bar') {
+      base.plotOptions = {
+        bar: {
+          horizontal: false,
+          columnWidth: stacked ? '70%' : '60%',
+          borderRadius: 6,
+          borderRadiusApplication: 'end'
+        }
+      };
+      if (stacked) {
+        base.plotOptions.bar.barHeight = '70%';
+        base.chart.stacked = true;
+      }
+    }
+
+    return base;
+  }
+
+  function initApexCharts() {
+    if (typeof ApexCharts === 'undefined') return;
+    document.querySelectorAll('[data-apex-chart]').forEach(function(el) {
+      var id = el.id || ('apex-' + Math.random().toString(36).slice(2, 9));
+      if (!el.id) el.id = id;
+      if (el._apexChart) { el._apexChart.destroy(); el._apexChart = null; }
+      var opts = getApexOptions(el);
+      opts.chart.id = id;
+      var chart = new ApexCharts(el, opts);
+      chart.render();
+      el._apexChart = chart;
+    });
+  }
+
+  function loadApexCharts() {
+    if (typeof ApexCharts !== 'undefined') return Promise.resolve();
+    if (window.__apexChartsLoading) return window.__apexChartsLoading;
+    window.__apexChartsLoading = new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = APEX_CDN;
+      s.onload = function() { window.__apexChartsLoading = null; resolve(); };
+      s.onerror = function() { window.__apexChartsLoading = null; reject(new Error('ApexCharts failed to load')); };
+      document.head.appendChild(s);
+    });
+    return window.__apexChartsLoading;
+  }
+
+  function runChartsWhenReady() {
+    if (document.querySelectorAll('[data-apex-chart]').length === 0) return;
+    loadApexCharts().then(function() {
+      setTimeout(initApexCharts, 50);
+    }).catch(function() {});
+  }
+
+  document.addEventListener('turbo:load', runChartsWhenReady);
+  document.addEventListener('turbo:frame-render', function() { setTimeout(runChartsWhenReady, 100); });
+})();
+</script>

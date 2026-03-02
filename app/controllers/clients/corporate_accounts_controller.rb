@@ -5,6 +5,11 @@ module Clients
     def index
       @data = Clients::CorporateAccountsInsights.new(index_params).call
       @date_range = @data[:date_range]
+    rescue StandardError => e
+      Rails.logger.error("[CorporateAccounts] #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
+      @data = { kpis: {}, accounts: [], at_risk_accounts: [], upcoming_unpaid_corporate: [] }
+      @date_range = { start_date: Date.current.beginning_of_month, end_date: Date.current.end_of_month, preset: "mtd" }
+      @load_error = e.message
     end
 
     def show

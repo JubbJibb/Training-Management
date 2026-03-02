@@ -1,0 +1,67 @@
+<%
+  filters = local_assigns[:filters] || {}
+  instructor_options = local_assigns[:instructor_options] || []
+  location_options = local_assigns[:location_options] || []
+  base_q = { view: filters[:view], start_date: filters[:start_date], q: filters[:q] }.compact
+%>
+<div class="tc-filters-drawer" id="tc_filters_drawer" data-training-calendar-target="filterDrawer" aria-hidden="true" aria-label="Filters">
+  <div class="tc-filters-drawer__backdrop" data-action="click->training-calendar#closeFilterDrawer"></div>
+  <div class="tc-filters-drawer__panel" role="dialog">
+    <header class="tc-filters-drawer__header">
+      <h2 class="tc-filters-drawer__title">Filters</h2>
+      <button type="button" class="tc-filters-drawer__close" aria-label="Close" data-action="click->training-calendar#closeFilterDrawer">×</button>
+    </header>
+    <%= form_with url: operations_training_calendar_path, method: :get, class: "tc-filters-drawer__form", data: { turbo_frame: "_top" } do |f| %>
+      <%= hidden_field_tag :view, filters[:view] || "month" %>
+      <div class="tc-filters-drawer__field">
+        <label for="tc_filter_start_date">Start date</label>
+        <input type="date" name="start_date" id="tc_filter_start_date" value="<%= filters[:start_date] %>" class="tc-filters-drawer__input">
+      </div>
+      <div class="tc-filters-drawer__field">
+        <label for="tc_filter_instructor">Instructor</label>
+        <select name="instructor" id="tc_filter_instructor" class="tc-filters-drawer__input">
+          <option value="">All</option>
+          <% instructor_options.each do |opt| %>
+            <option value="<%= opt %>" <%= "selected" if filters[:instructor].to_s == opt %>><%= opt %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="tc-filters-drawer__field">
+        <label for="tc_filter_location">Location</label>
+        <select name="location" id="tc_filter_location" class="tc-filters-drawer__input">
+          <option value="">All</option>
+          <% location_options.each do |opt| %>
+            <option value="<%= opt %>" <%= "selected" if filters[:location].to_s == opt %>><%= opt %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="tc-filters-drawer__field">
+        <label for="tc_filter_status">Status</label>
+        <select name="status" id="tc_filter_status" class="tc-filters-drawer__input">
+          <option value="all" <%= "selected" if filters[:status].to_s == "all" %>>All</option>
+          <option value="upcoming" <%= "selected" if filters[:status].to_s == "upcoming" %>>Upcoming</option>
+          <option value="past" <%= "selected" if filters[:status].to_s == "past" %>>Past</option>
+          <option value="cancelled" <%= "selected" if filters[:status].to_s == "cancelled" %>>Cancelled</option>
+        </select>
+      </div>
+      <div class="tc-filters-drawer__field">
+        <label for="tc_filter_type">Class type</label>
+        <select name="type" id="tc_filter_type" class="tc-filters-drawer__input">
+          <option value="all" <%= "selected" if filters[:type].to_s == "all" %>>All</option>
+          <option value="public" <%= "selected" if filters[:type].to_s == "public" %>>Public</option>
+          <option value="private" <%= "selected" if filters[:type].to_s == "private" %>>Private</option>
+        </select>
+      </div>
+      <div class="tc-filters-drawer__field tc-filters-drawer__field--checkbox">
+        <label>
+          <input type="checkbox" name="nearly_full" value="1" <%= "checked" if filters[:nearly_full] == "1" %>>
+          Nearly full (≥80%)
+        </label>
+      </div>
+      <div class="tc-filters-drawer__actions">
+        <button type="submit" class="tc-drawer__btn tc-drawer__btn--primary">Apply</button>
+        <%= link_to "Clear", operations_training_calendar_path, class: "tc-drawer__btn tc-drawer__btn--secondary", data: { turbo_frame: "_top" } %>
+      </div>
+    <% end %>
+  </div>
+</div>

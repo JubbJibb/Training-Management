@@ -1,0 +1,32 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  activity = local_assigns[:activity] || @activity
+  activity ||= []
+  if activity.empty? && tc.internal_notes_updated_at.present?
+    activity = [{ timestamp: tc.internal_notes_updated_at, message: "Notes updated" }]
+  end
+  activity = activity.first(5)
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Latest updates</h3>
+      <p class="insight-card__subtitle"><%= activity.any? ? "Recent activity" : "No recent activity" %></p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if activity.any? %>
+      <ul class="odt-activity-list">
+        <% activity.each do |item| %>
+          <li>
+            <span class="odt-activity-list__time"><%= item[:timestamp].respond_to?(:strftime) ? item[:timestamp].strftime("%b %d, %H:%M") : item[:timestamp].to_s %></span>
+            <%= item[:message].to_s %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="insight-class-details__text insight-class-details__text--muted" style="margin: 0;">No recent activity.</p>
+    <% end %>
+  </div>
+</div>

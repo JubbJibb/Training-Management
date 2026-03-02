@@ -1,0 +1,3 @@
+<%= turbo_frame_tag "financials_payment_panel" do %>
+  <%= render "financials/payments/panel_content", payment: @payment, attendee: @attendee, training_class: @training_class, activity_logs: @activity_logs %>
+<% end %>

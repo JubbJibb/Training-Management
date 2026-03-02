@@ -91,7 +91,7 @@
               <% promo_rows.each do |r| %>
                 <tr>
                   <td class="cell--truncate" title="<%= r[:promotion_name] %>"><%= r[:promotion_name] %></td>
-                  <td class="cell--center"><span class="badge badge--neutral"><%= promo_type_label.call(r[:promotion_type]) %></span></td>
+                  <td class="cell--center"><%= odt_badge(promo_type_label.call(r[:promotion_type]), variant: :neutral, size: :sm) %></td>
                   <td class="cell--num"><%= r[:seats_used] %></td>
                   <td class="cell--num"><%= number_to_thb(r[:discount_cost]) %></td>
                   <td class="cell--num"><%= r[:net_revenue_share_pct].nil? ? "—" : "#{r[:net_revenue_share_pct]}%" %></td>

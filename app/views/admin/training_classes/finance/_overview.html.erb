@@ -7,7 +7,7 @@
   ts = d[:revenue_timeseries] || []
   payment_list = d[:payment_status_list] || []
   unpaid_rows = payment_list.reject { |r| r[:status] == "Paid" }.first(5)
-  documents_path = admin_training_class_path(training_class, tab: "documents", mode: "register")
+  documents_path = edit_admin_training_class_path(training_class, tab: "documents", mode: "register")
   costs_path = finance_admin_training_class_path(training_class, sub: "costs", type: params[:type], status: params[:status])
 %>
 <div class="finance-sub-content finance-sub-content--overview">

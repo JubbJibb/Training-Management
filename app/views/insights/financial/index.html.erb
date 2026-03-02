@@ -140,7 +140,7 @@
       { key: :margin_pct, label: "Margin %" }
     ], rows: profit_rows, empty_message: "No class data." do |row_h| %>
       <% if row_h[:id].present? %>
-        <%= link_to "View Class Finance", finance_admin_training_class_path(row_h[:id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+        <%= link_to "View Class Finance", admin_class_workspace_finance_path(row_h[:id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
       <% else %>
         —
       <% end %>

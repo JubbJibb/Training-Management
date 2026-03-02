@@ -1,15 +1,50 @@
-<% content_for :title, "Edit Attendee" %>
+<% content_for :title, @attendee.name %>
 
-<div class="attendee-edit-page">
-  <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true, class: "attendee-edit-form" do |f| %>
-    <%= render "components/odt/page_header", title: "Edit Attendee", subtitle: @attendee.name, icon: "pencil" do %>
-      <%= link_to admin_training_class_attendees_path(@training_class), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
-        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Attendees
-      <% end %>
-    <% end %>
+<%
+  mode = params[:mode].presence || "view"
+  type_badge = @attendee.participant_type == "Corp" ? "Corporate" : "Individual"
+  status_label = @attendee.status == "attendee" ? "Confirmed" : "Potential"
+%>
 
+<div class="attendee-edit-page attendee-edit-page--m3" data-view-edit-mode data-mode="<%= mode %>">
+  <%# Top bar: View mode %>
+  <div class="attendee-view-header" data-view-edit-target="viewHeader">
+    <div class="attendee-view-header__main">
+      <div class="attendee-view-header__identity">
+        <h1 class="attendee-view-header__title"><%= @attendee.name %></h1>
+        <p class="attendee-view-header__subtitle">
+          <%= @attendee.email %>
+          <%= odt_badge(type_badge, variant: (@attendee.participant_type == "Corp" ? :info : :neutral), size: :sm) %>
+        </p>
+      </div>
+      <div class="attendee-view-header__actions">
+        <%= link_to (params[:return_to].presence || admin_class_workspace_attendees_path(@training_class)), class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+          <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Attendees
+        <% end %>
+        <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-view-edit-action="enterEdit" title="Edit attendee">
+          <i class="bi bi-pencil" aria-hidden="true"></i> Edit attendee
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%# Edit mode top bar: Save + Cancel %>
+  <div class="attendee-edit-header" data-view-edit-target="editHeader" hidden>
+    <div class="attendee-edit-header__main">
+      <h1 class="attendee-edit-header__title"><i class="bi bi-pencil-square"></i> Edit: <%= @attendee.name %></h1>
+      <div class="attendee-edit-header__actions">
+        <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-view-edit-action="cancel">Cancel</button>
+        <button type="submit" form="attendee-edit-form" class="odt-btn odt-btn--primary odt-btn--sm">
+          <i class="bi bi-check-lg"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true, class: "attendee-edit-form", id: "attendee-edit-form", data: { view_edit_form: true } do |f| %>
+    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
     <% if @attendee.errors.any? %>
-      <div class="alert alert-danger mb-4">
+      <div class="alert alert-danger mb-4" role="alert">
         <h5>Please fix the following errors:</h5>
         <ul class="mb-0">
           <% @attendee.errors.full_messages.each do |message| %>
@@ -19,141 +54,224 @@
       </div>
     <% end %>
 
-    <nav class="customer-tabs attendee-edit-tabs" aria-label="Edit sections">
-      <div class="customer-tabs__inner" id="attendeeEditTabs" role="tablist">
-        <button class="customer-tabs__tab active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#attendee-edit-form" type="button" role="tab" aria-selected="true">
-          <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit
+    <nav class="attendee-edit-tabs" aria-label="Attendee sections">
+      <div class="attendee-edit-tabs__inner" role="tablist">
+        <button class="attendee-edit-tabs__tab active" type="button" data-bs-toggle="tab" data-bs-target="#tab-details">
+          <i class="bi bi-person-vcard"></i> Details
         </button>
-        <button class="customer-tabs__tab" id="summary-tab" data-bs-toggle="tab" data-bs-target="#attendee-payment-summary" type="button" role="tab" aria-selected="false">
-          <i class="bi bi-receipt" aria-hidden="true"></i> Payment Summary
+        <button class="attendee-edit-tabs__tab" type="button" data-bs-toggle="tab" data-bs-target="#tab-summary">
+          <i class="bi bi-receipt"></i> Payment Summary
         </button>
       </div>
     </nav>
 
     <div class="tab-content attendee-edit-tab-content" id="attendeeEditTabsContent">
-      <div class="tab-pane fade show active" id="attendee-edit-form" role="tabpanel" aria-labelledby="edit-tab">
-        <div class="attendee-edit-column attendee-edit-column--form">
-          <%= render "admin/attendees/attendee_info", f: f %>
-          <%= render "admin/attendees/registration_details", f: f %>
-          <%= render "admin/attendees/promotions", f: f %>
-          <%= render "admin/attendees/finance_documents", f: f %>
+      <%# Details tab: compact 2-column layout %>
+      <div class="tab-pane fade show active" id="tab-details" role="tabpanel">
+        <%# View mode: same layout as Edit (7fr + 5fr, surface sections) %>
+        <div class="attendee-edit-content attendee-edit-content--m3" data-view-edit-target="viewContent">
+          <div class="attendee-edit-content__main">
+            <%= render "admin/attendees/view/profile_surface", attendee: @attendee %>
+            <%= render "admin/attendees/view/registration_surface", attendee: @attendee %>
+            <%= render "admin/attendees/view/tax_info_surface", attendee: @attendee %>
+          </div>
+          <div class="attendee-edit-content__side">
+            <%= render "admin/attendees/view/pricing_surface", attendee: @attendee %>
+            <%= render "admin/attendees/view/documents_surface", attendee: @attendee %>
+          </div>
+        </div>
+
+        <%# Edit mode: 2-column grid (7 + 5), flat section surfaces only %>
+        <div class="attendee-edit-content attendee-edit-content--m3" data-view-edit-target="editContent" hidden>
+          <div class="attendee-edit-content__main">
+            <%= render "admin/attendees/edit_sections/profile", f: f %>
+            <%= render "admin/attendees/edit_sections/registration", f: f %>
+            <%= render "admin/attendees/edit_sections/tax_info", f: f %>
+          </div>
+          <div class="attendee-edit-content__side">
+            <%= render "admin/attendees/edit_sections/pricing", f: f %>
+            <%= render "admin/attendees/edit_sections/documents", f: f %>
+          </div>
         </div>
       </div>
-      <div class="tab-pane fade" id="attendee-payment-summary" role="tabpanel" aria-labelledby="summary-tab">
-        <div class="attendee-edit-summary-wrap">
-          <%= render "admin/attendees/summary_sidebar", f: f %>
+
+      <%# Payment Summary tab %>
+      <div class="tab-pane fade" id="tab-summary" role="tabpanel">
+        <div class="attendee-summary-view">
+          <%= render "financials/payments/summary_card" %>
+          <div class="payment-summary-card__actions">
+            <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm payment-summary-copy-btn" title="Copy summary to clipboard">
+              <i class="bi bi-clipboard"></i> Copy Summary
+            </button>
+            <%= link_to summary_financials_payment_path(@attendee, format: :pdf), class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo: false } do %>
+              <i class="bi bi-file-earmark-pdf"></i> Download PDF
+            <% end %>
+            <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-bs-toggle="modal" data-bs-target="#sendSummaryModal" title="Send to customer">
+              <i class="bi bi-send"></i> Send to customer
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="attendee-edit-footer odt-section">
-      <%= odt_button("Cancel", variant: :secondary, size: :md, href: admin_training_class_attendees_path(@training_class)) %>
-      <%= odt_button("Save Changes", variant: :primary, size: :md, icon_left: "check-lg", type: "submit") %>
+    <%# Edit mode: Save/Cancel only in top bar; bottom footer hidden via CSS %>
+    <div class="attendee-edit-footer odt-section attendee-edit-footer--hidden" data-view-edit-target="editFooter" hidden>
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--md" data-view-edit-action="cancel">Cancel</button>
+      <button type="submit" class="odt-btn odt-btn--primary odt-btn--md">
+        <i class="bi bi-check-lg"></i> Save Changes
+      </button>
     </div>
   <% end %>
 </div>
 
+<%# Send Summary Modal %>
+<div class="modal fade" id="sendSummaryModal" tabindex="-1" aria-labelledby="sendSummaryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <%= form_with url: send_summary_financials_payment_path(@attendee), method: :post, local: true, data: { turbo_frame: "_top" }, id: "send-summary-form" do |f| %>
+        <%= hidden_field_tag :redirect_url, edit_admin_training_class_attendee_path(@training_class, @attendee) %>
+        <div class="modal-header" style="border-bottom: 2px solid #ffc700;">
+          <h5 class="modal-title" id="sendSummaryModalLabel"><i class="bi bi-send"></i> Send Payment Summary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">From</label>
+            <input type="text" class="form-control" value="ODTTraining@odds.team" readonly style="background: #f9f9fe; color: #666;">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">To <span class="text-danger">*</span></label>
+            <input type="email" name="to" class="form-control" value="<%= @attendee.email %>" placeholder="customer@example.com" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Subject</label>
+            <input type="text" name="subject" class="form-control" value="Payment Summary – <%= @attendee.training_class.title %>" placeholder="Payment Summary – {ClassName}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Message</label>
+            <textarea name="message" class="form-control" rows="3" placeholder="e.g. Dear customer, please find your payment summary attached."></textarea>
+          </div>
+          <div class="alert alert-info py-2 small mb-0">
+            <i class="bi bi-file-earmark-pdf"></i> Payment Summary PDF will be attached automatically.
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.08);">
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">
+            <i class="bi bi-send"></i> Send
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= content_for :footer_scripts do %>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const participantTypeSelect = document.getElementById('participant_type_select');
-    const companyField = document.getElementById('company-field');
-    const seatsField = document.getElementById('seats-field');
-    const seatsIndiHint = document.getElementById('seats-indi-hint');
-    const seatsInput = document.querySelector('input[name="attendee[seats]"]');
-    const basePriceInput = document.getElementById('base_price_input');
-    const promotionCheckboxes = document.querySelectorAll('.promotion-checkbox');
+function initViewEdit() {
+  var page = document.querySelector('[data-view-edit-mode]');
+  if (!page) return;
+  var mode = page.dataset.mode || 'view';
+  var form = document.getElementById('attendee-edit-form');
+  var viewHeader = page.querySelector('[data-view-edit-target="viewHeader"]');
+  var editHeader = page.querySelector('[data-view-edit-target="editHeader"]');
+  var viewContent = page.querySelector('[data-view-edit-target="viewContent"]');
+  var editContent = page.querySelector('[data-view-edit-target="editContent"]');
+  var editFooter = page.querySelector('[data-view-edit-target="editFooter"]');
+  var dirty = false;
 
-    if (participantTypeSelect) {
-      participantTypeSelect.addEventListener('change', function() {
-        if (this.value === 'Corp') {
-          if (companyField) companyField.style.display = 'block';
-          if (seatsField) seatsField.style.display = 'block';
-          if (seatsIndiHint) seatsIndiHint.style.display = 'none';
-          if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
-        } else {
-          if (companyField) companyField.style.display = 'none';
-          if (seatsField) seatsField.style.display = 'none';
-          if (seatsIndiHint) seatsIndiHint.style.display = 'block';
-          if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }
-        }
-      });
-    }
-
-    function calculatePrice() {
-      const seats = Math.max(1, parseInt(seatsInput && seatsInput.value ? seatsInput.value : 1, 10) || 1);
-      const basePricePerSeat = parseFloat(basePriceInput && basePriceInput.value ? basePriceInput.value : 0) || <%= @training_class.price.to_f || 0 %>;
-      let totalDiscountPerSeat = 0;
-      const discountDetails = [];
-
-      promotionCheckboxes.forEach(function(checkbox) {
-        if (checkbox.checked) {
-          const discountType = checkbox.dataset.discountType;
-          const discountValue = parseFloat(checkbox.dataset.discountValue) || 0;
-          const promotionName = checkbox.dataset.promotionName || '';
-          let discount = 0;
-          let discountDesc = '';
-          switch(discountType) {
-            case 'percentage':
-              discount = parseFloat((basePricePerSeat * (discountValue / 100.0)).toFixed(2));
-              discountDesc = promotionName + ' (' + discountValue + '%)';
-              break;
-            case 'fixed':
-              discount = parseFloat(discountValue.toFixed(2));
-              discountDesc = promotionName + ' (' + discountValue.toFixed(2) + ' บาท)';
-              break;
-            case 'buy_x_get_y':
-              discount = parseFloat((basePricePerSeat / (discountValue + 1)).toFixed(2));
-              discountDesc = promotionName + ' (มา ' + (discountValue + 1) + ' จ่าย ' + discountValue + ')';
-              break;
-          }
-          if (discount > 0) {
-            totalDiscountPerSeat = parseFloat((totalDiscountPerSeat + discount).toFixed(2));
-            discountDetails.push({ name: discountDesc, amount: discount });
-          }
-        }
-      });
-
-      const priceBeforeVatPerSeat = Math.max(0, parseFloat((basePricePerSeat - totalDiscountPerSeat).toFixed(2)));
-      const vatPerSeat = parseFloat((priceBeforeVatPerSeat * 0.07).toFixed(2));
-      const finalPerSeat = parseFloat((priceBeforeVatPerSeat + vatPerSeat).toFixed(2));
-      const basePrice = parseFloat((basePricePerSeat * seats).toFixed(2));
-      const totalDiscount = parseFloat((totalDiscountPerSeat * seats).toFixed(2));
-      const priceBeforeVat = parseFloat((priceBeforeVatPerSeat * seats).toFixed(2));
-      const vatAmount = parseFloat((vatPerSeat * seats).toFixed(2));
-      const finalPrice = parseFloat((finalPerSeat * seats).toFixed(2));
-
-      const fmt = function(n) { return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
-      const el = function(id) { return document.getElementById(id); };
-      if (el('display_base_price')) el('display_base_price').textContent = fmt(basePrice);
-      if (el('display_discount')) el('display_discount').textContent = fmt(totalDiscount);
-      if (el('display_price_before_vat')) el('display_price_before_vat').textContent = fmt(priceBeforeVat);
-      if (el('display_vat')) el('display_vat').textContent = fmt(vatAmount);
-      if (el('display_final_price')) el('display_final_price').textContent = fmt(finalPrice);
-
-      const discountDetailsEl = el('discount_details');
-      if (discountDetailsEl) {
-        if (discountDetails.length > 0) {
-          discountDetailsEl.innerHTML = discountDetails.map(function(d) {
-            const totalAmount = parseFloat((d.amount * seats).toFixed(2));
-            return '<div class="text-start">• ' + d.name + ': -' + fmt(totalAmount) + ' ฿</div>';
-          }).join('');
-        } else {
-          discountDetailsEl.innerHTML = '';
-        }
-      }
-    }
-
-    if (basePriceInput) {
-      basePriceInput.addEventListener('input', calculatePrice);
-      basePriceInput.addEventListener('change', calculatePrice);
-    }
-    if (seatsInput) {
-      seatsInput.addEventListener('input', calculatePrice);
-      seatsInput.addEventListener('change', calculatePrice);
-    }
-    promotionCheckboxes.forEach(function(checkbox) {
-      checkbox.addEventListener('change', calculatePrice);
-    });
-    calculatePrice();
+  function setMode(m) {
+    mode = m;
+    page.dataset.mode = m;
+    var isView = m === 'view';
+    if (viewHeader) viewHeader.hidden = !isView;
+    if (editHeader) editHeader.hidden = isView;
+    if (viewContent) viewContent.hidden = !isView;
+    if (editContent) editContent.hidden = isView;
+    if (editFooter) editFooter.hidden = isView;
+  }
+  function setDirty(d) { dirty = d; }
+  function enterEdit() { setMode('edit'); setDirty(false); }
+  function cancelEdit() {
+    if (dirty && !confirm('Discard changes?')) return;
+    setMode('view');
+    setDirty(false);
+    if (form) form.reset();
+  }
+  page.querySelectorAll('[data-view-edit-action="enterEdit"]').forEach(function(btn) {
+    btn.addEventListener('click', enterEdit);
   });
+  page.querySelectorAll('[data-view-edit-action="cancel"]').forEach(function(btn) {
+    btn.addEventListener('click', cancelEdit);
+  });
+  if (form) {
+    var inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(function(inp) {
+      inp.addEventListener('input', function() { setDirty(true); });
+      inp.addEventListener('change', function() { setDirty(true); });
+    });
+    form.addEventListener('submit', function() { setDirty(false); });
+  }
+  window.addEventListener('beforeunload', function(e) {
+    if (dirty) e.preventDefault();
+  });
+
+  if (mode === 'edit') {
+    setMode('edit');
+    dirty = false;
+  } else {
+    setMode('view');
+  }
+
+  var copyBtn = document.querySelector('.payment-summary-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      var el = document.getElementById('payment-summary-content');
+      if (!el) return;
+      var text = el.innerText || el.textContent || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copied';
+          setTimeout(function() { copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Summary'; }, 2000);
+        });
+      }
+    });
+  }
+
+  var sendModal = document.getElementById('sendSummaryModal');
+  if (sendModal) {
+    sendModal.addEventListener('shown.bs.modal', function() {
+      var toInput = sendModal.querySelector('input[name="to"]');
+      if (toInput && !toInput.value) toInput.focus();
+    });
+  }
+
+  var participantTypeSelect = document.getElementById('participant_type_select');
+  var companyField = document.getElementById('company-field');
+  var seatsField = document.getElementById('seats-field');
+  var seatsIndiHint = document.getElementById('seats-indi-hint');
+  var seatsInput = document.querySelector('input[name="attendee[seats]"]');
+  if (participantTypeSelect) {
+    participantTypeSelect.addEventListener('change', function() {
+      if (this.value === 'Corp') {
+        if (companyField) companyField.style.display = 'block';
+        if (seatsField) seatsField.style.display = 'block';
+        if (seatsIndiHint) seatsIndiHint.style.display = 'none';
+        if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
+      } else {
+        if (companyField) companyField.style.display = 'none';
+        if (seatsField) seatsField.style.display = 'none';
+        if (seatsIndiHint) seatsIndiHint.style.display = 'block';
+        if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }
+      }
+    });
+  }
+}
+
+function runAttendeeEditPage() {
+  initViewEdit();
+}
+document.addEventListener('DOMContentLoaded', runAttendeeEditPage);
+document.addEventListener('turbo:load', runAttendeeEditPage);
 </script>
+<% end %>

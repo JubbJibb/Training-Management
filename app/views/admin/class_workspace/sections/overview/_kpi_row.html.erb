@@ -1,0 +1,23 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  capacity = local_assigns[:capacity] || tc.max_attendees.to_i
+  confirmed = local_assigns[:confirmed] || tc.total_registered_seats
+  fill_pct = tc.fill_rate_percent.to_i
+  outstanding = tc.outstanding_amount
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || tc.checklist_items.presence || []
+  done_count = checklist_items.count { |i| i["done"] }
+  days_to = (tc.date - Date.current).to_i
+  finance_status = outstanding.positive? ? "Outstanding" : "Cash received"
+  cash_received = (local_assigns[:finance_summary] || @finance_summary)&.dig(:revenue, :paid) || tc.attendees.attendees.select { |a| a.payment_status == "Paid" }.sum(&:total_final_price)
+
+  days_sub = days_to.negative? ? "past" : (days_to == 0 ? "Today" : (days_to == 1 ? "Tomorrow" : "days"))
+  kpi_cells = [
+    { icon: "people", label: "Seats utilized", value: "#{confirmed} / #{capacity.positive? ? capacity : '—'}", sub: capacity.positive? ? "#{fill_pct}% fill" : "—" },
+    { icon: "cash-coin", label: "Finance state", value: number_to_thb(outstanding.positive? ? outstanding : cash_received), sub: finance_status },
+    { icon: "check2-square", label: "Operational readiness", value: "#{done_count} / #{checklist_items.size}", sub: "#{checklist_items.size - done_count} to do" },
+    { icon: "calendar3", label: "Days to class", value: days_to.negative? ? "Past" : days_to.to_s, sub: days_sub }
+  ]
+%>
+<section class="tc-index-kpi-section" aria-label="Key metrics">
+  <%= odt_kpi_strip(cells: kpi_cells, extra_class: "tc-index-kpi-strip tc-index-kpi-strip--cols-4") %>
+</section>

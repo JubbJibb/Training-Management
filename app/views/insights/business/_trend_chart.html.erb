@@ -1,0 +1,34 @@
+<%
+  trend = local_assigns[:trend_data] || []
+  labels = trend.map { |r| r[:label] }
+  reg_data = trend.map { |r| r[:registered].to_i }
+  paid_data = trend.map { |r| r[:paid].to_i }
+  attended_data = trend.map { |r| r[:attended].to_i }
+  datasets = [
+    { label: "ลงทะเบียน", data: reg_data, borderColor: "#13139c", backgroundColor: "rgba(19, 19, 156, 0.1)", fill: true, tension: 0.2 },
+    { label: "ชำระเงิน", data: paid_data, borderColor: "#2563eb", backgroundColor: "rgba(37, 99, 235, 0.08)", fill: true, tension: 0.2 },
+    { label: "เข้าเรียน", data: attended_data, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.08)", fill: true, tension: 0.2 }
+  ]
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Trend</h3>
+      <p class="insight-card__subtitle">ลงทะเบียน / ชำระเงิน / เข้าเรียน ตามเวลา</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if trend.any? %>
+      <div class="insights-chart-card">
+        <div class="insights-chart-container" style="height: 260px;">
+          <canvas id="business_trend" data-chart-type="line"
+            data-labels="<%= labels.to_json %>"
+            data-datasets="<%= datasets.to_json %>"></canvas>
+        </div>
+      </div>
+    <% else %>
+      <%= render "insights/shared/empty_chart", message: "ไม่มีข้อมูล trend ในช่วงที่เลือก" %>
+    <% end %>
+  </div>
+</div>

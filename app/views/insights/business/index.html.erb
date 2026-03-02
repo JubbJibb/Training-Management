@@ -1,136 +1,240 @@
 <% content_for :title, "Business Insights" %>
+<% content_for :footer_scripts do %>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js"></script>
+  <%= render "insights/shared/chart_init_apex" %>
+<% end %>
 <%
   data = @data || {}
-  kpis = data[:kpis] || {}
-  chart_data = data[:chart_data] || {}
-  top_programs = data[:top_programs] || []
-  date_range = @date_range || {}
   fp = @filter_params || {}
-  trend = chart_data[:revenue_trend] || []
-  rev_by_program = chart_data[:revenue_by_program] || []
-  total_rev = kpis[:total_revenue].to_f
-  client_count = (data[:total_clients] || 0).to_i
-  client_count = 1 if client_count.zero? && total_rev.positive?
-  avg_rev_per_client = client_count.positive? ? (total_rev / client_count).round(2) : 0
-  kpi_cells = [
-    { icon: "currency-dollar", label: "Total Revenue", value: number_to_thb(total_rev), sub: "in period" },
-    { icon: "graph-up", label: "Revenue Growth %", value: kpis[:revenue_growth_pct].present? ? "#{kpis[:revenue_growth_pct]}%" : "—", sub: "vs previous period" },
-    { icon: "people", label: "Total Clients", value: (data[:total_clients] || "—").to_s, sub: "in period" },
-    { icon: "person-plus", label: "New Clients", value: (data[:new_clients] || "—").to_s, sub: "in period" },
-    { icon: "arrow-repeat", label: "Repeat Rate %", value: kpis[:repeat_client_rate].present? ? "#{kpis[:repeat_client_rate]}%" : "—", sub: "" },
-    { icon: "person-wallet", label: "Avg Revenue / Client", value: number_to_thb(avg_rev_per_client), sub: "" }
-  ]
+  compare = data[:compare_to_previous_period].nil? ? true : data[:compare_to_previous_period]
 %>
-<div class="insights-page">
-  <%= render "components/odt/page_header", title: "Business Insights", subtitle: "Performance overview for classes, clients, and channels", icon: "graph-up-arrow" %>
+<!-- Business Insights (with info tooltips) -->
+<div class="insights-page business-insights-page">
+  <%= render "components/odt/page_header", title: "Business Insights", subtitle: "ภาพรวมธุรกิจ · แนวโน้ม · ช่องทาง · การเรียนซ้ำ", icon: "graph-up-arrow" %>
+  <p class="bi-page-hint">เลือกช่วงเวลาและตัวกรองด้านบน แล้วดูตัวชี้วัดและกราฟด้านล่าง — วางเมาส์หรือแตะไอคอน
+    <%= render "shared/bi_info_tooltip", title: "ความช่วยเหลือ", body: "วางเมาส์หรือแตะไอคอน ⓘ ข้างป้ายตัวชี้วัดหรือหัวตาราง เพื่อดูความหมายของเมตริกนั้น", placement: "bottom" %>
+    ข้างป้ายตัวชี้วัดหรือหัวตารางเพื่อดูความหมาย</p>
 
-  <%= render "insights/shared/filter_bar", filter_params: fp, form_url: insights_business_path, turbo_frame: "insights_main" %>
+  <%= render "insights/business/filters_row", filter_params: fp, form_url: insights_business_path, courses_for_filter: @courses_for_filter || [] %>
 
-  <section class="insights-kpi-section" aria-label="Key metrics">
-    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "insights-kpi-strip") %>
-  </section>
-
-  <div class="insight-card">
-    <div class="insight-card__header">
-      <div class="insight-card__accent"></div>
-      <div class="insight-card__head-text">
-        <h3 class="insight-card__title">Revenue Trend</h3>
-        <p class="insight-card__subtitle">By week or month in selected period</p>
-      </div>
-    </div>
-    <div class="insight-card__body">
-      <% if trend.any? %>
-        <div class="insight-chart-placeholder">
-          <ul class="insight-chart-list">
-            <% trend.first(12).each do |point| %>
-              <li><strong><%= point[:label] %></strong> <%= number_to_thb(point[:value].to_f) %></li>
-            <% end %>
-          </ul>
-          <p class="insight-chart-note">Chart library can be connected for visual line chart.</p>
-        </div>
-      <% else %>
-        <%= render "insights/shared/empty_chart", message: "No revenue trend data in selected period." %>
-      <% end %>
-    </div>
+  <div class="bi-compare-row">
+    <form method="get" action="<%= insights_business_path %>" class="bi-compare-form">
+      <%= hidden_field_tag :preset, fp[:preset] %>
+      <%= hidden_field_tag :start_date, fp[:start_date] %>
+      <%= hidden_field_tag :end_date, fp[:end_date] %>
+      <%= hidden_field_tag :course_id, fp[:course_id] %>
+      <%= hidden_field_tag :channel, fp[:channel] %>
+      <%= hidden_field_tag :trend_by, fp[:trend_by] %>
+      <%= hidden_field_tag :compare_to_previous, "0" %>
+      <label class="bi-compare-label">
+        <%= check_box_tag :compare_to_previous, "1", compare %>
+        <span>เปรียบเทียบกับช่วงก่อนหน้า</span>
+      </label>
+    </form>
   </div>
 
-  <div class="insight-two-col">
-    <div class="insight-card">
-      <div class="insight-card__header">
-        <div class="insight-card__accent"></div>
-        <div class="insight-card__head-text">
-          <h3 class="insight-card__title">Revenue by Channel</h3>
-          <p class="insight-card__subtitle">Top channels by share</p>
-        </div>
-      </div>
-      <div class="insight-card__body">
-        <% if rev_by_program.any? %>
-          <% total_ch = rev_by_program.sum { |h| h[:value].to_f } %>
-          <% (rev_by_program.first(5) + (rev_by_program.size > 5 ? [{ label: "Other", value: rev_by_program.drop(5).sum { |h| h[:value].to_f } }] : [])).each do |h| %>
-            <% pct = total_ch.positive? ? ((h[:value].to_f / total_ch) * 100).round(1) : 0 %>
-            <div class="insight-progress-row">
-              <span class="insight-progress-row__label"><%= h[:label] %></span>
-              <span class="insight-progress-row__value"><%= number_to_thb(h[:value].to_f) %> (<%= pct %>%)</span>
-              <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= pct %>%;"></div></div>
-            </div>
-          <% end %>
-        <% else %>
-          <%= render "shared/empty_state", title: "No channel data", icon: "pie-chart", extra_class: "insight-odt-table__empty" %>
-        <% end %>
-      </div>
-    </div>
-    <div class="insight-card">
-      <div class="insight-card__header">
-        <div class="insight-card__accent"></div>
-        <div class="insight-card__head-text">
-          <h3 class="insight-card__title">Course Contribution</h3>
-          <p class="insight-card__subtitle">Top 5 courses by revenue</p>
-        </div>
-      </div>
-      <div class="insight-card__body">
-        <% if rev_by_program.any? %>
-          <% total_ch = rev_by_program.sum { |x| x[:value].to_f } %>
-          <% rev_by_program.first(5).each do |h| %>
-            <% pct = total_ch.positive? ? ((h[:value].to_f / total_ch) * 100).round(1) : 0 %>
-            <div class="insight-progress-row">
-              <span class="insight-progress-row__label"><%= h[:label] %></span>
-              <span class="insight-progress-row__value"><%= number_to_thb(h[:value].to_f) %> (<%= pct %>%)</span>
-              <div class="insight-progress-row__bar"><div class="insight-progress-row__bar-fill" style="width: <%= pct %>%;"></div></div>
-            </div>
-          <% end %>
-        <% else %>
-          <%= render "shared/empty_state", title: "No course data", icon: "journal-bookmark", extra_class: "insight-odt-table__empty" %>
-        <% end %>
-      </div>
-    </div>
-  </div>
+  <%= render "insights/business/executive_summary", executive_summary: data[:executive_summary] %>
+
+  <%= render "insights/business/kpi_cards", kpis: data[:kpis], compare_to_previous_period: compare %>
 
   <%
-    table_rows = top_programs.map do |r|
-      {
-        class_title: r[:title],
-        class_date: r[:date].respond_to?(:strftime) ? r[:date].strftime("%b %d, %Y") : (r[:date].to_s.presence || "—"),
-        seats_sold: r[:seats_sold].to_i,
-        fill_rate: r[:fill_rate].nil? ? "—" : "#{r[:fill_rate]}%",
-        revenue: r[:revenue],
-        profit: r[:profit],
-        id: r[:id]
-      }
-    end
-    table_columns = [
-      { key: :class_title, label: "Class", cell_class: "" },
-      { key: :class_date, label: "Date" },
-      { key: :seats_sold, label: "Seats Sold" },
-      { key: :fill_rate, label: "Fill Rate %" },
-      { key: :revenue, label: "Revenue", format: :currency },
-      { key: :profit, label: "Profit", format: :currency }
-    ]
+    trend = data[:trend_data] || []
+    col_labels = trend.map { |r| r[:label] }
+    col_paid = trend.map { |r| r[:paid].to_i }
+    col_registered = trend.map { |r| r[:registered].to_i }
+    total_paid = col_paid.sum
+    total_rev = trend.sum { |r| r[:revenue].to_f }
+    kpis = data[:kpis].is_a?(Array) ? data[:kpis] : []
+    paid_kpi = kpis.find { |k| k[:key].to_s == "paid_orders" }
+    cvr_kpi = kpis.find { |k| k[:key].to_s == "cvr" }
   %>
-  <%= render "insights/shared/odt_table", title: "Top Performing Classes (Revenue)", columns: table_columns, rows: table_rows, empty_message: "No classes in selected period." do |row_h| %>
-    <% if row_h[:id].present? %>
-      <%= link_to "View Class", admin_training_class_path(row_h[:id]), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
-    <% else %>
-      —
-    <% end %>
-  <% end %>
+  <div class="insight-two-col insight-two-col--balance">
+    <div class="insight-two-col__card">
+      <%= render "insights/shared/column_chart_card",
+        value: total_paid.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse,
+        subtitle: "ใบชำระในช่วงที่เลือก",
+        badge_text: paid_kpi&.dig(:delta_label),
+        badge_up: (paid_kpi&.dig(:delta).to_f >= 0),
+        money_spent: total_rev > 0 ? number_to_currency(total_rev, unit: "฿", precision: 0) : "—",
+        conversion_pct: cvr_kpi ? (cvr_kpi[:value].is_a?(Numeric) ? "#{cvr_kpi[:value]}%" : cvr_kpi[:value]) : "—",
+        chart_labels: col_labels,
+        chart_datasets: [
+          { label: "ลงทะเบียน", data: col_registered, color: "#6b7280" },
+          { label: "ชำระเงิน", data: col_paid, color: "#13139c" }
+        ],
+        preset_label: (fp[:preset].presence || "Last 7 days").to_s,
+        report_path: insights_business_path,
+        stacked: true %>
+    </div>
+    <div class="insight-two-col__card">
+      <%= render "insights/business/trend_section", trend_data: data[:trend_data] %>
+    </div>
+  </div>
+
+  <div class="insight-two-col insight-two-col--balance">
+    <%= render "insights/business/funnel_chart", funnel_data: data[:funnel_data] %>
+    <%= render "insights/business/best_selling_courses", best_selling_courses: data[:best_selling_courses] %>
+  </div>
+
+  <%= render "insights/business/pricing_insights", pricing_insights: data[:pricing_insights] %>
+
+  <div class="insight-two-col insight-two-col--balance">
+    <%= render "insights/business/channel_mix_chart", channel_mix_data: data[:channel_mix_data] %>
+    <%= render "insights/business/channel_performance", channel_performance: data[:channel_performance] %>
+  </div>
+
+  <div class="insight-two-col insight-two-col--balance">
+    <%= render "insights/business/repeat_cohort", cohort_heatmap_data: data[:cohort_heatmap_data], returning_revenue_pct: data[:returning_revenue_pct] %>
+    <%= render "insights/business/top_lists",
+      top_channels: data[:top_channels],
+      top_courses: data[:top_courses],
+      top_spenders: data[:top_spenders],
+      repeat_learners: data[:repeat_learners],
+      active_tab: "channels" %>
+  </div>
 </div>
+
+<style>
+  .business-insights-page { padding-bottom: 2rem; }
+  .bi-page-hint { font-size: 0.875rem; color: #6b7280; margin: -0.5rem 0 1rem 0; display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+  .bi-executive-summary { margin-bottom: var(--space-4); }
+  .bi-executive-summary__text { font-size: 0.9375rem; line-height: 1.5; color: #374151; margin: 0; font-weight: 500; }
+  .bi-executive-summary__text--muted { color: #6b7280; }
+  .bi-compare-row { margin-bottom: 1rem; }
+  .bi-compare-label { font-size: 0.875rem; color: #6b7280; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(6, 1fr); }
+  .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner .odt-kpi-strip__cell:nth-child(6n) { border-right: none; }
+  @media (max-width: 1199px) { .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(3, 1fr); } .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner .odt-kpi-strip__cell:nth-child(3n) { border-right: none; } }
+  @media (max-width: 767px) { .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(2, 1fr); } .business-insights-kpi.odt-kpi-strip .odt-kpi-strip__inner .odt-kpi-strip__cell:nth-child(2n) { border-right: none; } }
+  .business-insights-kpi .odt-kpi-strip__value { color: #13139c; font-weight: 700; }
+  .business-insights-kpi .odt-kpi-strip__label { color: #292929; font-weight: 600; }
+  .business-insights-kpi .odt-kpi-strip__icon { color: #13139c; }
+  .business-insights-kpi .odt-kpi-strip__head { flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+  .insights-chart-container .apex-chart-mount { height: 100%; min-height: 180px; }
+  .bi-column-chart-row { margin-bottom: var(--space-4); }
+  .bi-column-chart-card { max-width: 24rem; border-radius: var(--radius-sm); border: 1px solid #eef0ff; background: #fff; }
+  .bi-column-chart-card .insight-card__header { display: flex; align-items: flex-start; gap: 0; padding: var(--space-3) var(--space-4) 0; }
+  .bi-column-chart-card .insight-card__header .bi-column-chart-card__header { flex: 1; display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #eef0ff; }
+  .bi-column-chart-card__head-inner { display: flex; align-items: center; gap: 0.75rem; }
+  .bi-column-chart-card__icon-wrap { width: 3rem; height: 3rem; border-radius: 50%; background: #f3f4f6; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; }
+  .bi-column-chart-card__icon { width: 1.75rem; height: 1.75rem; color: #6b7280; }
+  .bi-column-chart-card__value { font-size: 1.5rem; font-weight: 600; color: #111; margin: 0 0 0.15rem 0; }
+  .bi-column-chart-card__subtitle { font-size: 0.875rem; color: #6b7280; margin: 0; }
+  .bi-column-chart-card__badge { display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.125rem 0.5rem; border-radius: 4px; }
+  .bi-column-chart-card__badge--up { background: #d1fae5; border: 1px solid #a7f3d0; color: #047857; }
+  .bi-column-chart-card__badge--down { background: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; }
+  .bi-column-chart-card__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .bi-column-chart-card__meta-item dt { color: #6b7280; margin-right: 0.25rem; }
+  .bi-column-chart-card__meta-item dd { font-weight: 600; color: #111; margin: 0; }
+  .bi-column-chart-card__footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eef0ff; }
+  .bi-column-chart-card__preset { font-size: 0.875rem; font-weight: 500; color: #6b7280; }
+  .bi-column-chart-card__link { display: inline-flex; align-items: center; font-size: 0.875rem; font-weight: 500; color: #13139c; background: transparent; border: none; text-decoration: none; padding: 0.35rem 0.75rem; border-radius: 6px; }
+  .bi-column-chart-card__link:hover { background: rgba(19,19,156,0.08); color: #13139c; }
+  .business-insights-page .insight-card .bi-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .business-insights-page .insight-card .bi-tab { padding: 0.4rem 0.75rem; font-size: 0.8125rem; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; cursor: pointer; color: #6b7280; }
+  .business-insights-page .insight-card .bi-tab:hover { background: #f9fafb; color: #13139c; }
+  .business-insights-page .insight-card .bi-tab--active { background: rgba(19,19,156,0.08); border-color: #13139c; color: #13139c; font-weight: 500; }
+  .bi-sort-toggle { display: flex; align-items: center; gap: 0.5rem; }
+  .bi-sort-toggle__label { font-size: 0.8125rem; color: #6b7280; }
+  .bi-sort-btn { padding: 0.35rem 0.6rem; font-size: 0.8125rem; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; cursor: pointer; color: #6b7280; }
+  .bi-sort-btn--active { background: #13139c; border-color: #13139c; color: #fff; }
+  .bi-table-wrap { overflow-x: auto; }
+  .bi-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .bi-table th, .bi-table td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #eef0ff; }
+  .bi-table th { font-weight: 600; color: #6b7280; font-size: 0.75rem; text-transform: uppercase; }
+  .bi-table__course { max-width: 220px; }
+  .bi-table__spark { width: 70px; }
+  .bi-spark { width: 60px; height: 16px; display: block; color: #13139c; }
+  .bi-card__meta { font-size: 0.875rem; color: #6b7280; }
+  .bi-card__meta strong { color: #13139c; }
+  .bi-meta-label { margin-right: 0.35rem; }
+  .cohort-heatmap__table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .cohort-heatmap__th, .cohort-heatmap__td { padding: 0.5rem 0.75rem; text-align: center; border: 1px solid #eef0ff; }
+  .cohort-heatmap__th--row, .cohort-heatmap__td--label { text-align: left; font-weight: 600; color: #292929; }
+  .cohort-heatmap__td--cell { background: linear-gradient(90deg, rgba(19,19,156,0.12) calc(var(--pct, 0) * 1%), transparent calc(var(--pct, 0) * 1%)); }
+  .funnel-chart__row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
+  .funnel-chart__label { min-width: 100px; color: #374151; }
+  .funnel-chart__bar-wrap { flex: 1; display: flex; align-items: center; gap: 0.5rem; }
+  .funnel-chart__bar { height: 20px; background: #13139c; border-radius: 4px; min-width: 4px; }
+  .funnel-chart__value { font-weight: 600; color: #13139c; }
+  /* Channel mix donut inside Flowbite layout */
+  .insight-card--channel-mix .donut-flowbite__chart .channel-mix-donut-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+  }
+  .insight-card--channel-mix .channel-mix-donut-wrap .apex-chart-mount {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 200px;
+  }
+  /* Flowbite-style info tooltips */
+  .bi-info-tooltip { position: relative; display: inline-flex; align-items: center; vertical-align: middle; margin-left: 0.25rem; }
+  .bi-info-tooltip__trigger { display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; background: none; cursor: pointer; color: #6b7280; border-radius: 4px; }
+  .bi-info-tooltip__trigger:hover, .bi-info-tooltip__trigger:focus { color: #13139c; outline: 2px solid #13139c; outline-offset: 2px; }
+  .bi-info-tooltip__icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .bi-info-tooltip__content { position: absolute; z-index: 50; max-width: 260px; padding: 0.75rem; font-size: 0.875rem; line-height: 1.4; color: #4b5563; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); pointer-events: none; opacity: 0; visibility: hidden; transition: opacity 0.15s ease, visibility 0.15s ease; }
+  .bi-info-tooltip__content.is-visible { opacity: 1; visibility: visible; pointer-events: auto; }
+  .bi-info-tooltip__title { display: block; font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
+  .bi-info-tooltip__body { display: block; font-size: 0.8125rem; color: #6b7280; }
+  .bi-info-tooltip__arrow { position: absolute; width: 0; height: 0; border: 6px solid transparent; }
+  .bi-info-tooltip[data-placement="top"] .bi-info-tooltip__content { bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-4px); }
+  .bi-info-tooltip[data-placement="top"] .bi-info-tooltip__arrow { bottom: -6px; left: 50%; margin-left: -6px; border-top-color: #e5e7eb; border-bottom: none; }
+  .bi-info-tooltip[data-placement="bottom"] .bi-info-tooltip__content { top: 100%; left: 50%; transform: translateX(-50%) translateY(4px); }
+  .bi-info-tooltip[data-placement="bottom"] .bi-info-tooltip__arrow { top: -6px; left: 50%; margin-left: -6px; border-bottom-color: #e5e7eb; border-top: none; }
+  .bi-info-tooltip-trigger-wrap { display: inline-flex; align-items: center; gap: 0.25rem; }
+  /* Balanced card layout: equal height in two-col rows */
+  .insight-two-col--balance { align-items: stretch; }
+  .insight-two-col--balance .insight-card { display: flex; flex-direction: column; margin-bottom: 0; min-height: 280px; }
+  .insight-two-col--balance .insight-card .insight-card__body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .insight-two-col--balance .insight-card .insights-chart-container { flex: 1; min-height: 200px; }
+  .insight-two-col__card { display: flex; flex-direction: column; min-height: 0; }
+  .insight-two-col__card .insight-card { flex: 1; display: flex; flex-direction: column; margin-bottom: 0; min-height: 280px; }
+  .insight-two-col__card .insight-card .insight-card__body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .insight-two-col__card .insight-card .insights-chart-container { flex: 1; min-height: 200px; }
+  .insight-two-col__card .bi-column-chart-card { flex: 1; display: flex; flex-direction: column; margin-bottom: 0; max-width: none; min-height: 280px; }
+  .insight-two-col__card .bi-column-chart-card .insight-card__body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.querySelector('.bi-compare-form');
+  if (form) form.querySelector('input[type="checkbox"]').addEventListener('change', function() { form.submit(); });
+});
+function initBiTooltips() {
+  document.querySelectorAll('[data-bi-tooltip-trigger]:not([data-bi-tooltip-bound])').forEach(function(btn) {
+    btn.setAttribute('data-bi-tooltip-bound', 'true');
+    var wrap = btn.closest('.bi-info-tooltip');
+    var content = wrap && wrap.querySelector('[data-bi-tooltip-content]');
+    if (!content) return;
+    function show() { content.classList.add('is-visible'); }
+    function hide() { content.classList.remove('is-visible'); }
+    function toggle() { content.classList.toggle('is-visible'); }
+    btn.addEventListener('mouseenter', show);
+    btn.addEventListener('mouseleave', hide);
+    btn.addEventListener('focus', show);
+    btn.addEventListener('blur', hide);
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle();
+    });
+  });
+  if (!window.__biTooltipGlobalBound) {
+    window.__biTooltipGlobalBound = true;
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.bi-info-tooltip__content.is-visible').forEach(function(el) { el.classList.remove('is-visible'); });
+      }
+    }, true);
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('[data-bi-tooltip-trigger]')) return;
+      document.querySelectorAll('.bi-info-tooltip__content.is-visible').forEach(function(el) { el.classList.remove('is-visible'); });
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', initBiTooltips);
+document.addEventListener('turbo:load', initBiTooltips);
+</script>

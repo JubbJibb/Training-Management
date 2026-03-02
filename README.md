@@ -6,6 +6,7 @@ Internal Training Management System for managing public and corporate training c
 
 ## Table of Contents
 
+- [Current project status](#current-project-status)
 - [Business Features](#business-features)
 - [Technical Design](#technical-design)
 - [Design Principles](#design-principles)
@@ -13,6 +14,53 @@ Internal Training Management System for managing public and corporate training c
 - [Project Structure](#project-structure)
 - [Knowledge & Documentation](#knowledge--documentation)
 - [Setup & Development](#setup--development)
+
+---
+
+## Current project status
+
+**Summary:** The ODT Training Management System is in active development with core operations, financials, insights, and client modules implemented and wired to the UI.
+
+### Implemented
+
+| Area | Status | Notes |
+|------|--------|--------|
+| **Operations** | ✅ | Training classes CRUD; Training Calendar at `/operations/training_calendar` (month view, drawer, quick add, filters); class workspace (overview, attendees, leads, documents, finance, edit); courses index/show/edit/sync; instructors index. |
+| **Attendees** | ✅ | Per-class attendees; status (attendee/potential); move between statuses; export CSV/documents; send email (per attendee or whole class); sync tax from customer; pricing and document sections. |
+| **Clients** | ✅ | Customer directory (index, show, new, create, edit, update); Customer 360° (billing/tax, export customer info/billing/template); corporate accounts (`/clients/corporate_accounts`); client analysis (`/clients/analysis`); sync duplicates, merge, register for class. |
+| **Financials** | ✅ | Financial overview at `/financials/overview` (KPIs, charts, trend, action items); accounts receivable; payments (index, show, summary PDF, verify/reject slip, issue receipt, bulk actions); expenses; compliance; export history. Legacy `/finance/*` redirects to `/financials/*`. |
+| **Insights** | ✅ | Business (`/insights/business`), Financial, Strategy, Actions dashboards with queries and UI. |
+| **Strategy** | ✅ | Promotions CRUD under `/admin/settings`; promotion performance (revenue share, drilldown, export). |
+| **Exports** | ✅ | ExportJob + `GenerateExportJob`; PDF (Financial Report, Class Report, Customer Summary) and Excel exports; export history and download. |
+| **Admin** | ✅ | Dashboard; data (financial report, customer info, attendee list, upload); exports; settings; design system components at `/admin/components`. |
+| **Public** | ✅ | Public class landing at `/classes/:public_slug`. |
+| **Auth** | ✅ | Admin authentication via **Devise** (Gemfile); Pundit for authorization (e.g. ExportJob). |
+
+### Database
+
+Schema is current: `admin_users`, `training_classes`, `attendees`, `customers`, `courses`, `promotions`, `attendee_promotions`, `class_expenses`, `export_jobs`, `custom_fields`, `custom_field_values`, `financial_action_logs`, Active Storage. Migrations through `20260223060000` (e.g. VAT-related and custom fields).
+
+### Tests
+
+Unit and integration tests cover controllers (insights, financials, clients, admin exports/customers/settings/class_expenses), services (insights, clients, exports), models (customer, promotion, class_expense), and mailers (attendee, payment). Run with `rails test`.
+
+### Tech stack (current)
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Ruby on Rails 8.1.x |
+| Ruby | 3.x |
+| Database | SQLite3 |
+| Server | Puma |
+| Assets | Propshaft, CSS (no Tailwind, no Bootstrap) |
+| Frontend | Turbo (Frames, Streams), Stimulus, Importmap |
+| Auth | Devise (admin) |
+| Authorization | Pundit |
+| Background jobs | Active Job + Solid Queue |
+| File storage | Active Storage (local); image_processing for variants |
+| Export | Prawn, Prawn-Table, CombinePDF (PDF); caxlsx, caxlsx_rails (Excel) |
+| Charts | ApexCharts (insights), Flowbite (donuts), custom CSS |
+| Deploy | Kamal, Docker; Thruster optional |
 
 ---
 
@@ -55,7 +103,7 @@ Internal Training Management System for managing public and corporate training c
 - **VAT & Pricing** — Pre-VAT price, VAT 7%, total; price per head for corporate.
 - **Export System** — PDF (Financial Report, Class Report, Customer Summary), Excel (Financial, Class Attendees, Customer Master, etc.); background jobs (Solid Queue); audit (requested_by_id).
 - **Custom Fields** — Entity-based custom fields and values for exports and forms.
-- **Admin Auth** — Session-based (`session[:admin_user_id]`); bcrypt; Pundit for authorization (e.g. ExportJob).
+- **Admin Auth** — Devise for admin authentication; Pundit for authorization (e.g. ExportJob).
 
 ---
 
@@ -65,7 +113,7 @@ Internal Training Management System for managing public and corporate training c
 - **Controllers** — Thin: params/filters in controller, load data for view. Export creates `ExportJob` and enqueues `GenerateExportJob`.
 - **Services** — Business logic and side effects: `CustomerSyncService`, `Exports::*` (PDF/Excel), `PromotionPerformanceQuery`, `Promotions::MetricsService`, `Customers::DirectoryQuery`, `Clients::CorporateAccountsInsights`, `Insights::*` (business, financial, strategy, action center), `Finance::FinanceDashboardSummary`, `FinancialOverviewService`.
 - **Jobs** — `GenerateExportJob` (reads export_type/format, calls matching export service, attaches file to ExportJob, updates state). `SendPaymentSummaryJob` for payment summary emails.
-- **Policies** — Pundit (e.g. `ExportJobPolicy`). `current_user` from session; no role column on admin_users (role-based UI deferred).
+- **Policies** — Pundit (e.g. `ExportJobPolicy`). `current_user` from Devise; no role column on admin_users (role-based UI deferred).
 - **Helpers** — `ApplicationHelper`, `Admin::CustomersHelper`, `Admin::SettingsHelper`, `Odt::UiHelper` (buttons, badges, KPI strip, page header, table, filters).
 - **Frontend** — Turbo Frames and Turbo Streams for modals, side panels, and partial updates (e.g. calendar event panel, customer sync, export modal). Stimulus for interactive bits. No Bootstrap; ODT design system (CSS only).
 
@@ -109,6 +157,12 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 5. **Minimal layout** — Prefer existing layout classes (e.g. dashboard grid, finance two-col) over one-off wrappers.
 6. **Accessibility** — Focus states, ARIA where needed, semantic HTML.
 
+### Design approach
+
+- **Theme:** Consulting-premium, enterprise SaaS. Primary dark text, navy primary, yellow accent, light gradient background.
+- **Layout:** Single font family (Inter); typography scale from 11px (xs) to 28px (4xl); fixed card radius (e.g. 12–16px), consistent section spacing (48–56px).
+- **Tables:** Navy header with yellow left accent and bottom border; row hover with blue tint; no inline hex in component rules.
+
 ---
 
 ## Design System
@@ -116,23 +170,45 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 **ODT** (brand) theme: consulting-premium, enterprise SaaS look. No Tailwind; no Bootstrap. All UI via `design_tokens.css`, `design_system.css`, and `application.css`.
 
 ### Tokens (`design_tokens.css` + `application.css` :root)
+
 - **Font** — `--font-family`: Inter + system fallbacks.
-- **Typography** — `--font-size-xs` (11px) through `--font-size-4xl` (28px).
-- **Colors** — `--color-ink` (#292929), `--color-primary` (#13139c), `--color-accent` (#ffc700), `--color-surface` (#f9f9fe); `--odt-blue`, `--odt-gold`, `--odt-soft`, `--odt-muted`; semantic success/warning/danger.
-- **ODT palette** — Primary Navy #13139c, Deep Navy #012a71, Yellow Accent #ffc700, Soft Yellow #f5bf00, Dark Text #292929, Light BG #f9f9fe; hover tints (e.g. rgba(1,42,113,0.05)).
-- **Spacing** — `--space-1` (4px) to `--space-6` (32px); `--odt-spacing`, `--odt-section`.
-- **Radii & shadows** — `--radius-xs/sm/md`, `--shadow-sm/md`, `--border-light`.
+- **Typography** — `--font-size-xs` (11px) through `--font-size-4xl` (28px); see design_tokens.css for full scale.
+- **Spacing** — `--space-1` (4px) to `--space-6` (32px); `--odt-spacing` (24px), `--odt-section` (48px), `--odt-section-lg` (56px); `--page-main-padding-top/left`.
+- **Radii** — `--radius-xs` (6px), `--radius-sm` (8px), `--radius-md` (12px); `--odt-radius` (16px in application).
+- **Shadows** — `--shadow-sm`, `--shadow-md`; `--odt-shadow`, `--odt-shadow-hover`.
+- **Borders** — `--border-light`, `--border-muted`; table: `--table-header-border-left` (accent), `--table-header-border-bottom`.
+
+### สี (Colors)
+
+| Token | Hex | Usage |
+|-------|-----|--------|
+| **Primary / Navy** | `#13139c` | Primary actions, links, left accent bars |
+| **Deep Navy** | `#012a71` | Table header bg in some views |
+| **Accent / Gold** | `#ffc700` | Table header border, highlights, FULL badge |
+| **Gold soft** | `#f5bf00` | Softer accent variant |
+| **Yellow (ODT)** | `#F5C400` | Alternate yellow in tokens |
+| **Ink / Dark** | `#292929` | Body text, headings |
+| **Muted** | `#6b7280` | Labels, secondary text |
+| **Surface** | `#E4ECFD` | Card/surface; gradient: `#FFFFFF` → `#F7F9F0` → `#E4ECFD` |
+| **Background** | `#f9f9fe` | Page/card (--odt-bg, --odt-soft) |
+| **Tints** | `rgba(19,19,156,0.06)` | Row/button hover (--odt-blue-tint) |
+| **Success** | `#059669` | Success states, badges |
+| **Warning** | `#f59e0b` / `#d97706` | Warning states |
+| **Danger** | `#dc2626` | Errors, danger actions |
 
 ### Components (`design_system.css` + `application.css` + `components/odt/`)
-- **Page / section** — Page header, section header (title + optional actions); left accent bar (4px primary) for emphasis.
-- **Cards** — `.card`, `.card--accent-left`; ODT card with optional icon and header action.
-- **Buttons** — `.btn`, `.btn--primary`, `.btn--secondary`, `.btn--danger`, `.btn--ghost`, `.btn--sm`; icon buttons.
-- **KPI / metrics** — KPI strip (grid of metric cells); single metric cards.
-- **Tables** — ODT table (fixed layout, column classes, numeric/actions cells, truncate).
-- **Filters** — Filters row (label + input groups, Apply/Clear).
-- **Badges** — Status and label badges.
-- **Empty states** — Shared empty state partial.
-- **Calendar** — Training Calendar uses `cal-*` classes: header with accent and yellow underline, day headers (navy + yellow bottom border), day cells (no overflow), event cards (white, left accent, progress bar, FULL badge), side panel, KPIs, legend.
+
+- **Page / section** — `.page-header`, `.section-header`; left accent bar (4px primary).
+- **Cards** — `.card`, `.card--accent-left`; `.card__header`, `.card__title`, `.card__body`; `.odt-stat-card`, `.odt-card-v1`.
+- **Buttons** — `.btn`, `.btn--primary`, `.btn--secondary`, `.btn--danger`, `.btn--ghost`, `.btn--sm`; `.icon-btn`, `.icon-btn--primary`.
+- **KPI / metrics** — `.kpi-strip`, `.kpi` (`.kpi__label`, `.kpi__value`); `.kpi--danger`, `.kpi--success`, `.kpi--warning`.
+- **Tables** — `.data-table-wrap`, `.data-table`; column classes `.col-xs` … `.col-xl`; `.cell--truncate`, `.cell--num`, `.cell-actions`.
+- **Filters** — `.filters`, `.filters__group`, `.filters__label`, `.filters__input`, `.filters--compact`.
+- **Tabs** — `.tabs`, `.tabs__tab`; `.subtabs`, `.subtabs__tab`.
+- **Badges** — `.badge`, `.badge--success`, `.badge--warning`, `.badge--info`, `.badge--neutral`, `.badge--danger`.
+- **Empty states** — `.empty-state`, `.empty-state__icon`, `.empty-state__title`, `.empty-state__hint`, `.empty-state__cta`.
+- **Other** — `.queue`, `.mini-list`, `.meter-bar`, `.meter-bar-row`, `.grid-2`, `.modal-content--ds`, form groups.
+- **Calendar** — Training Calendar: `cal-*` / `tc-*`; event cards with left accent, progress bar, FULL badge; drawer/side panel.
 
 ### Where to add styles
 - **New tokens** — Add in `:root` in `design_tokens.css` or the style-audit block in `application.css`; do not introduce one-off hex in component rules.
@@ -217,19 +293,21 @@ Training-Management/
 ## Setup & Development
 
 ### Tech stack
+
 | Layer | Technology |
 |-------|------------|
 | Framework | Ruby on Rails 8.1.x |
 | Ruby | 3.x |
 | Database | SQLite3 |
 | Server | Puma |
-| Assets | Propshaft, CSS (no Tailwind) |
+| Assets | Propshaft, CSS (no Tailwind, no Bootstrap) |
 | Frontend | Turbo (Frames, Streams), Stimulus, Importmap |
-| Auth | Session (admin_user_id), bcrypt |
+| Auth | Devise (admin) |
 | Authorization | Pundit |
 | Background jobs | Active Job + Solid Queue |
 | File storage | Active Storage (local); image_processing for variants |
-| Export | Prawn (PDF), caxlsx (Excel) |
+| Export | Prawn, Prawn-Table, CombinePDF (PDF); caxlsx, caxlsx_rails (Excel) |
+| Charts | ApexCharts (insights), Flowbite (donuts), custom CSS |
 | Deploy | Kamal, Docker; Thruster optional |
 
 ### Prerequisites

@@ -1,0 +1,60 @@
+<%
+  fp = local_assigns[:filter_params] || {}
+  form_url = local_assigns[:form_url] || insights_business_path
+  courses = local_assigns[:courses_for_filter] || []
+  channels = local_assigns[:channels] || ["all", "Online", "Offline", "Referral", "อื่นๆ"]
+%>
+<div class="insights-filter-bar-wrap">
+  <%= render "components/odt/filters_row", form_url: form_url, form_method: :get, form_options: { data: { turbo_frame: local_assigns[:turbo_frame].presence } }, extra_class: "insights-filter-bar" do %>
+    <%= hidden_field_tag :compare_to_previous, fp[:compare_to_previous].presence || "1" %>
+    <div class="odt-filters-row__field">
+      <label for="bi_trend_by" class="odt-filters-row__label"><i class="bi bi-graph-up" aria-hidden="true"></i> จัดกลุ่มกราฟ</label>
+      <select name="trend_by" id="bi_trend_by" class="odt-filters-row__input">
+        <option value="" <%= "selected" if fp[:trend_by].to_s.empty? %>>อัตโนมัติ (สัปดาห์เมื่อ &gt;14 วัน)</option>
+        <option value="day" <%= "selected" if fp[:trend_by].to_s == "day" %>>ตามวัน</option>
+        <option value="week" <%= "selected" if fp[:trend_by].to_s == "week" %>>ตามสัปดาห์</option>
+      </select>
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="bi_preset" class="odt-filters-row__label"><i class="bi bi-calendar3" aria-hidden="true"></i> ช่วงเวลา</label>
+      <select name="preset" id="bi_preset" class="odt-filters-row__input">
+        <option value="last_7d" <%= "selected" if fp[:preset].to_s == "last_7d" %>>7 วัน</option>
+        <option value="last_30d" <%= "selected" if fp[:preset].to_s == "last_30d" %>>30 วัน</option>
+        <option value="last_90d" <%= "selected" if fp[:preset].to_s == "last_90d" %>>90 วัน</option>
+        <option value="mtd" <%= "selected" if fp[:preset].to_s == "mtd" %>>MTD</option>
+        <option value="ytd" <%= "selected" if fp[:preset].to_s == "ytd" %>>YTD</option>
+        <option value="custom" <%= "selected" if fp[:preset].to_s == "custom" %>>กำหนดเอง</option>
+      </select>
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="bi_start_date" class="odt-filters-row__label">ตั้งแต่</label>
+      <input type="date" name="start_date" id="bi_start_date" class="odt-filters-row__input" value="<%= fp[:start_date] %>">
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="bi_end_date" class="odt-filters-row__label">ถึง</label>
+      <input type="date" name="end_date" id="bi_end_date" class="odt-filters-row__input" value="<%= fp[:end_date] %>">
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="bi_course_id" class="odt-filters-row__label"><i class="bi bi-journal-bookmark" aria-hidden="true"></i> คอร์ส</label>
+      <select name="course_id" id="bi_course_id" class="odt-filters-row__input">
+        <option value="">ทั้งหมด</option>
+        <% courses.each do |title, id| %>
+          <option value="<%= id %>" <%= "selected" if fp[:course_id].to_s == id.to_s %>><%= title.to_s.truncate(40) %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="bi_channel" class="odt-filters-row__label"><i class="bi bi-broadcast" aria-hidden="true"></i> ช่องทาง</label>
+      <select name="channel" id="bi_channel" class="odt-filters-row__input">
+        <option value="all" <%= "selected" if fp[:channel].to_s == "all" %>>ทั้งหมด</option>
+        <% channels.reject { |c| c.to_s.downcase == "all" }.each do |ch| %>
+          <option value="<%= ch.to_s.downcase %>" <%= "selected" if fp[:channel].to_s == ch.to_s.downcase %>><%= ch %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="odt-filters-row__actions">
+      <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+      <%= link_to "Clear", form_url, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: local_assigns[:turbo_frame].presence } %>
+    </div>
+  <% end %>
+</div>

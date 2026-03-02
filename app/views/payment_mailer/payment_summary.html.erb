@@ -25,6 +25,9 @@
         <p><%= simple_format(@body_message) %></p>
       <% end %>
       <p>Please find below your payment summary for the training class.</p>
+      <% if @attendee.payment_status != "Paid" && @attendee.due_date.present? %>
+        <p><strong>Due date: <%= @attendee.due_date.strftime("%d/%m/%Y") %></strong>. Total amount: ฿<%= number_with_delimiter(@total_paid) %>.</p>
+      <% end %>
     </div>
 
     <table class="summary">

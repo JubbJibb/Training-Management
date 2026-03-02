@@ -1,0 +1,400 @@
+/*
+ * Admin Edit Class page – Material 3–style, navy theme.
+ * Tokens and layout for class workspace edit form only.
+ */
+
+/* ---------------------------------------------------------------------------
+   Tokens (page scope – use existing design_tokens where possible)
+   --------------------------------------------------------------------------- */
+.odt-edit-page {
+  --odt-primary: #13139c;
+  --odt-surface: #ffffff;
+  --odt-surface-2: #f6f7fb;
+  --odt-border: rgba(17, 24, 39, 0.10);
+  --odt-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 16px rgba(0, 0, 0, 0.06);
+  --odt-radius: 16px;
+  --odt-gap: 16px;
+  --odt-gap-lg: 24px;
+}
+
+/* ---------------------------------------------------------------------------
+   Page & form wrapper
+   --------------------------------------------------------------------------- */
+.odt-edit-page.workspace-section--edit {
+  max-width: none;
+  padding-bottom: 80px; /* space for sticky bar */
+}
+
+.odt-edit-page .workspace-edit-form-wrap {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: var(--odt-gap);
+}
+
+.odt-edit-form {
+  outline: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Errors
+   --------------------------------------------------------------------------- */
+.odt-edit-errors {
+  border-radius: var(--odt-radius);
+  margin-bottom: var(--odt-gap);
+  border: 1px solid var(--color-danger);
+}
+
+.odt-edit-errors__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Main grid: 2 columns desktop, stack mobile
+   --------------------------------------------------------------------------- */
+.odt-edit-class {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--odt-gap-lg);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .odt-edit-class {
+    grid-template-columns: 1fr;
+  }
+}
+
+.odt-edit-class__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--odt-gap);
+}
+
+.odt-edit-class__side {
+  position: sticky;
+  top: var(--odt-gap);
+}
+
+/* ---------------------------------------------------------------------------
+   Cards
+   --------------------------------------------------------------------------- */
+.odt-edit-card {
+  background: var(--odt-surface);
+  border-radius: var(--odt-radius);
+  border: 1px solid var(--odt-border);
+  box-shadow: var(--odt-shadow-1);
+  overflow: hidden;
+}
+
+.odt-edit-card__strip {
+  height: 4px;
+  background: var(--odt-primary);
+}
+
+.odt-edit-card__body {
+  padding: 20px var(--odt-gap-lg);
+}
+
+.odt-edit-card--compact .odt-edit-card__body {
+  padding: 16px var(--odt-gap);
+}
+
+.odt-edit-card__header {
+  margin-bottom: var(--odt-gap);
+}
+
+.odt-edit-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.odt-edit-card__title .bi {
+  color: var(--odt-primary);
+  font-size: 1.1rem;
+}
+
+.odt-edit-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--odt-gap-lg);
+}
+
+/* ---------------------------------------------------------------------------
+   Form fields
+   --------------------------------------------------------------------------- */
+.odt-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.odt-edit-field--full {
+  width: 100%;
+}
+
+.odt-edit-field__label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  display: block;
+}
+
+.odt-edit-field__input {
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--odt-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  background: var(--odt-surface);
+  color: var(--color-ink);
+  width: 100%;
+}
+
+.odt-edit-field__input:focus {
+  outline: none;
+  border-color: var(--odt-primary);
+  box-shadow: 0 0 0 2px rgba(19, 19, 156, 0.15);
+}
+
+.odt-edit-field__input::placeholder {
+  color: var(--odt-muted);
+}
+
+.odt-edit-field__input.is-invalid,
+.odt-edit-field__input:invalid:not(:placeholder-shown) {
+  border-color: var(--color-danger);
+}
+
+.odt-edit-field__textarea {
+  height: auto;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.odt-edit-field__helper {
+  font-size: var(--font-size-xs);
+  color: var(--odt-muted);
+  margin-top: 2px;
+}
+
+.odt-edit-field__helper--block {
+  margin-top: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Field grids (2 columns)
+   --------------------------------------------------------------------------- */
+.odt-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--odt-gap);
+}
+
+.odt-edit-fields--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--odt-gap);
+}
+
+@media (max-width: 600px) {
+  .odt-edit-fields--grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Description collapse
+   --------------------------------------------------------------------------- */
+.odt-edit-description-wrap {
+  position: relative;
+}
+
+.odt-edit-description {
+  position: relative;
+  max-height: 120px;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.odt-edit-description-wrap.is-expanded .odt-edit-description {
+  max-height: 360px;
+}
+
+.odt-edit-description-wrap:not(.is-expanded) .odt-edit-description::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, var(--odt-surface));
+  pointer-events: none;
+}
+
+.odt-edit-description .odt-edit-field__textarea {
+  min-height: 100px;
+}
+
+.odt-edit-description__toggle {
+  margin-top: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--odt-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.odt-edit-description__toggle:hover {
+  text-decoration: none;
+}
+
+.odt-edit-description__toggle:focus {
+  outline: none;
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Schedule duration row
+   --------------------------------------------------------------------------- */
+.odt-edit-schedule-duration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-base);
+  color: var(--odt-muted);
+}
+
+.odt-edit-schedule-duration .bi {
+  color: var(--odt-primary);
+}
+
+.odt-edit-schedule-duration strong {
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Side panel
+   --------------------------------------------------------------------------- */
+.odt-edit-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.odt-edit-meta-row:last-child {
+  margin-bottom: 0;
+}
+
+.odt-edit-meta__label {
+  font-size: var(--font-size-sm);
+  color: var(--odt-muted);
+  min-width: 90px;
+}
+
+.odt-edit-meta__value {
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+}
+
+.odt-edit-meta__value--on {
+  color: var(--color-success);
+}
+
+.odt-edit-meta__value--off {
+  color: var(--odt-muted);
+}
+
+.odt-edit-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.odt-edit-chip--scheduled {
+  background: rgba(19, 19, 156, 0.12);
+  color: var(--odt-primary);
+}
+
+.odt-edit-chip--completed {
+  background: rgba(5, 150, 105, 0.12);
+  color: var(--color-success);
+}
+
+.odt-edit-chip--cancelled {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--color-danger);
+}
+
+.odt-edit-chip--upcoming {
+  background: rgba(19, 19, 156, 0.12);
+  color: var(--odt-primary);
+}
+
+.odt-edit-public-block {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.odt-edit-link {
+  font-size: var(--font-size-sm);
+  color: var(--odt-primary);
+  text-decoration: none;
+}
+
+.odt-edit-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Sticky action bar
+   --------------------------------------------------------------------------- */
+.odt-edit-actions {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  padding: 12px var(--odt-gap);
+  margin: 0 calc(-1 * var(--odt-gap));
+  margin-top: var(--odt-gap-lg);
+  z-index: 10;
+}
+
+.odt-edit-actions__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.odt-edit-actions__left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.odt-edit-actions__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

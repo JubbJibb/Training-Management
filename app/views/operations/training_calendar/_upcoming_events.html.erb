@@ -1,0 +1,35 @@
+<%
+  events = local_assigns[:events] || []
+  dot_colors = %w[tc-upcoming-dot--purple tc-upcoming-dot--sky tc-upcoming-dot--emerald]
+%>
+<div class="tc-upcoming">
+  <h2 class="tc-upcoming__title">Upcoming Events</h2>
+  <p class="tc-upcoming__subtitle">Don't miss schedule</p>
+  <div class="tc-upcoming__list">
+    <% if events.any? %>
+      <% events.first(10).each_with_index do |ev, idx| %>
+        <%
+          time_str = if ev.start_time.present? && ev.end_time.present?
+            "#{ev.start_time.strftime('%H:%M')}–#{ev.end_time.strftime('%H:%M')}"
+          else
+            "All day"
+          end
+          date_str = ev.date.strftime("%b %d, %Y")
+          dot_class = dot_colors[idx % 3]
+        %>
+        <%= link_to admin_class_workspace_path(ev), class: "tc-upcoming-card", data: { turbo_frame: "_top" } do %>
+          <div class="tc-upcoming-card__row">
+            <div class="tc-upcoming-card__meta">
+              <span class="tc-upcoming-card__dot <%= dot_class %>" aria-hidden="true"></span>
+              <p class="tc-upcoming-card__datetime"><%= date_str %> - <%= time_str %></p>
+            </div>
+          </div>
+          <h6 class="tc-upcoming-card__name"><%= ev.title %></h6>
+          <p class="tc-upcoming-card__desc"><%= (ev.location.presence || ev.try(:description).to_s).to_s.truncate(60) %></p>
+        <% end %>
+      <% end %>
+    <% else %>
+      <p class="tc-upcoming__empty">No upcoming classes in this period.</p>
+    <% end %>
+  </div>
+</div>

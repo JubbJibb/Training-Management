@@ -1,0 +1,59 @@
+<div class="tc-index-filter-box">
+  <%= form_with url: financials_payments_path, method: :get, data: { turbo_frame: "financials_payments_workspace" }, class: "tc-index-filter-bar__form" do %>
+    <div class="tc-index-filter-bar__row">
+      <div class="tc-index-filter-bar__field">
+        <label for="pt_period" class="tc-index-filter-bar__label">Period</label>
+        <select name="period" id="pt_period" class="tc-index-filter-bar__input">
+          <option value="mtd" <%= "selected" if params[:period].blank? || params[:period] == "mtd" %>>MTD</option>
+          <option value="qtd" <%= "selected" if params[:period] == "qtd" %>>QTD</option>
+          <option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option>
+          <option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option>
+        </select>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="pt_date_from" class="tc-index-filter-bar__label">Start</label>
+        <input type="date" name="date_from" id="pt_date_from" class="tc-index-filter-bar__input" value="<%= params[:date_from] %>">
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="pt_date_to" class="tc-index-filter-bar__label">End</label>
+        <input type="date" name="date_to" id="pt_date_to" class="tc-index-filter-bar__input" value="<%= params[:date_to] %>">
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="pt_workflow_status" class="tc-index-filter-bar__label">Status</label>
+        <select name="workflow_status" id="pt_workflow_status" class="tc-index-filter-bar__input">
+          <option value="">All</option>
+          <option value="pending" <%= "selected" if params[:workflow_status] == "pending" %>>Pending</option>
+          <option value="awaiting_verification" <%= "selected" if params[:workflow_status] == "awaiting_verification" %>>Awaiting verification</option>
+          <option value="ready_receipt" <%= "selected" if params[:workflow_status] == "ready_receipt" %>>Ready to issue receipt</option>
+          <option value="ready_send" <%= "selected" if params[:workflow_status] == "ready_send" %>>Ready to send</option>
+          <option value="completed" <%= "selected" if params[:workflow_status] == "completed" %>>Completed</option>
+          <option value="overdue" <%= "selected" if params[:workflow_status] == "overdue" %>>Overdue</option>
+        </select>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="pt_client_type" class="tc-index-filter-bar__label">Client</label>
+        <select name="client_type" id="pt_client_type" class="tc-index-filter-bar__input">
+          <option value="">All</option>
+          <option value="Indi" <%= "selected" if params[:client_type] == "Indi" %>>Individual</option>
+          <option value="Corp" <%= "selected" if params[:client_type] == "Corp" %>>Corporate</option>
+        </select>
+      </div>
+      <div class="tc-index-filter-bar__field tc-index-filter-bar__field--checkbox">
+        <label class="tc-index-filter-bar__label">&nbsp;</label>
+        <label class="tc-index-filter-bar__checkbox-label">
+          <input type="checkbox" name="overdue_only" value="1" <%= "checked" if params[:overdue_only] == "1" %>> Overdue only
+        </label>
+      </div>
+      <div class="tc-index-filter-bar__field tc-index-filter-bar__field--checkbox">
+        <label class="tc-index-filter-bar__label">&nbsp;</label>
+        <label class="tc-index-filter-bar__checkbox-label">
+          <input type="checkbox" name="has_slip" value="1" <%= "checked" if params[:has_slip] == "1" %>> Has slip
+        </label>
+      </div>
+      <div class="tc-index-filter-bar__actions">
+        <button type="submit" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--primary">Apply</button>
+        <%= link_to "Clear", financials_payments_path, class: "tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary", data: { turbo_frame: "financials_payments_workspace" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,28 @@
+<%
+  trend = local_assigns[:trend_data] || @data&.dig(:trend_data) || []
+  labels = trend.map { |r| r[:label] }
+  revenue_data = trend.map { |r| r[:revenue].to_f }
+  revenue_ds = { label: "รายได้ (฿)", data: revenue_data, color: "#13139c" }
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">รายได้ตามเวลา</h3>
+      <p class="insight-card__subtitle">รายวัน / รายสัปดาห์ ตามช่วงที่เลือก</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if trend.any? %>
+      <div class="insights-chart-card">
+        <div class="insights-chart-container" style="height: 260px;">
+          <div id="business_revenue_trend" class="apex-chart-mount" data-apex-chart data-apex-type="area"
+            data-labels="<%= labels.to_json %>"
+            data-datasets="<%= [revenue_ds].to_json %>"></div>
+        </div>
+      </div>
+    <% else %>
+      <%= render "insights/shared/empty_chart", message: "ไม่มีข้อมูลรายได้ในช่วงที่เลือก" %>
+    <% end %>
+  </div>
+</div>

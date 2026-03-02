@@ -1,0 +1,28 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  capacity = local_assigns[:capacity] || training_class.max_attendees.to_i
+  confirmed = local_assigns[:confirmed] || training_class.total_registered_seats
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || training_class.checklist_items.presence || []
+  card_locals = {
+    training_class: training_class,
+    capacity: capacity,
+    confirmed: confirmed,
+    checklist_items: checklist_items,
+    finance_summary: @finance_summary
+  }
+%>
+<div class="workspace-section workspace-section--overview exec-dashboard">
+  <div class="odt-dashboard-grid">
+    <div class="odt-dashboard-grid__left">
+      <%= render "admin/class_workspace/sections/overview/kpi_row", card_locals %>
+      <%= render "admin/class_workspace/sections/overview/class_details_card", card_locals %>
+      <%= render "admin/class_workspace/sections/overview/related_links_card", card_locals %>
+      <%= render "admin/class_workspace/sections/overview/attention_card", card_locals %>
+      <%= render "admin/class_workspace/sections/overview/notes_checklist_card", card_locals %>
+    </div>
+    <div class="odt-dashboard-grid__right">
+      <%= render "admin/class_workspace/sections/overview/quick_finance_card", card_locals %>
+      <%= render "admin/class_workspace/sections/overview/activity_card", card_locals %>
+    </div>
+  </div>
+</div>

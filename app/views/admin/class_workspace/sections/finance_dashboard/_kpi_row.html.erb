@@ -1,0 +1,164 @@
+<%
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  profit_paid = summary[:profit_paid_based].to_f
+  profit_expected = summary[:profit_expected_based].to_f
+  margin_paid = summary[:margin_paid_based].to_f
+  margin_expected = summary[:margin_expected_based].to_f
+  break_even_seats = summary[:break_even_seats]
+  break_even_amount = summary[:break_even_amount].to_f
+  training_class = local_assigns[:training_class] || @training_class
+  paid_seats = training_class.attendees.attendees.count { |a| a.payment_status == "Paid" }
+  seats_to_break_even = break_even_seats ? [break_even_seats - paid_seats, 0].max : 0
+  progress_pct = (break_even_seats && break_even_seats.positive?) ? [[(paid_seats.to_f / break_even_seats * 100).round(0), 100].min, 0].max : 0
+  use_paid = local_assigns[:profit_basis].to_s != "expected"
+  profit_val = use_paid ? profit_paid : profit_expected
+  margin_val = use_paid ? margin_paid : margin_expected
+  profit_class = profit_val >= 0 ? "finance-dash-metric__value--success" : "finance-dash-metric__value--danger"
+  out_val = rev[:outstanding].to_f
+  unp_val = costs[:unpaid].to_f
+%>
+<div class="finance-dash-kpi-row">
+  <!-- Revenue -->
+  <div class="finance-dash-card finance-dash-kpi-card">
+    <div class="finance-dash-card__accent"></div>
+    <div class="flex items-center justify-between finance-dash-card__header">
+      <span class="finance-dash-card__title whitespace-nowrap"><i class="bi bi-cash-coin" aria-hidden="true"></i> Revenue</span>
+    </div>
+    <div class="finance-dash-card__body pt-3 pb-3">
+      <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-currency-exchange"></i></span>
+          <div class="flex flex-col min-w-0">
+            <span class="finance-dash-metric__label">Expected</span>
+            <span class="finance-dash-metric__value"><%= number_to_thb(rev[:expected].to_f) %></span>
+          </div>
+        </div>
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-cash-coin"></i></span>
+          <div class="flex flex-col min-w-0">
+            <span class="finance-dash-metric__label">Paid</span>
+            <span class="finance-dash-metric__value finance-dash-metric__value--success"><%= number_to_thb(rev[:paid].to_f) %></span>
+          </div>
+        </div>
+      </div>
+      <div class="finance-dash-kpi-card__divider mt-2.5 mb-2"></div>
+      <div class="finance-dash-kpi-card__footer flex items-center gap-2 flex-wrap">
+        <span class="finance-dash-kpi-card__footer-label">Outstanding</span>
+        <span class="finance-dash-kpi-card__footer-value <%= out_val.positive? ? 'finance-dash-metric__value--warning' : '' %>"><%= number_to_thb(out_val) %></span>
+        <% if out_val.zero? %><i class="bi bi-check-circle finance-dash-kpi-card__footer-check" aria-hidden="true"></i><% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Costs -->
+  <div class="finance-dash-card finance-dash-kpi-card">
+    <div class="finance-dash-card__accent"></div>
+    <div class="flex items-center justify-between finance-dash-card__header">
+      <span class="finance-dash-card__title whitespace-nowrap"><i class="bi bi-graph-down" aria-hidden="true"></i> Costs</span>
+    </div>
+    <div class="finance-dash-card__body pt-3 pb-3">
+      <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-wallet2"></i></span>
+          <div class="flex flex-col min-w-0">
+            <span class="finance-dash-metric__label">Total</span>
+            <span class="finance-dash-metric__value"><%= number_to_thb(costs[:total].to_f) %></span>
+          </div>
+        </div>
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-check-circle"></i></span>
+          <div class="flex flex-col min-w-0">
+            <span class="finance-dash-metric__label">Paid</span>
+            <span class="finance-dash-metric__value finance-dash-metric__value--success"><%= number_to_thb(costs[:paid].to_f) %></span>
+          </div>
+        </div>
+      </div>
+      <div class="finance-dash-kpi-card__divider mt-2.5 mb-2"></div>
+      <div class="finance-dash-kpi-card__footer flex items-center gap-2 flex-wrap">
+        <span class="finance-dash-kpi-card__footer-label">Unpaid</span>
+        <span class="finance-dash-kpi-card__footer-value <%= unp_val.positive? ? 'finance-dash-metric__value--warning' : '' %>"><%= number_to_thb(unp_val) %></span>
+        <% if unp_val.zero? %><i class="bi bi-check-circle finance-dash-kpi-card__footer-check" aria-hidden="true"></i><% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profit / Loss -->
+  <div class="finance-dash-card finance-dash-kpi-card">
+    <div class="finance-dash-card__accent"></div>
+    <div class="flex items-center justify-between finance-dash-card__header">
+      <span class="finance-dash-card__title whitespace-nowrap"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Profit / Loss</span>
+    </div>
+    <div class="finance-dash-card__body pt-3 pb-3">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <span class="text-xs text-gray-500">Based on</span>
+        <div class="flex items-center gap-1 shrink-0">
+          <%= link_to "Paid", admin_class_workspace_finance_path(training_class, profit_basis: "paid"), class: "finance-dash-pill finance-dash-pill--xs text-sm px-3 py-1 #{'finance-dash-pill--active' if use_paid}", data: { turbo_frame: "finance_kpi_summary" } %>
+          <%= link_to "Expected", admin_class_workspace_finance_path(training_class, profit_basis: "expected"), class: "finance-dash-pill finance-dash-pill--xs text-sm px-3 py-1 #{'finance-dash-pill--active' unless use_paid}", data: { turbo_frame: "finance_kpi_summary" } %>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-graph-up-arrow"></i></span>
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="finance-dash-metric__label">Profit</span>
+            <span class="finance-dash-metric__value <%= profit_class %> truncate"><%= number_to_thb(profit_val) %></span>
+          </div>
+        </div>
+        <div class="finance-dash-metric flex items-center gap-2">
+          <span class="finance-dash-metric__icon"><i class="bi bi-percent"></i></span>
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="finance-dash-metric__label">Margin</span>
+            <span class="finance-dash-metric__value"><%= number_to_percent(margin_val) %></span>
+          </div>
+        </div>
+      </div>
+      <div class="finance-dash-kpi-card__divider mt-2.5 mb-2"></div>
+      <div class="finance-dash-kpi-card__footer">
+        <span class="finance-dash-kpi-card__footer-label text-xs">Based on <%= use_paid ? "paid" : "expected" %> revenue</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Break-even -->
+  <div class="finance-dash-card finance-dash-kpi-card">
+    <div class="finance-dash-card__accent"></div>
+    <div class="flex items-center justify-between finance-dash-card__header">
+      <span class="finance-dash-card__title whitespace-nowrap"><i class="bi bi-people" aria-hidden="true"></i> Break-even</span>
+    </div>
+    <div class="finance-dash-card__body pt-3 pb-3">
+      <% if break_even_seats %>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-2">
+          <div class="finance-dash-metric flex items-center gap-2">
+            <span class="finance-dash-metric__icon"><i class="bi bi-people"></i></span>
+            <div class="flex flex-col min-w-0">
+              <span class="finance-dash-metric__label">Seats</span>
+              <span class="finance-dash-metric__value"><%= break_even_seats %></span>
+            </div>
+          </div>
+          <div class="finance-dash-metric flex items-center gap-2">
+            <span class="finance-dash-metric__icon"><i class="bi bi-currency-exchange"></i></span>
+            <div class="flex flex-col min-w-0">
+              <span class="finance-dash-metric__label">Amount</span>
+              <span class="finance-dash-metric__value"><%= number_to_thb(break_even_amount) %></span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 mt-2 w-full">
+          <span class="finance-dash-break-even-progress__label text-xs text-gray-500 shrink-0">Paid seats: <%= paid_seats %> / <%= break_even_seats %></span>
+          <div class="flex-1 min-w-0 h-1.5 rounded-full bg-gray-200 overflow-hidden" role="progressbar" aria-valuenow="<%= progress_pct %>" aria-valuemin="0" aria-valuemax="100">
+            <div class="h-full rounded-full bg-[var(--odt-blue)] transition-[width] duration-200" style="width: <%= progress_pct %>%;"></div>
+          </div>
+          <span class="finance-dash-break-even-progress__pct text-xs font-semibold shrink-0 tabular-nums w-8 text-right"><%= progress_pct %>%</span>
+        </div>
+        <div class="finance-dash-kpi-card__divider mt-2.5 mb-2"></div>
+        <div class="finance-dash-kpi-card__footer">
+          <span class="finance-dash-kpi-card__footer-badge">Seats to break-even: <%= seats_to_break_even %></span>
+        </div>
+      <% else %>
+        <p class="finance-dash-empty-inline"><i class="bi bi-info-circle"></i> Set price and costs to see break-even.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

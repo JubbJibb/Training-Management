@@ -1,0 +1,42 @@
+<%
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  revenue_paid = rev[:paid].to_f
+  expenses_total = costs[:total].to_f
+  profit = summary[:profit_paid_based].to_f
+  margin_pct = summary[:margin_paid_based].to_f
+  chart_id = "finance-revenue-expenses-chart-#{local_assigns[:training_class]&.id || SecureRandom.hex(4)}"
+%>
+<div class="finance-dash-card finance-dash-card--chart">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__body finance-dash-card__body--chart">
+    <div class="finance-revenue-expenses-chart__summary">
+      <div class="finance-revenue-expenses-chart__profit-row">
+        <span class="finance-revenue-expenses-chart__profit-label">Profit</span>
+        <span class="finance-revenue-expenses-chart__profit-value <%= profit >= 0 ? 'finance-revenue-expenses-chart__profit-value--success' : 'finance-revenue-expenses-chart__profit-value--danger' %>"><%= number_to_thb(profit) %></span>
+        <% if margin_pct != 0 %>
+          <span class="finance-revenue-expenses-chart__profit-rate">Profit rate <%= number_to_percent(margin_pct) %></span>
+        <% end %>
+      </div>
+      <div class="finance-revenue-expenses-chart__income-expense-row">
+        <span class="finance-revenue-expenses-chart__income-label">Income</span>
+        <span class="finance-revenue-expenses-chart__income-value"><%= number_to_thb(revenue_paid) %></span>
+        <span class="finance-revenue-expenses-chart__expense-label">Expense</span>
+        <span class="finance-revenue-expenses-chart__expense-value">−<%= number_to_thb(expenses_total) %></span>
+      </div>
+    </div>
+    <div class="finance-revenue-expenses-chart" data-revenue-expenses-chart id="<%= chart_id %>">
+      <script type="application/json" data-revenue-expenses-source>
+        {"labels": ["Income", "Expense"], "revenue": <%= revenue_paid %>, "expenses": <%= expenses_total %>}
+      </script>
+      <div class="finance-revenue-expenses-chart__canvas-wrap">
+        <canvas width="360" height="140" role="img" aria-label="กราฟแสดงรายรับและรายจ่าย"></canvas>
+      </div>
+    </div>
+    <div class="finance-revenue-expenses-chart__legend">
+      <span class="finance-revenue-expenses-chart__legend-item"><span class="finance-revenue-expenses-chart__dot finance-revenue-expenses-chart__dot--revenue"></span> Income</span>
+      <span class="finance-revenue-expenses-chart__legend-item"><span class="finance-revenue-expenses-chart__dot finance-revenue-expenses-chart__dot--expenses"></span> Expense</span>
+    </div>
+  </div>
+</div>

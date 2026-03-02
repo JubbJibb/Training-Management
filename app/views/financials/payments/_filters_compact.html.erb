@@ -1,0 +1,73 @@
+<%= form_with url: financials_payments_path, method: :get, data: { turbo_frame: "financials_payments_workspace" }, class: "pt-filters-compact" do |f| %>
+  <div class="pt-filters-compact__row">
+    <div class="pt-filters-compact__group">
+      <label for="pt_period" class="pt-filters-compact__label">Period</label>
+      <select name="period" id="pt_period" class="pt-filters-compact__input">
+        <option value="mtd" <%= "selected" if params[:period].blank? || params[:period] == "mtd" %>>MTD</option>
+        <option value="qtd" <%= "selected" if params[:period] == "qtd" %>>QTD</option>
+        <option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option>
+        <option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option>
+      </select>
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_date_from" class="pt-filters-compact__label">From</label>
+      <input type="date" name="date_from" id="pt_date_from" class="pt-filters-compact__input" value="<%= params[:date_from] %>">
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_date_to" class="pt-filters-compact__label">To</label>
+      <input type="date" name="date_to" id="pt_date_to" class="pt-filters-compact__input" value="<%= params[:date_to] %>">
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_workflow_status" class="pt-filters-compact__label">Status</label>
+      <select name="workflow_status" id="pt_workflow_status" class="pt-filters-compact__input">
+        <option value="">All</option>
+        <option value="pending" <%= "selected" if params[:workflow_status] == "pending" %>>Pending</option>
+        <option value="awaiting_verification" <%= "selected" if params[:workflow_status] == "awaiting_verification" %>>Awaiting verification</option>
+        <option value="ready_receipt" <%= "selected" if params[:workflow_status] == "ready_receipt" %>>Ready to issue receipt</option>
+        <option value="ready_send" <%= "selected" if params[:workflow_status] == "ready_send" %>>Ready to send</option>
+        <option value="completed" <%= "selected" if params[:workflow_status] == "completed" %>>Completed</option>
+        <option value="overdue" <%= "selected" if params[:workflow_status] == "overdue" %>>Overdue</option>
+      </select>
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_client_type" class="pt-filters-compact__label">Client</label>
+      <select name="client_type" id="pt_client_type" class="pt-filters-compact__input">
+        <option value="">All</option>
+        <option value="Indi" <%= "selected" if params[:client_type] == "Indi" %>>Individual</option>
+        <option value="Corp" <%= "selected" if params[:client_type] == "Corp" %>>Corporate</option>
+      </select>
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_class_id" class="pt-filters-compact__label">Class</label>
+      <select name="class_id" id="pt_class_id" class="pt-filters-compact__input">
+        <option value="">All classes</option>
+        <% (TrainingClass.where("date >= ?", 3.months.ago).order(date: :desc).limit(100)).each do |tc| %>
+          <option value="<%= tc.id %>" <%= "selected" if params[:class_id].to_s == tc.id.to_s %>><%= tc.title %> (<%= tc.date&.strftime("%Y-%m-%d") %>)</option>
+        <% end %>
+      </select>
+    </div>
+    <div class="pt-filters-compact__group">
+      <label for="pt_instructor" class="pt-filters-compact__label">Instructor</label>
+      <select name="instructor" id="pt_instructor" class="pt-filters-compact__input">
+        <option value="">All</option>
+        <% TrainingClass.distinct.pluck(:instructor).compact.sort.each do |inst| %>
+          <option value="<%= inst %>" <%= "selected" if params[:instructor] == inst %>><%= inst %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="pt-filters-compact__toggles">
+      <label class="pt-filters-compact__toggle">
+        <input type="checkbox" name="overdue_only" value="1" <%= "checked" if params[:overdue_only] == "1" %>>
+        <span>Overdue only</span>
+      </label>
+      <label class="pt-filters-compact__toggle">
+        <input type="checkbox" name="has_slip" value="1" <%= "checked" if params[:has_slip] == "1" %>>
+        <span>Has slip</span>
+      </label>
+    </div>
+    <div class="pt-filters-compact__actions">
+      <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+      <%= link_to "Clear", financials_payments_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "financials_payments_workspace" } %>
+    </div>
+  </div>
+<% end %>

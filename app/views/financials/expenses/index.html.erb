@@ -1,0 +1,129 @@
+<% content_for :title, "Expense Control" %>
+<%
+  kpis = @expense_kpis || {}
+  kpi_cells = [
+    { icon: "wallet2", label: "Total expense", value: number_to_thb(kpis[:total] || 0), sub: "in period" },
+    { icon: "graph-up", label: "Avg per class", value: number_to_thb(kpis[:avg_per_class] || 0), sub: "" },
+    { icon: "folder", label: "Top category", value: (kpis[:top_category] || "—"), sub: "" }
+  ]
+%>
+<div class="tc-index-page financials-page financials-expenses">
+  <%= render "components/odt/page_header", title: "Expense Control", subtitle: "Categories · Receipts · Budget variance", icon: "wallet2" do %>
+    <%= link_to admin_training_classes_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
+      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+      <span class="odt-btn__label">Add expense</span>
+    <% end %>
+  <% end %>
+
+  <%= turbo_frame_tag "financials_expenses", data: { turbo_action: "advance" } do %>
+    <div class="tc-index-filter-wrap">
+      <%= render "financials/expenses/filter_bar" %>
+    </div>
+
+    <section class="tc-index-kpi-section" aria-label="Key metrics">
+      <%= odt_kpi_strip(cells: kpi_cells, extra_class: "tc-index-kpi-strip financials-expenses-kpi") %>
+    </section>
+
+    <div class="tc-index-content">
+      <h3 class="insight-odt-table__heading">Expenses by date · class · category</h3>
+      <% if (@expense_rows || []).any? %>
+        <div class="tc-index-saas-table-wrap tc-index-saas-table-wrap--sticky">
+          <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Expenses">
+            <thead>
+              <tr>
+                <th scope="col" class="tc-saas-th">Date</th>
+                <th scope="col" class="tc-saas-th">Class</th>
+                <th scope="col" class="tc-saas-th">Category</th>
+                <th scope="col" class="tc-saas-th tc-saas-th--revenue">Amount</th>
+                <th scope="col" class="tc-saas-th">Note</th>
+                <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% (@expense_rows || []).each do |row| %>
+                <tr class="tc-saas-tr">
+                  <td class="tc-saas-td"><span class="tc-saas-date"><%= row[:date]&.strftime("%b %d, %Y") %></span></td>
+                  <td class="tc-saas-td">
+                    <span class="tc-saas-class-link"><%= row[:class_title] %></span>
+                  </td>
+                  <td class="tc-saas-td"><%= row[:category] %></td>
+                  <td class="tc-saas-td tc-saas-td--revenue"><span class="tc-saas-revenue"><%= number_to_thb(row[:amount]) %></span></td>
+                  <td class="tc-saas-td"><%= row[:note].to_s.truncate(40) %></td>
+                  <td class="tc-saas-td tc-saas-td--actions">
+                    <% tc = TrainingClass.find_by(id: row[:training_class_id]) %>
+                    <% if tc %>
+                      <%= link_to edit_admin_training_class_class_expense_path(tc, row[:id]), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="tc-index-empty">
+          <%= render "financials/shared/empty_state", message: "No expenses in period", icon: "wallet2", action_url: admin_training_classes_path, action_label: "Add expense" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="insight-two-col financials-expenses-bottom">
+      <div class="insight-odt-table-wrap">
+        <h3 class="insight-odt-table__heading">Summary by class</h3>
+        <% if (@expenses_by_class || []).any? %>
+          <div class="insight-odt-table__scroll">
+            <table class="insight-odt-table" role="table">
+              <thead>
+                <tr>
+                  <th scope="col">Class</th>
+                  <th scope="col">Date</th>
+                  <th scope="col" class="text-end">Expense total</th>
+                  <th scope="col" class="text-end">Revenue</th>
+                  <th scope="col" class="text-end">Profit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% (@expenses_by_class || []).each do |row| %>
+                  <tr>
+                    <td><%= row[:title] %></td>
+                    <td><%= row[:date]&.strftime("%b %d, %Y") %></td>
+                    <td class="text-end"><%= number_to_thb(row[:expense_total]) %></td>
+                    <td class="text-end"><%= number_to_thb(row[:revenue]) %></td>
+                    <td class="text-end"><%= number_to_thb(row[:profit]) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="insight-odt-table__empty text-muted p-4 mb-0">No data</p>
+        <% end %>
+      </div>
+      <div class="insight-odt-table-wrap">
+        <h3 class="insight-odt-table__heading">Category totals</h3>
+        <% if (@category_totals || []).any? %>
+          <div class="insight-odt-table__scroll">
+            <table class="insight-odt-table" role="table">
+              <thead>
+                <tr><th scope="col">Category</th><th scope="col" class="text-end">Total</th></tr>
+              </thead>
+              <tbody>
+                <% (@category_totals || []).each do |row| %>
+                  <tr><td><%= row[:category] %></td><td class="text-end"><%= number_to_thb(row[:total]) %></td></tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="insight-odt-table__empty text-muted p-4 mb-0">No data</p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+<style>
+  .financials-expenses-kpi.odt-kpi-strip .odt-kpi-strip__inner { grid-template-columns: repeat(3, 1fr); }
+  .financials-expenses-bottom { margin-top: var(--space-4); }
+</style>

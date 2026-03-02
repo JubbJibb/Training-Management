@@ -1,0 +1,73 @@
+<% content_for :title, "Export History" %>
+<div class="financials-page financials-export-history">
+  <%= render "components/odt/page_header", title: "Export History", subtitle: "Log of exports · Download · Retry", icon: "download" do %>
+  <% end %>
+
+  <%= turbo_frame_tag "financials_export_history", data: { turbo_action: "advance" } do %>
+    <details class="financials-filters-card" open>
+      <summary class="financials-filters-card__summary">Filters</summary>
+      <div class="financials-filters-card__body">
+        <%= form_with url: financials_export_history_path, method: :get, data: { turbo_frame: "financials_export_history" }, class: "financials-filters-form" do %>
+          <div class="financials-filters-form__field">
+            <label for="export_status">Status</label>
+            <select name="status" id="export_status">
+              <option value="">All</option>
+              <option value="queued" <%= "selected" if params[:status] == "queued" %>>Queued</option>
+              <option value="running" <%= "selected" if params[:status] == "running" %>>Running</option>
+              <option value="succeeded" <%= "selected" if params[:status] == "succeeded" %>>Succeeded</option>
+              <option value="failed" <%= "selected" if params[:status] == "failed" %>>Failed</option>
+            </select>
+          </div>
+          <div class="financials-filters-form__actions">
+            <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+            <%= link_to "Clear", financials_export_history_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "financials_export_history" } %>
+          </div>
+        <% end %>
+      </div>
+    </details>
+
+    <section class="fin-section" aria-labelledby="fin-export-log-title">
+      <h2 id="fin-export-log-title" class="fin-section__title">Export log</h2>
+      <div class="fin-table-wrap">
+        <table class="table-financials">
+          <thead>
+            <tr>
+              <th class="col-date">Requested at</th>
+              <th>Requested by</th>
+              <th>Export type</th>
+              <th>Filters snapshot</th>
+              <th>State</th>
+              <th>File download</th>
+              <th>Error</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (@exports || []).each do |job| %>
+              <tr>
+                <td class="col-date"><%= job.created_at&.strftime("%Y-%m-%d %H:%M") %></td>
+                <td><%= job.requested_by&.email || "—" %></td>
+                <td class="odt-table-cell--highlight"><span class="odt-table-cell__text"><%= job.label %></span></td>
+                <td><%= job.filters_summary.to_s.truncate(50) %></td>
+                <td><%= render "financials/shared/status_badge", status: job.state, variant: (job.succeeded? ? "success" : (job.failed? ? "danger" : "warning")) %></td>
+                <td><% if job.succeeded? && job.file.attached? %><%= link_to "Download", rails_blob_path(job.file), class: "financials-action-link", data: { turbo: false } %><% else %>—<% end %></td>
+                <td><%= job.error_message.to_s.truncate(60) if job.failed? %></td>
+                <td class="col-actions">
+                  <% if job.succeeded? && job.file.attached? %>
+                    <%= link_to "Download", rails_blob_path(job.file), class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo: false } %>
+                  <% end %>
+                  <% if job.failed? %>
+                    <%= link_to "Re-run", admin_exports_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+            <% if (@exports || []).empty? %>
+              <tr><td colspan="8"><%= render "financials/shared/empty_state", message: "No exports yet", icon: "download" %></td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+</div>

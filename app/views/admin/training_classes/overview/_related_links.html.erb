@@ -1,0 +1,97 @@
+<%
+  tc = local_assigns[:training_class]
+  links = tc.related_links
+  show_count = 10
+%>
+<div id="related-links-section">
+<%= odt_card(title: "Related Links", icon: "link-45deg", extra_class: "related-links-card-odt", actions: capture do %>
+  <button type="button" class="btn btn--secondary btn--sm related-links-add-btn" data-bs-toggle="modal" data-bs-target="#relatedLinksModal" title="Add link">
+    <i class="bi bi-plus" aria-hidden="true"></i> Add link
+  </button>
+<% end) do %>
+  <div id="related-links-card" class="related-links-wrapper">
+    <% if links.blank? %>
+      <div class="related-links-empty">
+        <p class="related-links-empty__text">No links yet. Add course page, venue map, slides, etc.</p>
+        <button type="button" class="btn btn--secondary btn--sm related-links-add-btn" data-bs-toggle="modal" data-bs-target="#relatedLinksModal"><i class="bi bi-plus"></i> Add link</button>
+      </div>
+    <% else %>
+      <%= form_with url: update_related_links_admin_training_class_path(tc), method: :patch, local: true, data: { turbo_frame: "_top" }, id: "related-links-form" do %>
+        <ul class="related-links-list">
+          <% links.each_with_index do |link, idx| %>
+            <li class="related-links-item related-links-row-hover<%= ' related-links-item--hidden' if idx >= show_count %>" data-index="<%= idx %>" data-link-label="<%= link["label"] %>" data-link-url="<%= link["url"] %>" data-link-type="<%= link["type"].presence || "External" %>" data-link-created="<%= link["created_at"] %>">
+              <input type="hidden" name="related_links[][label]" value="<%= link["label"] %>">
+              <input type="hidden" name="related_links[][url]" value="<%= link["url"] %>">
+              <input type="hidden" name="related_links[][type]" value="<%= link["type"].presence || "External" %>">
+              <input type="hidden" name="related_links[][created_at]" value="<%= link["created_at"] %>">
+              <div class="related-links-item__main">
+                <div class="related-links-item__text">
+                  <span class="related-links-item__label"><%= link["label"].presence || "Link" %></span>
+                  <span class="related-links-item__url" title="<%= link["url"] %>"><%= truncate(link["url"], length: 50) %></span>
+                </div>
+                <%= odt_badge(link["type"].presence || "External", variant: :neutral, size: :sm) %>
+              </div>
+              <div class="related-links-item__actions">
+                <%= link_to link["url"], target: "_blank", rel: "noopener", class: "related-links-action-btn", title: "Open in new tab" do %><i class="bi bi-box-arrow-up-right"></i><% end %>
+                <button type="button" class="related-links-action-btn related-links-copy-btn" data-url="<%= link["url"] %>" title="Copy link"><i class="bi bi-clipboard"></i></button>
+                <div class="dropdown d-inline">
+                  <button type="button" class="related-links-action-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button type="button" class="dropdown-item related-links-edit-btn" data-index="<%= idx %>"><i class="bi bi-pencil"></i> Edit</button></li>
+                    <li><button type="button" class="dropdown-item dropdown-item-danger related-links-delete-btn related-links-delete-btn-dropdown"><i class="bi bi-trash"></i> Delete</button></li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+        <% if links.size > show_count %>
+          <button type="button" class="related-links-show-all" data-count="<%= links.size %>">
+            Show all (<%= links.size %>)
+          </button>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# Add/Edit Link Modal %>
+<div class="modal fade" id="relatedLinksModal" tabindex="-1" aria-labelledby="relatedLinksModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <%= form_with url: update_related_links_admin_training_class_path(tc), method: :patch, local: false, data: { turbo_frame: "_top" }, id: "related-links-modal-form" do %>
+        <div class="modal-header" style="border-bottom: 2px solid #ffc700;">
+          <h5 class="modal-title" id="relatedLinksModalLabel"><i class="bi bi-link-45deg"></i> <span id="relatedLinksModalTitle">Add link</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="related-links-existing-inputs"></div>
+          <div class="mb-3">
+            <label class="form-label">Label</label>
+            <input type="text" name="related_links[][label]" id="relatedLinksLabel" class="form-control" placeholder="e.g. Official course page" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">URL</label>
+            <input type="url" name="related_links[][url]" id="relatedLinksUrl" class="form-control" placeholder="https://..." required>
+            <small class="form-text text-danger" id="relatedLinksUrlError" hidden>URL must start with http:// or https://</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select name="related_links[][type]" id="relatedLinksType" class="form-select">
+              <option value="External">External</option>
+              <option value="Internal">Internal</option>
+              <option value="Doc">Doc</option>
+              <option value="Map">Map</option>
+            </select>
+          </div>
+          <input type="hidden" name="related_links[][created_at]" id="relatedLinksCreatedAt" value="<%= Time.current.iso8601 %>">
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.08);">
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Save</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+</div>

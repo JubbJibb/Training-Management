@@ -1,0 +1,33 @@
+<%
+  summary = local_assigns[:summary] || {}
+  current_status = params[:workflow_status]
+  base_params = params.permit(:period, :date_from, :date_to, :client_type, :class_id, :instructor, :overdue_only, :has_slip).to_h
+%>
+<div class="pt-summary-bar" role="navigation" aria-label="Payment status filters">
+  <%= link_to financials_payments_path(base_params), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item #{current_status.blank? ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count">All</span>
+    <span class="pt-summary-bar__label">All</span>
+  <% end %>
+  <%= link_to financials_payments_path(base_params.merge(workflow_status: "pending")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item pt-summary-bar__item--pending #{current_status == 'pending' ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count"><%= summary.dig(:pending, :count) || 0 %></span>
+    <span class="pt-summary-bar__amount"><%= number_to_thb(summary.dig(:pending, :amount) || 0) %></span>
+    <span class="pt-summary-bar__label">Pending</span>
+  <% end %>
+  <%= link_to financials_payments_path(base_params.merge(workflow_status: "awaiting_verification")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item pt-summary-bar__item--awaiting #{current_status == 'awaiting_verification' ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count"><%= summary.dig(:awaiting_verification, :count) || 0 %></span>
+    <span class="pt-summary-bar__label">Awaiting verification</span>
+  <% end %>
+  <%= link_to financials_payments_path(base_params.merge(workflow_status: "overdue")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item pt-summary-bar__item--overdue #{current_status == 'overdue' ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count"><%= summary.dig(:overdue, :count) || 0 %></span>
+    <span class="pt-summary-bar__amount"><%= number_to_thb(summary.dig(:overdue, :amount) || 0) %></span>
+    <span class="pt-summary-bar__label">Overdue</span>
+  <% end %>
+  <%= link_to financials_payments_path(base_params.merge(workflow_status: "ready_send")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item pt-summary-bar__item--ready #{current_status == 'ready_send' ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count"><%= summary.dig(:ready_send, :count) || 0 %></span>
+    <span class="pt-summary-bar__label">Ready to send</span>
+  <% end %>
+  <%= link_to financials_payments_path(base_params.merge(completed_today: "1")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-bar__item pt-summary-bar__item--completed #{params[:completed_today] == '1' ? 'pt-summary-bar__item--active' : ''}" do %>
+    <span class="pt-summary-bar__count"><%= summary.dig(:completed_today) || 0 %></span>
+    <span class="pt-summary-bar__label">Completed today</span>
+  <% end %>
+</div>

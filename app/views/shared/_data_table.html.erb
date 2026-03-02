@@ -1,13 +1,19 @@
 <%
   # columns: [{ key:, label:, width: "col-xs"|"col-sm"|..., align: "left"|"right"|"center", truncate: true }]
   # rows: array of hashes with keys matching column[:key]
+  # table_card: true for rounded corners (table-card > table-scroll wrapper)
+  # dropdown_portal: true when table has More actions dropdown (enables portal)
   columns = local_assigns[:columns] || []
   rows = local_assigns[:rows] || []
   empty_message = local_assigns[:empty_message] || "No data"
   table_class = ["data-table", local_assigns[:table_class]].compact.join(" ")
   aria_label = local_assigns[:aria_label] || "Data table"
+  use_table_card = local_assigns.fetch(:table_card, false)
+  dropdown_portal = local_assigns.fetch(:dropdown_portal, false)
+  wrap_class = ["table-scroll", "data-table-wrap", ("dropdown-portal-container" if dropdown_portal)].compact.join(" ")
 %>
-<div class="data-table-wrap">
+<% if use_table_card %><div class="table-card"><% end %>
+<div class="<%= use_table_card ? wrap_class : 'data-table-wrap' %>">
   <table class="<%= table_class %>" role="table" aria-label="<%= aria_label %>">
     <colgroup>
       <% columns.each do |col| %>
@@ -38,6 +44,7 @@
           <td colspan="<%= columns.size %>" style="text-align: center; padding: 1.5rem; color: var(--odt-muted);"><%= empty_message %></td>
         </tr>
       <% end %>
-    </tbody>
+  </tbody>
   </table>
 </div>
+<% if use_table_card %></div><% end %>

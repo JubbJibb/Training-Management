@@ -1,0 +1,117 @@
+<%
+  payment = local_assigns[:payment] || @payment
+  attendee = local_assigns[:attendee] || payment
+  training_class = local_assigns[:training_class] || payment.training_class
+  activity_logs = local_assigns[:activity_logs] || []
+  workflow_status = PaymentWorkflowStatus.for(payment)
+  workflow_label = PaymentWorkflowStatus.label(payment)
+  first_slip = payment.payment_slips.attached? ? payment.payment_slips.first : nil
+  slip_verified = payment.respond_to?(:slip_verified_at) && payment.slip_verified_at.present?
+  can_verify = workflow_status == "awaiting_verification" && first_slip
+  can_issue_receipt = payment.document_status != "Receipt" && (slip_verified || payment.payment_status == "Paid")
+%>
+<div class="pi-panel-content">
+  <%# A) Customer & Class %>
+  <section class="pi-panel-section">
+    <h3 class="pi-panel-section__title">Customer & Class</h3>
+    <p class="pi-panel-section__customer"><strong><%= attendee.billing_name.presence || attendee.name %></strong></p>
+    <p class="pi-panel-section__meta"><%= attendee.email.presence || "—" %></p>
+    <p class="pi-panel-section__class"><%= training_class.title %></p>
+    <p class="pi-panel-section__meta"><%= training_class.date&.strftime("%d/%m/%Y") || "—" %> · <%= number_to_thb(payment.total_final_price) %></p>
+  </section>
+
+  <%# B) Payment Info %>
+  <section class="pi-panel-section">
+    <h3 class="pi-panel-section__title">Payment Info</h3>
+    <div class="pi-panel-info">
+      <div class="pi-panel-info__row">
+        <span class="pi-panel-info__label">Status</span>
+        <span class="pi-status pi-status--<%= workflow_status %>"><%= workflow_label %></span>
+      </div>
+      <div class="pi-panel-info__row">
+        <span class="pi-panel-info__label">Document</span>
+        <span><%= payment.document_status.presence || "—" %></span>
+      </div>
+      <div class="pi-panel-info__row">
+        <span class="pi-panel-info__label">Due</span>
+        <span><%= payment.due_date&.strftime("%Y-%m-%d") || "—" %></span>
+      </div>
+      <div class="pi-panel-info__row">
+        <span class="pi-panel-info__label">QT / INV / Receipt</span>
+        <span><%= payment.quotation_no.presence || "—" %> / <%= payment.invoice_no.presence || "—" %> / <%= payment.receipt_no.presence || "—" %></span>
+      </div>
+    </div>
+  </section>
+
+  <%# C) Slip preview %>
+  <section class="pi-panel-section">
+    <h3 class="pi-panel-section__title">Slip</h3>
+    <div class="pi-panel-slip">
+      <% if payment.payment_slips.attached? %>
+        <% payment.payment_slips.each do |slip| %>
+          <div class="pi-panel-slip__preview">
+            <% if slip.image? %>
+              <%= image_tag slip, class: "pi-panel-slip__img", alt: slip.filename %>
+            <% else %>
+              <a href="<%= rails_blob_path(slip) %>" target="_blank" rel="noopener" class="pi-panel-slip__link"><i class="bi bi-file-earmark-pdf"></i> <%= slip.filename %></a>
+            <% end %>
+          </div>
+        <% end %>
+        <% if slip_verified %>
+          <p class="pi-panel-slip__verified"><i class="bi bi-check-circle"></i> Verified</p>
+        <% end %>
+      <% else %>
+        <p class="pi-panel-slip__empty">No slip. <%= link_to "Upload in edit page", edit_admin_training_class_attendee_path(training_class, payment), data: { turbo_frame: "_top" } %>.</p>
+      <% end %>
+    </div>
+  </section>
+
+  <%# D) Accounting actions - large primary buttons %>
+  <section class="pi-panel-section pi-panel-section--actions">
+    <h3 class="pi-panel-section__title">Actions</h3>
+    <div class="pi-panel-actions">
+      <% if can_verify %>
+        <%= button_to verify_slip_financials_payment_path(payment), method: :patch, class: "pi-panel-btn pi-panel-btn--primary", data: { turbo_frame: "_top" } do %>
+          <i class="bi bi-check-lg" aria-hidden="true"></i> Verify payment
+        <% end %>
+      <% else %>
+        <button type="button" class="pi-panel-btn pi-panel-btn--disabled" disabled title="Slip required or already verified"><i class="bi bi-check-lg"></i> Verify payment</button>
+      <% end %>
+
+      <% if can_issue_receipt %>
+        <%= button_to issue_receipt_financials_payment_path(payment), method: :patch, class: "pi-panel-btn pi-panel-btn--primary", data: { turbo_frame: "_top" } do %>
+          <i class="bi bi-receipt" aria-hidden="true"></i> Generate receipt
+        <% end %>
+      <% else %>
+        <button type="button" class="pi-panel-btn pi-panel-btn--disabled" disabled title="Verify slip first"><i class="bi bi-receipt"></i> Generate receipt</button>
+      <% end %>
+
+      <%= link_to financials_payment_path(payment), class: "pi-panel-btn pi-panel-btn--primary", data: { turbo_frame: "_top" } do %>
+        <i class="bi bi-send" aria-hidden="true"></i> Send to customer
+      <% end %>
+
+      <%= link_to summary_financials_payment_path(payment, format: :pdf), class: "pi-panel-btn pi-panel-btn--secondary", data: { turbo: false } do %>
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
+      <% end %>
+    </div>
+  </section>
+
+  <section class="pi-panel-section">
+    <h3 class="pi-panel-section__title">Activity</h3>
+    <ul class="pi-panel-activity">
+      <% if activity_logs.any? %>
+        <% activity_logs.each do |log| %>
+          <li class="pi-panel-activity__item">
+            <span class="pi-panel-activity__type"><%= log.action_type %></span>
+            <span class="pi-panel-activity__meta"><%= log.created_at.strftime("%Y-%m-%d %H:%M") %> <%= log.actor&.email %></span>
+            <% if log.metadata.is_a?(Hash) && log.metadata["message"].present? %>
+              <span class="pi-panel-activity__msg"><%= log.metadata["message"] %></span>
+            <% end %>
+          </li>
+        <% end %>
+      <% else %>
+        <li class="pi-panel-activity__empty">No activity yet.</li>
+      <% end %>
+    </ul>
+  </section>
+</div>

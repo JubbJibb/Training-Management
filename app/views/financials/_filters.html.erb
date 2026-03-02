@@ -1,0 +1,49 @@
+<% url = local_assigns[:url] || financials_overview_path %>
+<% turbo_frame = local_assigns[:turbo_frame] || "financials_main" %>
+<% show_status_filter = local_assigns.fetch(:show_status_filter, true) %>
+<%= form_with url: url, method: :get, data: { turbo_frame: turbo_frame }, class: "financials-filters-form" do %>
+  <div class="financials-filters-form__field">
+    <label for="financials_period">Period</label>
+    <select name="period" id="financials_period">
+      <option value="mtd" <%= "selected" if params[:period] == "mtd" %>>MTD</option>
+      <option value="qtd" <%= "selected" if params[:period] == "qtd" %>>QTD</option>
+      <option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option>
+      <option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option>
+    </select>
+  </div>
+  <div class="financials-filters-form__field">
+    <label for="financials_date_from">From</label>
+    <input type="date" name="date_from" id="financials_date_from" value="<%= params[:date_from] %>">
+  </div>
+  <div class="financials-filters-form__field">
+    <label for="financials_date_to">To</label>
+    <input type="date" name="date_to" id="financials_date_to" value="<%= params[:date_to] %>">
+  </div>
+  <div class="financials-filters-form__field">
+    <label for="financials_client_type">Client type</label>
+    <select name="client_type" id="financials_client_type">
+      <option value="">All</option>
+      <option value="Indi" <%= "selected" if params[:client_type] == "Indi" %>>Individual</option>
+      <option value="Corp" <%= "selected" if params[:client_type] == "Corp" %>>Corporate</option>
+    </select>
+  </div>
+  <% if show_status_filter %>
+    <div class="financials-filters-form__field">
+      <label for="financials_status">Status</label>
+      <select name="status" id="financials_status">
+        <option value="">All</option>
+        <option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option>
+        <option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option>
+      </select>
+    </div>
+  <% end %>
+  <% if local_assigns[:show_overdue_only] %>
+    <div class="financials-filters-form__field financials-filters-form__field--checkbox">
+      <label><input type="checkbox" name="overdue_only" value="1" <%= "checked" if params[:overdue_only] == "1" %>> Overdue only</label>
+    </div>
+  <% end %>
+  <div class="financials-filters-form__actions">
+    <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+    <%= link_to "Clear", url, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: turbo_frame } %>
+  </div>
+<% end %>

@@ -1,0 +1,6 @@
+<%
+  # Status badge: success, warning, danger, info, secondary, overdue
+  status = local_assigns[:status] || "—"
+  variant = local_assigns[:variant].presence || "secondary"
+%>
+<span class="fin-status-badge fin-status-badge--<%= variant %>" role="status"><%= status %></span>

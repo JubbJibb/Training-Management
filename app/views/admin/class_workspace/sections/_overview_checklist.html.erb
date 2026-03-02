@@ -1,0 +1,27 @@
+<%
+  training_class = local_assigns[:training_class]
+  checklist_items = training_class.checklist_items.presence || []
+  defaults = ["Venue booked", "Slides ready", "Food confirmed", "Name list printed", "Certificates prepared", "Invoice issued"]
+  existing_titles = checklist_items.map { |i| i["title"].to_s }.compact
+  missing = defaults - existing_titles
+  out = checklist_items.dup
+  missing.each { |title| out << { "id" => SecureRandom.uuid, "title" => title, "done" => false, "created_at" => Time.current.iso8601, "updated_at" => Time.current.iso8601 } }
+  checklist_items = out
+%>
+<div id="workspace-checklist">
+<%= form_with url: admin_class_workspace_checklist_path(training_class), method: :patch, local: true, data: { turbo_frame: "_top" }, id: "workspace-checklist-form" do %>
+  <ul class="workspace-checklist-list" aria-label="Preparation checklist">
+    <% checklist_items.each do |item| %>
+      <li class="workspace-checklist-item">
+        <label class="workspace-checklist-label">
+          <%= check_box_tag "checklist_items[][done]", "1", item["done"], class: "workspace-checklist-input" %>
+          <input type="hidden" name="checklist_items[][id]" value="<%= item['id'] %>">
+          <input type="hidden" name="checklist_items[][title]" value="<%= item['title'] %>">
+          <span class="workspace-checklist-text"><%= item["title"] %></span>
+        </label>
+      </li>
+    <% end %>
+  </ul>
+  <button type="submit" class="odt-btn odt-btn--secondary odt-btn--sm mt-2">Save checklist</button>
+<% end %>
+</div>

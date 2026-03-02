@@ -1,0 +1,61 @@
+<%= turbo_frame_tag "tc_drawer" do %>
+  <div class="tc-drawer-form-wrap" id="tc_drawer_form" data-controller="drawer" data-drawer-unsaved-value="false">
+    <header class="tc-drawer__header">
+      <h2 class="tc-drawer__title"><%= training_class.title %></h2>
+      <%= link_to "×", operations_training_calendar_drawer_path, class: "tc-drawer__close", data: { turbo_frame: "tc_drawer", aria: { label: "Close" } } %>
+    </header>
+    <div class="tc-drawer__tabs">
+      <button type="button" class="tc-drawer__tab is-active" data-drawer-target="tab" data-tab="details" data-action="click->drawer#switchTab" aria-selected="true">Details</button>
+      <button type="button" class="tc-drawer__tab" data-drawer-target="tab" data-tab="registrants" data-action="click->drawer#switchTab" aria-selected="false">Registrants</button>
+      <button type="button" class="tc-drawer__tab" data-drawer-target="tab" data-tab="checklist" data-action="click->drawer#switchTab" aria-selected="false">Ops Checklist</button>
+    </div>
+    <div class="tc-drawer__content">
+      <div class="tc-drawer__panel is-active" data-drawer-target="panel" id="tc_drawer_details">
+        <%= form_with model: training_class, url: operations_training_calendar_update_class_path(training_class), method: :patch, data: { controller: "drawer", action: "input->drawer#markUnsaved submit->drawer#clearUnsaved" }, html: { id: "tc_drawer_form_form" } do |f| %>
+          <%= hidden_field_tag :start_date, params[:start_date].presence || Date.current.to_s %>
+          <%= hidden_field_tag :view, params[:view].presence || "month" %>
+          <div class="tc-drawer__fields">
+            <div class="tc-drawer__field">
+              <%= f.label :title, "Title" %>
+              <%= f.text_field :title, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :date, "Date" %>
+              <%= f.date_field :date, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :start_time, "Start time" %>
+              <%= f.time_field :start_time, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :end_time, "End time" %>
+              <%= f.time_field :end_time, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :location, "Location" %>
+              <%= f.text_field :location, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :instructor, "Instructor" %>
+              <%= f.text_field :instructor, class: "tc-drawer__input" %>
+            </div>
+            <div class="tc-drawer__field">
+              <%= f.label :max_attendees, "Capacity" %>
+              <%= f.number_field :max_attendees, class: "tc-drawer__input", min: 0 %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <div class="tc-drawer__panel" data-drawer-target="panel" id="tc_drawer_registrants" hidden>
+        <p class="tc-drawer__muted"><%= link_to "View registrants", admin_class_workspace_attendees_path(training_class), data: { turbo_frame: "_top" } %> in class workspace.</p>
+      </div>
+      <div class="tc-drawer__panel" data-drawer-target="panel" id="tc_drawer_checklist" hidden>
+        <p class="tc-drawer__muted"><%= link_to "Edit checklist", admin_class_workspace_edit_path(training_class), data: { turbo_frame: "_top" } %> in class workspace.</p>
+      </div>
+    </div>
+    <footer class="tc-drawer__footer">
+      <%= link_to "View full class", admin_class_workspace_path(training_class), class: "tc-drawer__btn tc-drawer__btn--secondary", data: { turbo_frame: "_top" } %>
+      <button type="submit" form="tc_drawer_form_form" class="tc-drawer__btn tc-drawer__btn--primary">Save</button>
+    </footer>
+  </div>
+<% end %>

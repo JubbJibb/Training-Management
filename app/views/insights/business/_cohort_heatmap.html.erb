@@ -1,0 +1,43 @@
+<%
+  heatmap = local_assigns[:cohort_heatmap_data] || {}
+  row_labels = heatmap[:row_labels] || []
+  col_labels = heatmap[:col_labels] || []
+  cells = heatmap[:cells] || []
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Repeat behavior (cohort)</h3>
+      <p class="insight-card__subtitle">% กลับมาเรียนตามเดือนหลังจ่ายครั้งแรก</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if row_labels.any? && col_labels.any? %>
+      <div class="cohort-heatmap">
+        <table class="cohort-heatmap__table" role="table">
+          <thead>
+            <tr>
+              <th class="cohort-heatmap__th cohort-heatmap__th--row">Cohort</th>
+              <% col_labels.each do |cl| %>
+                <th class="cohort-heatmap__th"><%= cl %></th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% row_labels.each_with_index do |rl, ri| %>
+              <tr>
+                <td class="cohort-heatmap__td cohort-heatmap__td--label"><%= rl %></td>
+                <% (cells[ri] || []).each do |pct| %>
+                  <td class="cohort-heatmap__td cohort-heatmap__td--cell" data-pct="<%= pct %>" style="--pct: <%= [pct, 100].min %>;"><%= pct %>%</td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <%= render "shared/empty_state", title: "No cohort data", icon: "grid-3x3", extra_class: "insight-odt-table__empty" %>
+    <% end %>
+  </div>
+</div>

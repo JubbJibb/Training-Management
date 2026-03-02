@@ -7,7 +7,7 @@ module Admin
     layout "admin"
     
     def index
-      @attendees = @training_class.attendees.order(:name)
+      redirect_to admin_class_workspace_attendees_path(@training_class), status: :found
     end
     
     def show
@@ -27,21 +27,24 @@ module Admin
         end
       end
       @promotions = Promotion.active.order(:name)
+      set_source_channel_options
     end
     
     def create
       @attendee = @training_class.attendees.build(attendee_params)
       
       if @attendee.save
-        redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee added successfully."
+        redirect_to attendee_return_to_url, notice: "Attendee added successfully."
       else
         @promotions = Promotion.active.order(:name)
+        set_source_channel_options
         render :new, status: :unprocessable_entity
       end
     end
     
     def edit
       @promotions = Promotion.active.order(:name)
+      set_source_channel_options
     end
     
     def update
@@ -59,18 +62,19 @@ module Admin
         @attendee.payment_slips.attach(new_slips) if new_slips.present?
         if params[:redirect_tab].present?
           redirect_to admin_training_class_path(@training_class, tab: params[:redirect_tab]), notice: "#{@attendee.name} updated successfully."
-        elsif params[:quick_edit]
-          redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} updated successfully."
+        elsif params[:quick_edit].present? || params[:return_to].present?
+          redirect_to attendee_return_to_url, notice: "#{@attendee.name} updated successfully."
         else
-          redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee updated successfully."
+          redirect_to edit_admin_training_class_attendee_path(@training_class, @attendee), notice: "Attendee updated successfully."
         end
       else
         if params[:redirect_tab].present?
           redirect_to admin_training_class_path(@training_class, tab: params[:redirect_tab]), alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
-        elsif params[:quick_edit]
-          redirect_to admin_training_class_path(@training_class, tab: "attendees"), alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
+        elsif params[:quick_edit].present? || params[:return_to].present?
+          redirect_to attendee_return_to_url, alert: "Error: #{@attendee.errors.full_messages.join(', ')}"
         else
           @promotions = Promotion.active.order(:name)
+          set_source_channel_options
           render :edit, status: :unprocessable_entity
         end
       end
@@ -78,7 +82,7 @@ module Admin
     
     def destroy
       @attendee.destroy
-      redirect_to admin_training_class_attendees_path(@training_class), notice: "Attendee removed successfully."
+      redirect_to attendee_return_to_url, notice: "Attendee removed successfully."
     end
     
     def move_to_potential
@@ -92,7 +96,7 @@ module Admin
         return
       end
       @attendee.update(status: "attendee")
-      redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: "#{@attendee.name} has been moved to Class Attendees. All information has been preserved."
+      redirect_to admin_class_workspace_attendees_path(@training_class), notice: "#{@attendee.name} has been moved to Class Attendees. All information has been preserved."
     end
     
     def sync_tax_from_customer
@@ -123,7 +127,7 @@ module Admin
         message = "Invalid email type"
       end
       
-      redirect_to admin_training_class_path(@training_class, tab: "attendees"), notice: message
+      redirect_to admin_class_workspace_attendees_path(@training_class), notice: message
     rescue => e
       redirect_to admin_training_class_path(@training_class, tab: "attendees"), alert: "Error sending email: #{e.message}"
     end
@@ -139,31 +143,67 @@ module Admin
       end
     end
 
-    # Export selected attendees to Excel with selected fields (from Documents tab)
+    # Export selected attendees to Excel or CSV with selected fields (from Documents tab)
     def export_documents
       ids = Array(params[:attendee_ids]).reject(&:blank?).map(&:to_i)
+      ids = @training_class.attendees.pluck(:id) if ids.empty?
       attendees = @training_class.attendees.where(id: ids).order(:name).includes(:training_class, :promotions).with_attached_payment_slips
-      columns = Array(params[:columns]).reject(&:blank?).map(&:to_s)
-      columns = %w[name email company class_name unit_price discount vat final_price document_status quotation_no invoice_no receipt_no payment_slip name_thai tax_id address amount payment_date] if columns.empty?
 
-      allowed = %w[name email company class_name unit_price discount vat final_price document_status quotation_no invoice_no receipt_no payment_slip name_thai tax_id address amount payment_date]
-      columns = columns & allowed
+      field_groups = Array(params[:field_groups]).reject(&:blank?).map(&:to_s)
+      columns = columns_from_field_groups(field_groups)
 
-      xlsx = build_documents_xlsx(attendees, columns)
-      filename = "documents-#{@training_class.title.parameterize}-#{Date.current.iso8601}.xlsx"
-      send_data xlsx, filename: filename, type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", disposition: "attachment"
+      respond_to do |format|
+        format.csv do
+          columns = %w[no name email phone company name_thai participant_type tax_id address class_name document_status quotation_no invoice_no receipt_no payment_date payment_slip unit_price discount vat final_price amount] if columns.empty?
+          csv = build_documents_csv(attendees, columns)
+          filename = "documents-#{@training_class.title.parameterize}-#{Date.current}.csv"
+          send_data csv, filename: filename, type: "text/csv", disposition: "attachment"
+        end
+        format.any do
+          columns = %w[name email company class_name unit_price discount vat final_price document_status quotation_no invoice_no receipt_no payment_slip name_thai tax_id address amount payment_date] if columns.empty?
+          allowed = %w[name email company class_name unit_price discount vat final_price document_status quotation_no invoice_no receipt_no payment_slip name_thai tax_id address amount payment_date]
+          columns = columns & allowed
+          xlsx = build_documents_xlsx(attendees, columns)
+          filename = "documents-#{@training_class.title.parameterize}-#{Date.current.iso8601}.xlsx"
+          send_data xlsx, filename: filename, type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", disposition: "attachment"
+        end
+      end
     end
 
     private
 
     DOCUMENT_EXPORT_LABELS = {
-      "name" => "Name", "email" => "Email", "company" => "Company",
-      "name_thai" => "Name (Thai)", "tax_id" => "Tax ID", "address" => "Address",
+      "no" => "#No", "name" => "Name", "email" => "Email", "phone" => "Phone", "company" => "Company",
+      "name_thai" => "Name (Thai)", "participant_type" => "Type", "tax_id" => "Tax ID", "address" => "Address",
       "class_name" => "Class", "unit_price" => "ราคา/หัว", "discount" => "ส่วนลด", "vat" => "VAT", "final_price" => "ราคา Final",
       "document_status" => "Document status", "quotation_no" => "Quotation no", "invoice_no" => "Invoice no",
       "receipt_no" => "Receipt no", "payment_slip" => "Payment slip",
       "amount" => "Amount", "payment_date" => "Payment Date"
     }.freeze
+
+    FIELD_GROUPS = {
+      "attendee_info" => %w[no name email phone company name_thai participant_type tax_id address],
+      "registration_details" => %w[class_name document_status quotation_no invoice_no receipt_no payment_date payment_slip],
+      "price_discount" => %w[unit_price discount vat final_price amount]
+    }.freeze
+
+    def columns_from_field_groups(field_groups)
+      return [] if field_groups.blank?
+      field_groups.flat_map { |g| FIELD_GROUPS[g.to_s] }.compact.uniq
+    end
+
+    def build_documents_csv(attendees, columns)
+      require "csv"
+      CSV.generate(headers: true, force_quotes: false) do |csv|
+        csv << columns.map { |c| DOCUMENT_EXPORT_LABELS[c.to_s] || c.humanize }
+        attendees.each_with_index do |a, idx|
+          row = columns.map do |c|
+            c == "no" ? (idx + 1) : document_export_value(a, c)
+          end
+          csv << row
+        end
+      end
+    end
 
     def build_documents_xlsx(attendees, columns)
       require "caxlsx"
@@ -211,9 +251,12 @@ module Admin
 
     def document_export_value(a, col)
       case col.to_s
+      when "no" then nil
       when "name" then a.name
       when "email" then a.email
+      when "phone" then a.phone.presence || "—"
       when "company" then a.company.presence || "—"
+      when "participant_type" then a.participant_type.presence || "—"
       when "class_name" then a.training_class.title.to_s
       when "unit_price" then a.base_price.to_f.round(2)
       when "discount" then (a.total_discount_amount * (a.seats || 1)).round(2)
@@ -233,8 +276,27 @@ module Admin
       end
     end
     
+    # Safe return URL for Back and post-action redirect: return_to param or referer (same origin) or class workspace attendees.
+    def attendee_return_to_url
+      url = params[:return_to].presence || request.referer
+      if url.blank?
+        return admin_class_workspace_attendees_path(@training_class)
+      end
+      # Allow path-only (same host)
+      return url if url.start_with?("/") && !url.start_with?("//")
+      # Allow full URL same origin only
+      return url if url.start_with?(root_url.to_s) rescue false
+      admin_class_workspace_attendees_path(@training_class)
+    end
+
     def set_training_class
       @training_class = TrainingClass.find(params[:training_class_id])
+    end
+    
+    def set_source_channel_options
+      defaults = ["Website", "Facebook", "Email", "Line", "Referral", "Walk-in", "Phone", "Event", "อื่นๆ"]
+      existing = Attendee.where.not(source_channel: [nil, ""]).distinct.pluck(:source_channel).sort
+      @source_channel_options = (defaults + existing).uniq
     end
     
     def set_attendee
@@ -253,13 +315,18 @@ module Admin
     end
 
     def attendee_params
-      params.require(:attendee).permit(:name, :email, :phone, :company, :notes,
-                                        :participant_type, :seats, :source_channel, :payment_status, :payment_date,
-                                        :document_status, :attendance_status, :total_classes, :price,
-                                        :quotation_no, :invoice_no, :receipt_no, :due_date, :status,
-                                        :name_thai, :tax_id, :address, :billing_name, :billing_address,
-                                        :document_modal,
-                                        promotion_ids: [], payment_slips: [])
+      p = params.require(:attendee).permit(:name, :email, :phone, :company, :notes,
+                                          :participant_type, :seats, :source_channel, :payment_status, :payment_date,
+                                          :document_status, :attendance_status, :total_classes, :price,
+                                          :quotation_no, :invoice_no, :receipt_no, :due_date, :status,
+                                          :name_thai, :tax_id, :address, :billing_name, :billing_address,
+                                          :vat_excluded, :document_modal,
+                                          promotion_ids: [], payment_slips: [])
+      # vat_excluded: "" = ตามคลาส (nil), "0" = รวม VAT (false), "1" = ไม่รวม VAT (true)
+      if p.key?(:vat_excluded)
+        p[:vat_excluded] = (p[:vat_excluded] == "1" ? true : (p[:vat_excluded] == "0" ? false : nil))
+      end
+      p
     end
   end
 end

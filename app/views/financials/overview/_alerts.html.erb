@@ -1,0 +1,52 @@
+<%
+  action_items = local_assigns[:action_items] || @action_items || {}
+  alerts_summary = local_assigns[:alerts_summary] || @alerts_summary || {}
+  outstanding_count = alerts_summary[:outstanding_count].to_i
+  outstanding_amount = alerts_summary[:outstanding_amount].to_f
+  missing_receipts_count = alerts_summary[:missing_receipts_count].to_i
+  negative_margin_count = alerts_summary[:negative_margin_classes_count].to_i
+  has_alerts = outstanding_count.positive? || missing_receipts_count.positive? || negative_margin_count.positive?
+  ar_path = financials_accounts_receivable_path(params.permit(:period, :date_from, :date_to, :client_type))
+  payments_path = financials_payments_path(params.permit(:period, :date_from, :date_to, :client_type))
+  classes_path = admin_training_classes_path
+%>
+<%= turbo_frame_tag "financials_overview_alerts" do %>
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Alerts</h3>
+        <p class="insight-card__subtitle">Overdue and missing items</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if has_alerts %>
+        <ul class="insight-action-list list-unstyled mb-0">
+          <% if outstanding_count.positive? %>
+            <li class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+              <span><i class="bi bi-exclamation-circle text-warning me-2" aria-hidden="true"></i> Outstanding invoices: <strong><%= outstanding_count %></strong> · <%= number_to_thb(outstanding_amount) %></span>
+              <%= link_to "Go to AR", ar_path, class: "odt-btn odt-btn--primary odt-btn--sm", data: { turbo_frame: "_top" } %>
+            </li>
+          <% end %>
+          <% if missing_receipts_count.positive? %>
+            <li class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+              <span><i class="bi bi-receipt text-warning me-2" aria-hidden="true"></i> Missing receipts: <strong><%= missing_receipts_count %></strong></span>
+              <%= link_to "Review documents", payments_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+            </li>
+          <% end %>
+          <% if negative_margin_count.positive? %>
+            <li class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+              <span><i class="bi bi-graph-down text-warning me-2" aria-hidden="true"></i> Negative margin classes: <strong><%= negative_margin_count %></strong></span>
+              <%= link_to "View classes", classes_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="fin-alerts-empty">
+          <p class="text-muted mb-2"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i> No alerts.</p>
+          <p class="text-muted small mb-0">Outstanding invoices, missing receipts, and negative margin classes will appear here when applicable.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

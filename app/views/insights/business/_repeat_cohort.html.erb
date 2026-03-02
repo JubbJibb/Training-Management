@@ -1,0 +1,56 @@
+<%
+  heatmap = local_assigns[:cohort_heatmap_data] || @data&.dig(:cohort_heatmap_data) || {}
+  returning_pct = local_assigns[:returning_revenue_pct] || @data&.dig(:returning_revenue_pct) || 0
+  row_labels = heatmap[:row_labels] || []
+  col_labels = heatmap[:col_labels] || []
+  cells = heatmap[:cells] || []
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title bi-info-tooltip-trigger-wrap">
+        พฤติกรรมเรียนซ้ำ (Cohort)
+        <%= render "shared/bi_info_tooltip", **bi_tooltip_content(:cohort), placement: "top" %>
+      </h3>
+      <p class="insight-card__subtitle">% กลับมาเรียนตามเดือนหลังจ่ายครั้งแรก</p>
+    </div>
+    <% if returning_pct.is_a?(Numeric) %>
+      <div class="insight-card__header-actions bi-card__meta bi-info-tooltip-trigger-wrap">
+        <span class="bi-meta-label">รายได้จากลูกค้าเก่า:</span>
+        <strong><%= returning_pct %>%</strong>
+        <%= render "shared/bi_info_tooltip", **bi_tooltip_content(:returning_revenue), placement: "top" %>
+      </div>
+    <% end %>
+  </div>
+  <div class="insight-card__body">
+    <% if row_labels.any? && col_labels.any? %>
+      <div class="cohort-heatmap">
+        <table class="cohort-heatmap__table" role="table">
+          <thead>
+            <tr>
+              <th class="cohort-heatmap__th cohort-heatmap__th--row">
+                <span class="bi-info-tooltip-trigger-wrap">Cohort<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:cohort), placement: "top" %></span>
+              </th>
+              <% col_labels.each do |cl| %>
+                <th class="cohort-heatmap__th"><%= cl %></th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% row_labels.each_with_index do |rl, ri| %>
+              <tr>
+                <td class="cohort-heatmap__td cohort-heatmap__td--label"><%= rl %></td>
+                <% (cells[ri] || []).each do |pct| %>
+                  <td class="cohort-heatmap__td cohort-heatmap__td--cell" data-pct="<%= pct %>" style="--pct: <%= [pct, 100].min %>;"><%= pct %>%</td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <%= render "shared/empty_state", title: "ไม่มีข้อมูล cohort", icon: "grid-3x3", extra_class: "bi-empty" %>
+    <% end %>
+  </div>
+</div>

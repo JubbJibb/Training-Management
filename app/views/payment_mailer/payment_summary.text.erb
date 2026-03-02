@@ -9,7 +9,9 @@ Hello <%= @customer_name %>,
 Class:     <%= @class_title %>
 Date:      <%= @class_date %>
 Customer:  <%= @customer_name %>
-Total Paid: ฿<%= number_with_delimiter(@total_paid) %>
+Total:     ฿<%= number_with_delimiter(@total_paid) %>
+<% if @attendee.payment_status != "Paid" && @attendee.due_date.present? %>Due date: <%= @attendee.due_date.strftime("%d/%m/%Y") %>
+<% end %>
 
 Pricing breakdown:
   Base:        ฿<%= number_with_delimiter(@base) %>

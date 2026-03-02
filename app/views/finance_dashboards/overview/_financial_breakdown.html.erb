@@ -1,15 +1,11 @@
-<%# Financial breakdown: donut (Gross, Discount, VAT, Total) + details list %>
+<%# Financial breakdown: donut (Gross, Discount, VAT, Total) + details list. Flowbite-style card. %>
 <% fb = overview[:financial_breakdown] %>
 <% gross = fb[:gross].to_f %>
 <% total = fb[:total].to_f %>
 <% gross = 1 if gross.zero? %>
 <% discount_pct = ((fb[:discount] / gross) * 100).round(1) %>
 <% vat_pct = ((fb[:vat] / gross) * 100).round(1) %>
-<div class="foh-breakdown" role="region" aria-label="Financial breakdown">
-  <div class="foh-card-header">
-    <h3 class="foh-breakdown__title">Financial Breakdown</h3>
-  </div>
-  <div class="foh-card-body">
+<%= render "shared/pie_chart_card", title: "Financial Breakdown", extra_class: "foh-breakdown" do %>
   <% circ = 2 * Math::PI * 40 %>
   <div class="foh-breakdown__donut-wrap">
     <svg class="foh-breakdown__donut" viewBox="0 0 100 100" aria-hidden="true" style="transform: rotate(-90deg);">
@@ -34,5 +30,4 @@
     <li class="foh-breakdown__item"><span class="foh-breakdown__item-label">VAT</span><span class="foh-breakdown__item-val">+<%= number_to_thb(fb[:vat]) %> (<%= vat_pct %>%)</span></li>
     <li class="foh-breakdown__item foh-breakdown__item--total"><span class="foh-breakdown__item-label">Total</span><span class="foh-breakdown__item-val"><%= number_to_thb(fb[:total]) %></span></li>
   </ul>
-  </div>
-</div>
+<% end %>

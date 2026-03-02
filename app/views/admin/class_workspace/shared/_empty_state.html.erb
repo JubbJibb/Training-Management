@@ -1,0 +1,17 @@
+<%
+  icon = local_assigns[:icon] || "inbox"
+  title = local_assigns[:title] || "No data"
+  message = local_assigns[:message] || ""
+  action_label = local_assigns[:action_label]
+  action_url = local_assigns[:action_url]
+%>
+<div class="workspace-empty-state">
+  <div class="workspace-empty-state__icon"><i class="bi bi-<%= icon %>" aria-hidden="true"></i></div>
+  <h3 class="workspace-empty-state__title"><%= title %></h3>
+  <% if message.present? %><p class="workspace-empty-state__message"><%= message %></p><% end %>
+  <% if action_label.present? && action_url.present? %>
+    <%= link_to action_url, class: "odt-btn odt-btn--primary odt-btn--sm workspace-empty-state__action" do %>
+      <i class="bi bi-plus-circle" aria-hidden="true"></i> <%= action_label %>
+    <% end %>
+  <% end %>
+</div>

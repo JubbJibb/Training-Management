@@ -1,0 +1,59 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  time_str = [klass.start_time, klass.end_time].compact.any? ? [klass.start_time&.strftime("%I:%M %p"), klass.end_time&.strftime("%I:%M %p")].compact.join(" – ") : "—"
+  date_str = klass.date.strftime("%b %d, %Y")
+  date_str += " – #{klass.end_date.strftime("%b %d, %Y")}" if klass.end_date.present? && klass.end_date != klass.date
+  desc = klass.description.present? ? strip_tags(klass.description) : nil
+  truncate_len = 180
+  desc_preview = desc ? truncate(desc, length: truncate_len) : nil
+  needs_toggle = desc && desc.length > truncate_len
+%>
+<div class="odt-card">
+  <header class="odt-card__header">
+    <div class="odt-card__header-inner">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      <h2 class="odt-card__title">Class Details</h2>
+    </div>
+  </header>
+  <div class="odt-card__body">
+    <dl class="odt-kv-grid">
+      <div class="odt-kv-item">
+        <dt class="odt-label">Date</dt>
+        <dd class="odt-value"><%= date_str %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Time</dt>
+        <dd class="odt-value"><%= time_str %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Duration</dt>
+        <dd class="odt-value"><%= klass.duration.presence || "—" %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Location</dt>
+        <dd class="odt-value"><%= klass.location.presence || "—" %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Instructor</dt>
+        <dd class="odt-value"><%= klass.instructor.presence || "—" %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Max Attendees</dt>
+        <dd class="odt-value"><%= klass.max_attendees.to_i.positive? ? klass.max_attendees : "—" %></dd>
+      </div>
+      <div class="odt-kv-item">
+        <dt class="odt-label">Price per seat</dt>
+        <dd class="odt-value"><%= klass.price.present? ? number_to_thb(klass.price) : "—" %></dd>
+      </div>
+    </dl>
+    <% if desc.present? %>
+      <div class="odt-description-block" data-controller="description-toggle" data-description-toggle-expanded-value="false">
+        <div class="odt-description-block__preview"><%= simple_format(desc_preview) %></div>
+        <div class="odt-description-block__full"><%= simple_format(desc) %></div>
+        <% if needs_toggle %>
+          <button type="button" class="odt-description-toggle" data-description-toggle-target="button" data-action="description-toggle#toggle">Read more</button>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

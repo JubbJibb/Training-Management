@@ -1,0 +1,37 @@
+<%
+  composition = local_assigns[:cost_composition] || @cost_composition || {}
+  rows = composition[:rows] || []
+  total = composition[:total].to_f
+%>
+<%= turbo_frame_tag "financials_overview_cost_composition" do %>
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Cost composition</h3>
+        <p class="insight-card__subtitle">By category</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <table class="insight-odt-table" role="table">
+        <thead>
+          <tr><th scope="col">Category</th><th scope="col" class="text-end">Amount</th></tr>
+        </thead>
+        <tbody>
+          <% rows.each do |row| %>
+            <tr class="<%= row[:amount].to_f.zero? ? 'text-muted' : '' %>">
+              <td><%= row[:label] %></td>
+              <td class="text-end"><%= number_to_thb(row[:amount]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td><strong>Total costs</strong></td>
+            <td class="text-end"><strong><%= number_to_thb(total) %></strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+<% end %>

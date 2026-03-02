@@ -5,60 +5,49 @@
   direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
   base_params = { q: params[:q].to_s.presence, segment: segment, top_n: params[:top_n].to_s.presence }.compact
 %>
-<div class="tc-index-content">
+<div class="customers-ledger attendees-ledger">
   <% if customers.any? %>
-    <div class="tc-index-saas-table-wrap">
-      <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Customers">
-        <colgroup>
-          <col style="width: 30%;">
-          <col style="width: 7%;">
-          <col style="width: 7%;">
-          <col style="width: 9%;">
-          <col style="width: 11%;">
-          <col style="width: 11%;">
-          <col style="width: 6%;">
-          <col style="width: 11%;">
-          <col style="width: 8%;">
-        </colgroup>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Customers">
         <thead>
           <tr>
-            <th scope="col" class="tc-saas-th tc-saas-th--customer">
-              <%= link_to admin_customers_path(base_params.merge(sort: "customer", direction: (sort == "customer" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Customer<% if sort == "customer" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">
+              <%= link_to admin_customers_path(base_params.merge(sort: "customer", direction: (sort == "customer" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "customer" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Customer <%= sort == "customer" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--center">
-              <%= link_to admin_customers_path(base_params.merge(sort: "type", direction: (sort == "type" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Type<% if sort == "type" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--type">
+              <%= link_to admin_customers_path(base_params.merge(sort: "type", direction: (sort == "type" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "type" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Type <%= sort == "type" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--center">
-              <%= link_to admin_customers_path(base_params.merge(sort: "times_attended", direction: (sort == "times_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Times attended<% if sort == "times_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--seats">
+              <%= link_to admin_customers_path(base_params.merge(sort: "times_attended", direction: (sort == "times_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "times_attended" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Times attended <%= sort == "times_attended" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th">
-              <%= link_to admin_customers_path(base_params.merge(sort: "last_attended", direction: (sort == "last_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Last attended<% if sort == "last_attended" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">
+              <%= link_to admin_customers_path(base_params.merge(sort: "last_attended", direction: (sort == "last_attended" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "last_attended" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Last attended <%= sort == "last_attended" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--num">
-              <%= link_to admin_customers_path(base_params.merge(sort: "total_spent", direction: (sort == "total_spent" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Total spent (Net)<% if sort == "total_spent" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">
+              <%= link_to admin_customers_path(base_params.merge(sort: "total_spent", direction: (sort == "total_spent" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "total_spent" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Total spent (Net) <%= sort == "total_spent" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--num">
-              <%= link_to admin_customers_path(base_params.merge(sort: "outstanding", direction: (sort == "outstanding" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Outstanding<% if sort == "outstanding" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">
+              <%= link_to admin_customers_path(base_params.merge(sort: "outstanding", direction: (sort == "outstanding" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "outstanding" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Outstanding <%= sort == "outstanding" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--center">
-              <%= link_to admin_customers_path(base_params.merge(sort: "seats_total", direction: (sort == "seats_total" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "tc-saas-th__sort-link" do %>
-                Seats<% if sort == "seats_total" %><i class="bi bi-caret-<%= direction == "asc" ? "up" : "down" %>-fill"></i><% end %>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--seats">
+              <%= link_to admin_customers_path(base_params.merge(sort: "seats_total", direction: (sort == "seats_total" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "seats_total" ? "attendees-ledger__sort-link--active" : ""}" do %>
+                Seats <%= sort == "seats_total" ? (direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="tc-saas-th tc-saas-th--center">Billing &amp; Tax</th>
-            <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--source">Billing &amp; Tax</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -69,8 +58,6 @@
       </table>
     </div>
   <% else %>
-    <div class="tc-index-empty">
-      <%= render "shared/empty_state", message: "ไม่พบข้อมูล", icon: "people" %>
-    </div>
+    <%= render "shared/empty_state", message: "ไม่พบข้อมูล", icon: "people" %>
   <% end %>
 </div>

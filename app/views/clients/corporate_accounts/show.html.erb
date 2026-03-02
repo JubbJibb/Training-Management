@@ -2,7 +2,7 @@
 
 <div class="dashboard-page">
   <%= render "components/odt/page_header", title: @account_name, subtitle: "Corporate account profile", icon: "building" do %>
-    <%= link_to clients_corporate_accounts_path, class: "dashboard-header__link" do %>
+    <%= link_to clients_corporate_accounts_path, class: "dashboard-header__link", data: { turbo_frame: "_top", turbo_visit_control: "reload" } do %>
       <i class="bi bi-list" aria-hidden="true"></i> All Corporate Accounts
     <% end %>
   <% end %>

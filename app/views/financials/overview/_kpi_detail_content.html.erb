@@ -1,0 +1,63 @@
+<%
+  metric = local_assigns[:metric] || @metric
+  detail_rows = local_assigns[:detail_rows] || @detail_rows || []
+  total = local_assigns[:total] || @total || 0
+  titles = {
+    "revenue" => "Revenue (in period)",
+    "costs" => "Costs (in period)",
+    "profit" => "Profit (Revenue − Costs)",
+    "cash_received" => "Cash Received (MTD)",
+    "outstanding" => "Outstanding (AR)"
+  }
+  title = titles[metric.to_s] || metric.to_s.humanize
+  show_due = metric.to_s == "outstanding"
+  show_row_type = metric.to_s == "profit"
+%>
+<turbo-frame id="kpi_detail_content">
+  <div class="fin-kpi-detail">
+    <h6 class="fin-kpi-detail__title"><%= title %></h6>
+    <% if detail_rows.any? %>
+      <div class="table-responsive">
+        <table class="table table-sm insight-odt-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col">Client / Item</th>
+              <th scope="col">Class / Description</th>
+              <% if show_due %><th scope="col">Due date</th><% end %>
+              <% if show_row_type %><th scope="col">Type</th><% end %>
+              <th scope="col" class="text-end">Amount</th>
+              <th scope="col" class="text-end"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% detail_rows.each do |row| %>
+              <tr class="<%= 'fin-kpi-detail__row--cost' if row[:row_type] == 'cost' %>">
+                <td class="<%= 'insight-odt-table__truncate' unless show_row_type %>"><%= row[:label].to_s.truncate(50) %></td>
+                <td><%= row[:meta].to_s.truncate(40) %></td>
+                <% if show_due %><td><%= row[:due_date].present? ? l(row[:due_date]) : "—" %></td><% end %>
+                <% if show_row_type %><td><span class="badge bg-<%= row[:row_type] == 'cost' ? 'secondary' : 'primary' %>"><%= row[:row_type] == 'cost' ? 'Cost' : 'Revenue' %></span></td><% end %>
+                <td class="text-end"><%= number_to_thb(row[:amount]) %></td>
+                <td class="text-end">
+                  <% if row[:link_path].present? %>
+                    <%= link_to "View", row[:link_path], class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo_frame: "_top" } %>
+                  <% else %>
+                    —
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="<%= 2 + (show_due ? 1 : 0) + (show_row_type ? 1 : 0) %>" class="fw-bold">Total</td>
+              <td class="text-end fw-bold"><%= number_to_thb(total) %></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">No items in this period.</p>
+    <% end %>
+  </div>
+</turbo-frame>

@@ -1,0 +1,31 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  links = klass.related_links.presence || []
+%>
+<div class="odt-card">
+  <header class="odt-card__header">
+    <div class="odt-card__header-inner">
+      <i class="bi bi-link-45deg" aria-hidden="true"></i>
+      <h2 class="odt-card__title">Related Links</h2>
+    </div>
+  </header>
+  <div class="odt-card__body">
+    <% if links.any? %>
+      <ul class="odt-links-list">
+        <% links.each do |link| %>
+          <li>
+            <% h = link.is_a?(Hash) ? link : { "url" => link.to_s, "label" => link.to_s } %>
+            <% url = h["url"].to_s %>
+            <% url = "https://#{url}" if url.present? && !url.start_with?("http") %>
+            <%= link_to (h["label"].presence || h["url"]), url, target: "_blank", rel: "noopener" %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="odt-attendance-caption" style="margin-bottom: 12px;">No links yet.</p>
+    <% end %>
+    <div class="odt-links-add">
+      <%= link_to "+ Add link", admin_class_workspace_edit_path(klass), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    </div>
+  </div>
+</div>

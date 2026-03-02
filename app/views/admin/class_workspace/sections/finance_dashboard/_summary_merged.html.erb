@@ -1,0 +1,67 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  result = summary.dig(:result) || {}
+  expected = rev[:expected].to_f
+  paid = rev[:paid].to_f
+  outstanding = rev[:outstanding].to_f
+  total_costs = costs[:total].to_f
+  profit = result[:profit].to_f
+  margin = result[:margin_pct].to_f
+  price_per_seat = (training_class.price.to_f > 0) ? training_class.price : 0
+  break_even_seats = (price_per_seat.positive? && total_costs.positive?) ? (total_costs / price_per_seat).ceil : nil
+  attendees = training_class.attendees.attendees
+  paid_count = attendees.count { |a| a.payment_status == "Paid" }
+  pending_count = attendees.size - paid_count
+  invoices_issued = attendees.count { |a| a.invoice_no.present? }
+  invoices_missing = attendees.size - invoices_issued
+  profit_class = profit >= 0 ? "finance-kpi-merged__hero-value--profit" : "finance-kpi-merged__hero-value--loss"
+  outstanding_variant = outstanding.positive? ? "finance-kpi-merged__meta-value--warning" : ""
+%>
+<div class="finance-kpi-merged">
+  <div class="finance-kpi-merged__hero">
+    <div class="finance-kpi-merged__hero-block finance-kpi-merged__hero-block--revenue">
+      <span class="finance-kpi-merged__hero-label"><i class="bi bi-cash-coin" aria-hidden="true"></i> รายรับ (Paid)</span>
+      <span class="finance-kpi-merged__hero-value finance-kpi-merged__hero-value--revenue"><%= number_to_thb(paid) %></span>
+      <span class="finance-kpi-merged__hero-sub"><%= paid_count %> paid</span>
+    </div>
+    <div class="finance-kpi-merged__hero-block finance-kpi-merged__hero-block--costs">
+      <span class="finance-kpi-merged__hero-label"><i class="bi bi-graph-down" aria-hidden="true"></i> ค่าใช้จ่าย</span>
+      <span class="finance-kpi-merged__hero-value finance-kpi-merged__hero-value--costs"><%= number_to_thb(total_costs) %></span>
+      <span class="finance-kpi-merged__hero-sub">incl. expenses</span>
+    </div>
+    <div class="finance-kpi-merged__hero-block finance-kpi-merged__hero-block--result">
+      <span class="finance-kpi-merged__hero-label"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> กำไร / ขาดทุน</span>
+      <span class="finance-kpi-merged__hero-value <%= profit_class %>"><%= number_to_thb(profit) %></span>
+      <span class="finance-kpi-merged__hero-sub">Margin <%= number_to_percent(margin) %></span>
+    </div>
+  </div>
+  <div class="finance-kpi-merged__meta">
+    <div class="finance-kpi-merged__meta-item">
+      <span class="finance-kpi-merged__meta-label"><i class="bi bi-currency-exchange"></i> Expected revenue</span>
+      <span class="finance-kpi-merged__meta-value"><%= number_to_thb(expected) %></span>
+    </div>
+    <div class="finance-kpi-merged__meta-item">
+      <span class="finance-kpi-merged__meta-label"><i class="bi bi-clock-history"></i> Outstanding</span>
+      <span class="finance-kpi-merged__meta-value <%= outstanding_variant %>"><%= number_to_thb(outstanding) %></span>
+      <span class="finance-kpi-merged__meta-sub"><%= pending_count %> pending</span>
+    </div>
+    <div class="finance-kpi-merged__meta-item">
+      <span class="finance-kpi-merged__meta-label"><i class="bi bi-percent"></i> Margin</span>
+      <span class="finance-kpi-merged__meta-value"><%= number_to_percent(margin) %></span>
+    </div>
+    <% if break_even_seats %>
+      <div class="finance-kpi-merged__meta-item">
+        <span class="finance-kpi-merged__meta-label"><i class="bi bi-people"></i> Break-even</span>
+        <span class="finance-kpi-merged__meta-value"><%= break_even_seats %> seats</span>
+      </div>
+    <% end %>
+    <div class="finance-kpi-merged__meta-item">
+      <span class="finance-kpi-merged__meta-label"><i class="bi bi-receipt"></i> Invoices</span>
+      <span class="finance-kpi-merged__meta-value"><%= invoices_issued %> issued</span>
+      <% if invoices_missing.positive? %><span class="finance-kpi-merged__meta-sub"><%= invoices_missing %> missing</span><% end %>
+    </div>
+  </div>
+</div>

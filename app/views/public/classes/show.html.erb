@@ -1,0 +1,19 @@
+<% content_for :title, @training_class.title %>
+<div class="public-class-page">
+  <div class="public-class-card">
+    <h1 class="public-class-title"><%= @training_class.title %></h1>
+    <div class="public-class-meta">
+      <span><i class="bi bi-calendar3"></i> <%= @training_class.date.strftime("%B %d, %Y") %><% if @training_class.end_date.present? && @training_class.end_date != @training_class.date %> – <%= @training_class.end_date.strftime("%B %d, %Y") %><% end %></span>
+      <% if @training_class.start_time.present? %><span><i class="bi bi-clock"></i> <%= @training_class.start_time.strftime("%I:%M %p") %><% if @training_class.end_time.present? %> – <%= @training_class.end_time.strftime("%I:%M %p") %><% end %></span><% end %>
+      <span><i class="bi bi-geo-alt"></i> <%= @training_class.location %></span>
+      <% if @training_class.instructor.present? %><span><i class="bi bi-person"></i> <%= @training_class.instructor %></span><% end %>
+      <% if @training_class.price.present? && @training_class.price > 0 %><span><i class="bi bi-currency-exchange"></i> <%= number_to_thb(@training_class.price) %> per seat</span><% end %>
+    </div>
+    <% if @training_class.description.present? %>
+      <div class="public-class-description"><%= simple_format(@training_class.description) %></div>
+    <% end %>
+    <div class="public-class-actions">
+      <%= link_to "Register interest", "#", class: "btn btn-primary btn-lg", data: { toast: "Registration coming soon" } %>
+    </div>
+  </div>
+</div>

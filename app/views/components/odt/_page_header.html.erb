@@ -7,16 +7,20 @@
   css << extra_class if extra_class.present?
 %>
 <header class="<%= css.join(' ') %>">
-  <div class="odt-page-header__text">
-    <h1 class="odt-page-header__title">
-      <% if icon.present? %><i class="bi bi-<%= icon %>" aria-hidden="true"></i><% end %>
-      <%= title %>
-    </h1>
-    <% if subtitle.present? %>
-      <p class="odt-page-header__subtitle"><%= subtitle %></p>
+  <div class="odt-page-header__accent" aria-hidden="true"></div>
+  <div class="odt-page-header__inner">
+    <div class="odt-page-header__left">
+      <h1 class="odt-page-header__title">
+        <% if icon.present? %><i class="bi bi-<%= icon %>" aria-hidden="true"></i><% end %>
+        <%= title %>
+      </h1>
+      <% if subtitle.present? %>
+        <p class="odt-page-header__subtitle"><%= subtitle %></p>
+        <span class="odt-page-header__underline" aria-hidden="true"></span>
+      <% end %>
+    </div>
+    <% if block_given? %>
+      <div class="odt-page-header__actions" aria-label="Page actions"><%= yield %></div>
     <% end %>
   </div>
-  <% if block_given? %>
-    <div class="odt-page-header__actions" aria-label="Page actions"><%= yield %></div>
-  <% end %>
 </header>

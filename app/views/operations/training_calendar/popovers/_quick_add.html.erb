@@ -1,0 +1,35 @@
+<%
+  training_class = local_assigns[:training_class] || TrainingClass.new
+  date = local_assigns[:date] || Date.current
+  time = local_assigns[:time]
+  training_class.date ||= date
+  training_class.start_time = time if time.present?
+%>
+<div class="tc-quick-add" id="quick_add_form" data-training-calendar-target="quickAddPopover" role="dialog" aria-label="Quick add class">
+  <h3 class="tc-quick-add__title">Quick add class</h3>
+  <%= form_with model: training_class, url: operations_training_calendar_create_class_path, method: :post, data: { controller: "training-calendar", action: "turbo:submit-end->training-calendar#onQuickAddSubmit" }, html: { id: "quick_add_form_form" } do |f| %>
+    <%= hidden_field_tag :start_date, params[:start_date] || Date.current.to_s %>
+    <%= hidden_field_tag :view, params[:view] || "month" %>
+    <div class="tc-quick-add__field">
+      <%= f.label :title, "Title" %>
+      <%= f.text_field :title, class: "tc-quick-add__input", required: true, placeholder: "Class name" %>
+    </div>
+    <div class="tc-quick-add__field">
+      <%= f.label :date, "Date" %>
+      <%= f.date_field :date, class: "tc-quick-add__input" %>
+    </div>
+    <div class="tc-quick-add__field">
+      <%= f.label :start_time, "Start" %>
+      <%= f.time_field :start_time, class: "tc-quick-add__input" %>
+    </div>
+    <div class="tc-quick-add__field">
+      <%= f.label :location, "Location" %>
+      <%= f.text_field :location, class: "tc-quick-add__input", required: true %>
+    </div>
+    <div class="tc-quick-add__actions">
+      <button type="submit" class="tc-quick-add__btn tc-quick-add__btn--primary">Add class</button>
+      <%= link_to "More options…", new_admin_training_class_path(date: training_class.date, start_time: training_class.start_time), class: "tc-quick-add__btn tc-quick-add__btn--secondary", data: { turbo_frame: "_top" } %>
+    </div>
+  <% end %>
+  <button type="button" class="tc-quick-add__close" aria-label="Close" data-action="click->training-calendar#closeQuickAdd">×</button>
+</div>

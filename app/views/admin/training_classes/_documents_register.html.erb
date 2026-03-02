@@ -6,13 +6,16 @@
   q = params[:doc_q].to_s.presence
   export_path = export_documents_admin_training_class_attendees_path(@training_class)
 %>
-<div class="card card--accent-left">
-  <div class="card__header">
-    <h3 class="card__title"><i class="bi bi-table" aria-hidden="true"></i> Document Register</h3>
-  </div>
-  <div class="card__body">
-    <div class="filters filters--compact documents-register-filters">
-      <%= form_with url: admin_training_class_path(@training_class), method: :get, local: true, data: { turbo_frame: "_top" }, class: "filters__form" do |f| %>
+<div class="odt-card odt-card--strip">
+  <header class="odt-card__header">
+    <div class="odt-card__header-inner">
+      <i class="bi bi-table" aria-hidden="true"></i>
+      <h2 class="odt-card__title">Document Register</h2>
+    </div>
+  </header>
+  <div class="odt-card__body">
+    <div class="filters filters--compact documents-register-filters" style="margin-bottom: 16px;">
+      <%= form_with url: edit_admin_training_class_path(@training_class), method: :get, local: true, data: { turbo_frame: "_top" }, class: "filters__form" do |f| %>
         <%= hidden_field_tag :tab, "documents" %>
         <%= hidden_field_tag :mode, "register" %>
         <div class="filters__row">
@@ -33,20 +36,20 @@
             <%= text_field_tag :doc_q, q, class: "filters__input", placeholder: "Customer", aria: { label: "Search customer" } %>
           </div>
           <div class="filters__actions">
-            <button type="submit" class="btn btn--secondary btn--sm">Apply</button>
-            <%= link_to "Clear", admin_training_class_path(@training_class, tab: "documents", mode: "register"), class: "btn btn--ghost btn--sm", aria: { label: "Clear filters" } %>
+            <button type="submit" class="odt-btn odt-btn--secondary odt-btn--sm">Apply</button>
+            <%= link_to "Clear", edit_admin_training_class_path(@training_class, tab: "documents", mode: "register"), class: "odt-btn odt-btn--ghost odt-btn--sm", aria: { label: "Clear filters" } %>
           </div>
         </div>
       <% end %>
     </div>
 
-    <div class="documents-register-bulk">
-      <span class="documents-register-bulk__count" id="doc-selected-count" aria-live="polite">0 selected</span>
-      <button type="button" class="btn btn--secondary btn--sm" id="doc-export-selected-btn" aria-label="Export selected to Excel">Export selected</button>
+    <div class="documents-register-bulk" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+      <span class="documents-register-bulk__count" id="doc-selected-count" aria-live="polite" style="font-size: 0.875rem; color: #6b7280;">0 selected</span>
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" id="doc-export-selected-btn" aria-label="Export selected to Excel">Export selected</button>
     </div>
 
-    <div class="data-table-wrap data-table-wrap--accent">
-      <table class="data-table" id="documents-table" role="table" aria-label="Document Register">
+    <div class="data-table-wrap">
+      <table class="data-table odt-premium-table" id="documents-table" role="table" aria-label="Document Register">
         <colgroup>
           <col class="col-xs">
           <col class="col-xs">
@@ -98,8 +101,8 @@
                 <input type="checkbox" class="form-check-input doc-export-checkbox" value="<%= attendee.id %>" aria-label="Select <%= attendee.name %>">
               </td>
               <td class="cell--center cell--num"><%= index + 1 %></td>
-              <td class="cell--truncate" title="<%= attendee.name %>">
-                <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "doc-name-link", title: attendee.name do %><%= attendee.name %><% end %>
+              <td class="cell--truncate doc-cell--clickable" title="<%= attendee.name %>">
+                <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "doc-name-link doc-name-link--view", title: "Click to view information" do %><%= attendee.name %><% end %>
               </td>
               <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข" role="button" tabindex="0"><%= attendee.quotation_no.presence || "—" %></td>
               <td class="cell--center cell--truncate doc-edit-cell" data-edit-section="doc-numbers" title="คลิกเพื่อแก้ไข" role="button" tabindex="0"><%= attendee.invoice_no.presence || "—" %></td>
@@ -115,19 +118,10 @@
               <td class="cell--center cell--truncate" title="<%= attendee.tax_id.presence || attendee.name_thai.presence || "—" %>"><%= attendee.tax_id.presence || attendee.name_thai.presence || "—" %></td>
               <td class="cell--center">
                 <% doc_complete = attendee.quotation_no.present? && attendee.invoice_no.present? && (attendee.payment_status != "Paid" || attendee.receipt_no.present?) %>
-                <% if doc_complete %>
-                  <span class="badge badge--success">Complete</span>
-                <% else %>
-                  <span class="badge badge--warning">Missing</span>
-                <% end %>
+                <%= doc_complete ? odt_badge("Complete", variant: :success, size: :sm) : odt_badge("Missing", variant: :warning, size: :sm) %>
               </td>
               <td class="cell-actions">
                 <%= link_to edit_admin_training_class_attendee_path(@training_class, attendee), class: "icon-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
-                <% if attendee.payment_slips.attached? %>
-                  <% attendee.payment_slips.first(1).each do |slip| %>
-                    <%= link_to rails_blob_path(slip, disposition: "inline"), target: "_blank", class: "icon-btn", title: "View slip", aria: { label: "View slip" } do %><i class="bi bi-receipt" aria-hidden="true"></i><% end %>
-                  <% end %>
-                <% end %>
               </td>
             </tr>
           <% end %>

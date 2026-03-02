@@ -1,0 +1,127 @@
+<%
+  tc = local_assigns[:training_class]
+  items = tc.checklist_items
+  notes = tc.notes
+  done_count = tc.checklist_done_count
+  total_count = tc.checklist_total_count
+  # Sort: incomplete first, then by due_date (earliest first)
+  sorted_items = items.sort_by do |i|
+    [(i["done"] ? 1 : 0), (i["due_date"].presence ? Date.parse(i["due_date"]) : Date.new(9999))]
+  end
+%>
+<%= odt_card(title: "Notes & Checklist", icon: "card-checklist", extra_class: "notes-checklist-card-odt") do %>
+  <div id="notes-checklist-card" class="notes-checklist-wrapper">
+    <ul class="nav nav-tabs notes-checklist-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="checklist-tab" data-bs-toggle="tab" data-bs-target="#checklist-pane" type="button" role="tab" aria-controls="checklist-pane" aria-selected="true">Checklist</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button" role="tab" aria-controls="notes-pane" aria-selected="false">Notes</button>
+      </li>
+    </ul>
+
+    <div class="tab-content notes-checklist-tab-content">
+      <div class="tab-pane fade show active" id="checklist-pane" role="tabpanel" aria-labelledby="checklist-tab">
+        <%= form_with url: update_checklist_admin_training_class_path(tc), method: :patch, local: true, data: { turbo_frame: "_top" }, class: "checklist-form" do %>
+          <% if total_count.positive? %>
+            <div class="checklist-progress">
+              <span class="checklist-progress__text"><%= done_count %> / <%= total_count %> completed</span>
+              <div class="checklist-progress__bar" role="progressbar" aria-valuenow="<%= total_count.positive? ? (done_count * 100 / total_count) : 0 %>" aria-valuemin="0" aria-valuemax="100">
+                <div class="checklist-progress__fill" style="width: <%= total_count.positive? ? (done_count * 100 / total_count) : 0 %>%;"></div>
+              </div>
+            </div>
+            <div class="checklist-filters">
+              <button type="button" class="checklist-filter-chip active" data-filter="all">All</button>
+              <button type="button" class="checklist-filter-chip" data-filter="todo">Todo</button>
+              <button type="button" class="checklist-filter-chip" data-filter="done">Done</button>
+              <button type="button" class="checklist-filter-chip" data-filter="overdue">Overdue</button>
+            </div>
+            <div class="checklist-items">
+              <% sorted_items.each_with_index do |item, idx| %>
+                <%
+                  item_id = item["id"] || SecureRandom.uuid
+                  due_date = item["due_date"].presence ? Date.parse(item["due_date"]) : nil
+                  is_overdue = due_date && due_date < Date.current && !item["done"]
+                %>
+                <div class="checklist-item related-links-row-hover" data-filter-todo="<%= !item["done"] %>" data-filter-done="<%= item["done"] %>" data-filter-overdue="<%= is_overdue %>">
+                  <input type="hidden" name="checklist_items[][id]" value="<%= item_id %>">
+                  <input type="hidden" name="checklist_items[][title]" value="<%= item["title"] %>">
+                  <input type="hidden" name="checklist_items[][done]" value="<%= item["done"] ? "1" : "0" %>" class="checklist-done-hidden">
+                  <input type="hidden" name="checklist_items[][due_date]" value="<%= item["due_date"] %>">
+                  <input type="hidden" name="checklist_items[][owner]" value="<%= item["owner"] %>">
+                  <input type="hidden" name="checklist_items[][priority]" value="<%= item["priority"].presence || "Med" %>">
+                  <input type="hidden" name="checklist_items[][created_at]" value="<%= item["created_at"] %>">
+                  <div class="checklist-item__main">
+                    <label class="checklist-item__checkbox">
+                      <input type="checkbox" class="checklist-toggle-done" <%= "checked" if item["done"] %>>
+                    </label>
+                    <div class="checklist-item__content">
+                      <span class="checklist-item__title <%= "checklist-item__title--done" if item["done"] %>"><%= item["title"] %></span>
+                      <div class="checklist-item__meta">
+                        <% if due_date %>
+                          <span class="checklist-item__due <%= "checklist-item__due--overdue" if is_overdue %>"><%= due_date.strftime("%b %d") %></span>
+                        <% end %>
+                        <% if item["owner"].present? %>
+                          <span class="checklist-item__owner"><%= item["owner"] %></span>
+                        <% end %>
+                        <%= odt_badge(item["priority"].presence || "Med", variant: (item["priority"] == "High" ? :danger : (item["priority"] == "Low" ? :neutral : :warning)), size: :sm) %>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="checklist-item__actions">
+                    <button type="button" class="checklist-action-btn checklist-edit-btn" title="Edit"><i class="bi bi-pencil"></i></button>
+                    <button type="button" class="checklist-action-btn checklist-action-btn--danger checklist-delete-btn" title="Delete"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="checklist-empty">
+              <p class="checklist-empty__text">Add your first task</p>
+            </div>
+          <% end %>
+
+          <div class="checklist-add-row">
+            <input type="text" class="form-control checklist-add-input" placeholder="Add checklist item…">
+          </div>
+          <div class="checklist-form-actions">
+            <button type="submit" class="btn btn--primary btn--sm">Save</button>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="tab-pane fade" id="notes-pane" role="tabpanel" aria-labelledby="notes-tab">
+        <%= form_with url: add_note_admin_training_class_path(tc), method: :post, local: true, data: { turbo_frame: "_top" }, class: "notes-add-form" do |f| %>
+          <div class="notes-add-form__field">
+            <textarea name="note[text]" class="form-control notes-add-textarea" rows="2" placeholder="Write update…" required></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary btn--sm">Add note</button>
+        <% end %>
+        <div id="notes-tab-content" class="notes-timeline">
+          <% if notes.blank? %>
+            <p class="notes-empty">No notes yet.</p>
+          <% else %>
+            <% notes.last(5).reverse.each do |note| %>
+              <div class="notes-timeline__item" data-note-id="<%= note["id"] %>">
+                <div class="notes-timeline__meta">
+                  <span class="notes-timeline__author"><%= note["author"].presence || "Admin" %></span>
+                  <span class="notes-timeline__time"><%= Time.parse(note["created_at"]).strftime("%b %d, %H:%M") rescue "—" %></span>
+                  <div class="dropdown ms-auto">
+                    <button type="button" class="btn btn-sm btn-link text-muted p-0 notes-kebab-btn" data-bs-toggle="dropdown" aria-expanded="false" title="More"><i class="bi bi-three-dots-vertical"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><%= link_to delete_note_admin_training_class_path(tc, note_id: note["id"]), data: { turbo_method: :delete, turbo_confirm: "Delete this note?" }, class: "dropdown-item dropdown-item-danger" do %><i class="bi bi-trash"></i> Delete<% end %></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="notes-timeline__content"><%= simple_format(note["text"].to_s) %></div>
+              </div>
+            <% end %>
+            <% if notes.size > 5 %>
+              <p class="notes-show-more">Show more</p>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -2,7 +2,7 @@
   <div class="cfo-finance-header">
     <div>
       <div class="cfo-finance-header__breadcrumb">
-        <%= link_to "Training Classes", admin_training_classes_path %> &rarr; <%= link_to training_class.title, admin_training_class_path(training_class) %> &rarr; Finance
+        <%= link_to "Training Classes", admin_training_classes_path %> &rarr; <%= link_to training_class.title, edit_admin_training_class_path(training_class) %> &rarr; Finance
       </div>
       <h1 class="cfo-finance-header__title">Finance Dashboard &middot; <%= training_class.title %></h1>
       <div class="odt-filters-row__row cfo-finance-filters">

@@ -55,7 +55,7 @@
               <span class="insight-action-list__client"><%= a[:client] %></span>
               <span class="insight-action-list__meta"><%= a[:amount].present? ? number_to_thb(a[:amount].to_f) : "—" %> · <%= a[:days_overdue].present? ? "#{a[:days_overdue]} days overdue" : "Overdue" %></span>
               <div class="insight-action-list__cta">
-                <%= link_to "View invoice", a[:training_class_id].present? ? finance_admin_training_class_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                <%= link_to "View invoice", a[:training_class_id].present? ? admin_class_workspace_finance_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
                 <span class="odt-btn odt-btn--ghost odt-btn--sm">Send reminder</span>
               </div>
             </li>
@@ -72,7 +72,7 @@
               <span class="insight-action-list__client"><%= a[:client_or_class] %></span>
               <span class="insight-action-list__meta">Paid, receipt not uploaded</span>
               <div class="insight-action-list__cta">
-                <%= link_to "View", a[:training_class_id].present? ? admin_training_class_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                <%= link_to "View", a[:training_class_id].present? ? admin_class_workspace_path(a[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
               </div>
             </li>
           <% end %>
@@ -127,7 +127,7 @@
                 <span class="insight-action-list__client"><%= c[:label].to_s.sub(/^Low enrollment: /, "") %></span>
                 <span class="insight-action-list__meta">Low fill</span>
                 <div class="insight-action-list__cta">
-                  <%= link_to "View class", c[:training_class_id].present? ? admin_training_class_path(c[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+                  <%= link_to "View class", c[:training_class_id].present? ? admin_class_workspace_path(c[:training_class_id]) : "#", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
                   <span class="odt-btn odt-btn--ghost odt-btn--sm">Create promo</span>
                   <span class="odt-btn odt-btn--ghost odt-btn--sm">Send campaign</span>
                 </div>
@@ -153,6 +153,6 @@
     { key: :owner, label: "Owner" },
     { key: :_action, label: "Action" }
   ], rows: follow_up_rows, empty_message: "No follow-ups." do |row_h| %>
-    <%= link_to "View", row_h[:training_class_id].present? ? admin_training_class_path(row_h[:training_class_id]) : admin_customers_path, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    <%= link_to "View", row_h[:training_class_id].present? ? admin_class_workspace_path(row_h[:training_class_id]) : admin_customers_path, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
   <% end %>
 </div>

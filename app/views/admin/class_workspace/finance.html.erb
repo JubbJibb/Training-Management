@@ -1,0 +1,58 @@
+<%= render layout: "layouts/class_workspace" do %>
+  <%= content_for :footer_scripts do %>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+      (function() {
+        function initRevenueExpensesChart() {
+          var el = document.querySelector('[data-revenue-expenses-chart]');
+          if (!el || typeof Chart === 'undefined') return;
+          var src = el.querySelector('[data-revenue-expenses-source]');
+          if (!src) return;
+          try {
+            var data = JSON.parse(src.textContent);
+            var revenue = data.revenue || 0;
+            var expenses = data.expenses || 0;
+            var ctx = el.querySelector('canvas');
+            if (!ctx) return;
+            if (ctx.chart) { ctx.chart.destroy(); ctx.chart = null; }
+            ctx.chart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: ['', ''],
+                datasets: [
+                  { label: 'Amount', data: [revenue, expenses], backgroundColor: ['#059669', '#dc2626'], borderWidth: 0, borderRadius: [0, 8, 8, 0] }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                indexAxis: 'y',
+                barPercentage: 0.35,
+                categoryPercentage: 0.92,
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.08)' },
+                    ticks: { callback: function(v) { return v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : (v >= 1e3 ? (v/1e3).toFixed(0) + 'k' : v); } }
+                  },
+                  y: {
+                    grid: { display: true, color: 'rgba(0,0,0,0.08)' },
+                    ticks: { display: false }
+                  }
+                },
+                plugins: { legend: { display: false } }
+              }
+            });
+          } catch (e) {}
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initRevenueExpensesChart);
+        } else {
+          initRevenueExpensesChart();
+        }
+        document.addEventListener('turbo:frame-render', function() { setTimeout(initRevenueExpensesChart, 50); });
+      })();
+    </script>
+  <% end %>
+  <%= render "admin/class_workspace/sections/finance" %>
+<% end %>

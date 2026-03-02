@@ -1,0 +1,43 @@
+<%
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  result = summary.dig(:result) || {}
+  currency = summary[:currency] || "THB"
+  cost_total = costs[:total].to_f
+  has_costs = cost_total.positive?
+  tc = local_assigns[:training_class] || @training_class
+  view_finance_path = edit_admin_training_class_path(tc, tab: "finance")
+%>
+<div class="finance-dash-card">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__header">
+    <span class="finance-dash-card__title"><i class="bi bi-graph-up" aria-hidden="true"></i> Mini P&L</span>
+    <%= link_to "View finance", view_finance_path, class: "finance-dash-card__action", data: { turbo_frame: "_top" } %>
+  </div>
+  <div class="finance-dash-card__body">
+    <div class="finance-dash-grid finance-dash-grid--2">
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-currency-exchange"></i></span><span class="finance-dash-metric__label">Expected</span><span class="finance-dash-metric__value"><%= number_to_thb(rev[:expected].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-cash-coin"></i></span><span class="finance-dash-metric__label">Paid</span><span class="finance-dash-metric__value finance-dash-metric__value--success"><%= number_to_thb(rev[:paid].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-clock"></i></span><span class="finance-dash-metric__label">Outstanding</span><span class="finance-dash-metric__value finance-dash-metric__value--warning"><%= number_to_thb(rev[:outstanding].to_f) %></span></div>
+    </div>
+    <h4 class="finance-dash-subheading">Costs</h4>
+    <div class="finance-dash-grid finance-dash-grid--2">
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-person"></i></span><span class="finance-dash-metric__label">Instructor</span><span class="finance-dash-metric__value"><%= number_to_thb(costs[:instructor_fee].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-building"></i></span><span class="finance-dash-metric__label">Venue</span><span class="finance-dash-metric__value"><%= number_to_thb(costs[:venue].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-cup-hot"></i></span><span class="finance-dash-metric__label">Food</span><span class="finance-dash-metric__value"><%= number_to_thb(costs[:food].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-box-seam"></i></span><span class="finance-dash-metric__label">Materials</span><span class="finance-dash-metric__value"><%= number_to_thb(costs[:materials].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-three-dots"></i></span><span class="finance-dash-metric__label">Other</span><span class="finance-dash-metric__value"><%= number_to_thb(costs[:other].to_f) %></span></div>
+      <div class="finance-dash-metric finance-dash-metric--total"><span class="finance-dash-metric__label">Total costs</span><span class="finance-dash-metric__value"><%= number_to_thb(cost_total) %></span></div>
+    </div>
+    <% unless has_costs %>
+      <p class="finance-dash-hint"><i class="bi bi-info-circle"></i> No costs recorded yet. <%= link_to "Add costs", new_admin_training_class_class_expense_path(tc), class: "finance-dash-hint__link", data: { turbo_frame: "_top" } %> to see profit accurately.</p>
+    <% end %>
+    <h4 class="finance-dash-subheading">Result</h4>
+    <div class="finance-dash-grid finance-dash-grid--2">
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-graph-up-arrow"></i></span><span class="finance-dash-metric__label">Profit</span><span class="finance-dash-metric__value <%= result[:profit].to_f >= 0 ? 'finance-dash-metric__value--success' : 'finance-dash-metric__value--danger' %>"><%= number_to_thb(result[:profit].to_f) %></span></div>
+      <div class="finance-dash-metric"><span class="finance-dash-metric__icon"><i class="bi bi-percent"></i></span><span class="finance-dash-metric__label">Margin</span><span class="finance-dash-metric__value"><%= result[:margin_pct].to_f %>%</span></div>
+    </div>
+    <p class="finance-dash-currency text-muted small">All amounts in <%= currency %></p>
+  </div>
+</div>

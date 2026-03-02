@@ -1,0 +1,67 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  notes = training_class.internal_notes.to_s
+  updated_at = training_class.internal_notes_updated_at
+  updated_by = training_class.internal_notes_updated_by
+  quick_tags = %w[Ops Sales Venue Invoice Food]
+  no_card = local_assigns[:no_card]
+%>
+<div id="workspace-notes-card">
+<% if no_card %>
+  <p class="overview-detail__inline-label">Notes (internal)</p>
+  <div id="workspace-notes-errors"></div>
+  <%= form_with url: admin_class_workspace_notes_path(training_class), method: :patch, id: "workspace-notes-form", class: "notes-form" do |f| %>
+    <div class="notes-form__tags mb-2">
+      <% quick_tags.each do |tag| %>
+        <button type="button" class="notes-form__tag odt-btn odt-btn--ghost odt-btn--sm" data-notes-tag="[<%= tag %>] " title="Insert tag"><%= tag %></button>
+      <% end %>
+    </div>
+    <%= text_area_tag :internal_notes, notes, class: "form-control notes-form__textarea", rows: 4, placeholder: "Internal notes...", data: { notes_target: "input" } %>
+    <div class="notes-form__meta mt-2">
+      <% if updated_at.present? %>
+        <span class="text-muted small">Last updated <%= l(updated_at, format: :short) %><% if updated_by.present? %> by <%= updated_by.email %><% end %></span>
+      <% else %>
+        <span class="text-muted small">Not saved yet</span>
+      <% end %>
+    </div>
+    <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm mt-2">Save notes</button>
+  <% end %>
+<% else %>
+  <%= odt_card title: "Notes (internal)", icon: "chat-left-text", extra_class: "overview-control-rail__card" do %>
+    <div id="workspace-notes-errors"></div>
+    <%= form_with url: admin_class_workspace_notes_path(training_class), method: :patch, id: "workspace-notes-form", class: "notes-form" do |f| %>
+      <div class="notes-form__tags mb-2">
+        <% quick_tags.each do |tag| %>
+          <button type="button" class="notes-form__tag odt-btn odt-btn--ghost odt-btn--sm" data-notes-tag="[<%= tag %>] " title="Insert tag"><%= tag %></button>
+        <% end %>
+      </div>
+      <%= text_area_tag :internal_notes, notes, class: "form-control notes-form__textarea", rows: 6, placeholder: "Internal notes (supports bullet lists, multiple lines)...", data: { notes_target: "input" } %>
+      <div class="notes-form__meta mt-2">
+        <% if updated_at.present? %>
+          <span class="text-muted small">Last updated <%= l(updated_at, format: :short) %><% if updated_by.present? %> by <%= updated_by.email %><% end %></span>
+        <% else %>
+          <span class="text-muted small">Not saved yet</span>
+        <% end %>
+      </div>
+      <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm mt-2">Save notes</button>
+    <% end %>
+  <% end %>
+<% end %>
+</div>
+<script>
+(function() {
+  var form = document.getElementById('workspace-notes-form');
+  if (!form) return;
+  form.querySelectorAll('[data-notes-tag]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var ta = form.querySelector('[data-notes-target="input"]');
+      if (!ta) return;
+      var tag = btn.getAttribute('data-notes-tag');
+      var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+      ta.value = val.slice(0, start) + tag + val.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + tag.length;
+      ta.focus();
+    });
+  });
+})();
+</script>

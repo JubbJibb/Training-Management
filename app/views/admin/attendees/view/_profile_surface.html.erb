@@ -1,0 +1,33 @@
+<% attendee = local_assigns[:attendee] %>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-person" aria-hidden="true"></i>
+    <span>Profile</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <div class="attendee-view-grid">
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Name</span>
+        <span class="attendee-view-value"><%= attendee.name %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Email</span>
+        <span class="attendee-view-value"><%= attendee.email %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Phone</span>
+        <span class="attendee-view-value"><%= attendee.phone.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Type</span>
+        <span class="attendee-view-value"><%= attendee.participant_type == "Corp" ? "Corporate" : "Individual" %></span>
+      </div>
+      <% if attendee.participant_type == "Corp" && attendee.company.present? %>
+        <div class="attendee-view-row">
+          <span class="attendee-view-label">Company</span>
+          <span class="attendee-view-value"><%= attendee.company %></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

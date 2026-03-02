@@ -9,7 +9,7 @@
 
 <div class="financials-payment-page">
   <%= render "components/odt/page_header", title: "Payment Summary", subtitle: "#{training_class.title} · #{attendee.name}", icon: "receipt" do %>
-    <%= link_to financials_payment_tracking_path, class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+    <%= link_to financials_payments_path, class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
       <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Payment Tracking
     <% end %>
   <% end %>
@@ -25,7 +25,10 @@
     </div>
   <% end %>
 
-  <%= render "financials/payments/summary_card" %>
+  <%= link_to summary_financials_payment_path(attendee), class: "odt-btn odt-btn--ghost odt-btn--sm financials-payment-preview-link" do %>
+  <i class="bi bi-eye" aria-hidden="true"></i> Preview summary
+<% end %>
+<%= render "financials/payments/summary_card" %>
 
   <div class="financials-send-section">
     <div class="financials-send-section__accent"></div>
@@ -38,7 +41,7 @@
       </div>
     <% end %>
 
-    <%= form_with url: send_summary_financials_payment_path(attendee), method: :post, local: true, class: "financials-send-form" do |f| %>
+    <%= form_with url: send_summary_financials_payment_path(attendee), method: :post, local: true, class: "financials-send-form", data: { turbo_frame: "_top" } do |f| %>
       <div class="financials-send-form__field">
         <label for="send_to" class="financials-send-form__label">To <span class="required">*</span></label>
         <input type="email" name="to" id="send_to" class="financials-send-form__input" value="<%= default_to %>" placeholder="customer@example.com" required>

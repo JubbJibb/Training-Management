@@ -3,6 +3,10 @@
     <%= hidden_field_tag :tab, @tab %>
     <div class="tc-index-filter-bar__row">
       <div class="tc-index-filter-bar__field">
+        <label for="tc_filter_class_type" class="tc-index-filter-bar__label">Class type</label>
+        <%= select_tag :class_type, options_for_select([["All", ""], ["Public", "public"], ["Private", "private"]], params[:class_type]), id: "tc_filter_class_type", class: "tc-index-filter-bar__input" %>
+      </div>
+      <div class="tc-index-filter-bar__field">
         <label for="tc_filter_instructor" class="tc-index-filter-bar__label">Instructor</label>
         <%= select_tag :instructor, options_for_select([["All", ""]] + (@filter_instructors || []).map { |i| [i, i] }, params[:instructor]), id: "tc_filter_instructor", class: "tc-index-filter-bar__input" %>
       </div>

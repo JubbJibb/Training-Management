@@ -1,7 +1,14 @@
 class TrainingClass < ApplicationRecord
+  include TrainingClassPublicSlug
+
   has_many :attendees, dependent: :destroy
   has_many :class_expenses, dependent: :destroy
-  
+  belongs_to :internal_notes_updated_by, class_name: "AdminUser", optional: true
+
+  serialize :related_links, coder: JSON
+  serialize :checklist_items, coder: JSON
+  serialize :notes, coder: JSON
+
   validates :title, presence: true
   validates :date, presence: true
   validates :location, presence: true
@@ -44,6 +51,17 @@ class TrainingClass < ApplicationRecord
     "Upcoming"
   end
 
+  # For command bar status pill: Draft / Scheduled / Completed
+  def status_pill
+    return "Cancelled" if respond_to?(:cancelled?) && cancelled?
+    return "Completed" if date < Date.today || (end_date.present? && end_date < Date.today)
+    "Scheduled"
+  end
+
+  def outstanding_amount
+    attendees.attendees.select { |a| a.payment_status != "Paid" }.sum(&:total_final_price)
+  end
+
   def duration
     # Calculate duration in days
     # Use end_date if available, otherwise use date (single day class)
@@ -62,5 +80,26 @@ class TrainingClass < ApplicationRecord
   def duration_in_days
     end_date_value = end_date || date
     (end_date_value - date).to_i + 1
+  end
+
+  # Related links, checklist, notes (JSON columns)
+  def related_links
+    super.presence || []
+  end
+
+  def checklist_items
+    super.presence || []
+  end
+
+  def notes
+    super.presence || []
+  end
+
+  def checklist_done_count
+    checklist_items.count { |i| i["done"] == true }
+  end
+
+  def checklist_total_count
+    checklist_items.size
   end
 end

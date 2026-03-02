@@ -1,0 +1,524 @@
+/*
+ * ODT Card Design System – premium SaaS card-based dashboard
+ * Use with: .odt-card, .odt-card__header, .odt-card__body, .odt-kpi-tile, .odt-accent-yellow
+ */
+
+/* ---- Card base ---- */
+.odt-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(41, 41, 41, 0.06);
+  overflow: hidden;
+}
+
+.odt-card__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eef2ff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.odt-card__header .bi {
+  color: var(--odt-blue, #13139c);
+  font-size: 1.125rem;
+}
+
+.odt-card__title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.odt-card__body {
+  padding: 20px;
+}
+
+/* Accent (yellow line / border) */
+.odt-accent-yellow {
+  border-color: #ffc700;
+}
+
+.odt-card__header.odt-accent-yellow {
+  border-left: 4px solid #ffc700;
+}
+
+/* ---- Blue compact card (Class Details on overview) ---- */
+.odt-card--blue {
+  background: linear-gradient(180deg, rgba(30, 58, 138, 0.03), rgba(30, 58, 138, 0) 120px), #fff;
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.06);
+  margin-bottom: 18px;
+}
+
+.odt-card__top-strip {
+  height: 6px;
+  background: #0b1f5c;
+}
+
+.odt-card--blue .odt-card__header {
+  padding: 16px 18px 10px 18px;
+  border-bottom: none;
+  display: block;
+}
+
+.odt-card__title-row {
+  margin: 0;
+}
+
+.odt-card--blue .odt-card__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0b1f5c;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.odt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.odt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(11, 31, 92, 0.06);
+  border: 1px solid rgba(11, 31, 92, 0.10);
+  color: #0b1f5c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.odt-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  padding: 12px 18px 16px 18px;
+}
+
+.odt-stat {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.02);
+  border: 1px solid rgba(2, 6, 23, 0.06);
+}
+
+.odt-stat__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #101828;
+  line-height: 1.2;
+}
+
+.odt-stat__label {
+  font-size: 12px;
+  color: #667085;
+  margin-top: 2px;
+}
+
+.odt-divider {
+  height: 1px;
+  background: rgba(16, 24, 40, 0.08);
+  margin: 0 18px;
+}
+
+.odt-desc {
+  padding: 14px 18px 16px 18px;
+}
+
+.odt-desc__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1f5c;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.odt-desc__text {
+  color: #475467;
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+.odt-desc__text--muted {
+  color: #98a2b3;
+}
+
+.odt-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.odt-desc.is-expanded .odt-desc__text.odt-clamp-3 {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  display: block;
+}
+
+.odt-link-button {
+  margin-top: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.odt-link-button:hover {
+  text-decoration: underline;
+}
+
+.odt-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(11, 31, 92, 0.12);
+  flex-shrink: 0;
+}
+
+.odt-icon .bi {
+  font-size: 10px;
+  color: #0b1f5c;
+}
+
+/* ---- Overview grid ---- */
+.overview-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .overview-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.overview-cards-grid__left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.overview-cards-grid__right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---- Class details card: 2-col key/value ---- */
+.odt-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+@media (max-width: 480px) {
+  .odt-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.odt-details-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.odt-details-row__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.odt-details-row__value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.odt-card__description {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.odt-card__description .description-block__content--collapsed {
+  max-height: 3.6em;
+  overflow: hidden;
+}
+
+.odt-card__description .description-block__expand {
+  margin-top: 6px;
+}
+
+.odt-card__description .description-block__toggle {
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: var(--odt-blue, #13139c);
+  list-style: none;
+}
+
+.odt-card__description .description-block__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.odt-card__description .description-block__full {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ---- KPI tiles (inside Executive Snapshot card) ---- */
+.odt-kpi-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .odt-kpi-tiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.odt-kpi-tile {
+  background: #f8f9fc;
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid #eef2ff;
+}
+
+.odt-kpi-tile__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.odt-kpi-tile__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.odt-kpi-tile__status {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.odt-kpi-tile__status--on-track,
+.odt-kpi-tile__status--settled,
+.odt-kpi-tile__status--ready {
+  color: #059669;
+}
+
+.odt-kpi-tile__status--building,
+.odt-kpi-tile__status--pending {
+  color: #d97706;
+}
+
+.odt-kpi-tile__status--low,
+.odt-kpi-tile__status--outstanding {
+  color: #dc2626;
+}
+
+/* ---- Attention Needed card (yellow soft + navy accent) ---- */
+.odt-card--attention {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  border-left: 4px solid #012a71;
+}
+
+.odt-card--attention .odt-card__header {
+  border-bottom-color: rgba(1, 42, 113, 0.12);
+}
+
+.odt-card--attention .odt-card__title {
+  color: #92400e;
+}
+
+.odt-card--attention .odt-card__body {
+  padding-top: 12px;
+}
+
+.odt-attention-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.odt-attention-list li {
+  padding: 6px 0;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+}
+
+.odt-attention-list li::before {
+  content: "• ";
+  color: #d97706;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.odt-attention-cta {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.odt-attention-cta a {
+  color: var(--odt-blue, #13139c);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.odt-attention-cta a:hover {
+  text-decoration: underline;
+}
+
+/* ---- Attendance card ---- */
+.odt-attendance-hero {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+
+.odt-attendance-bar-wrap {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.odt-attendance-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #13139c 0%, #ffc700 100%);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.odt-attendance-meta {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.odt-attendance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.odt-attendance-actions .odt-btn,
+.odt-attendance-actions a.odt-btn {
+  font-size: 0.875rem;
+}
+
+/* ---- Quick Finance card (table-like rows) ---- */
+.odt-finance-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.odt-finance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.odt-finance-row:last-child {
+  border-bottom: none;
+}
+
+.odt-finance-row__label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.odt-finance-row__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.odt-finance-row__value--positive {
+  color: #059669;
+}
+
+.odt-finance-row__value--outstanding {
+  color: #dc2626;
+}
+
+.odt-finance-row__value--warning {
+  color: #d97706;
+}
+
+/* ---- Related Links card ---- */
+.odt-links-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.odt-links-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.odt-links-list li:last-child {
+  border-bottom: none;
+}
+
+.odt-links-list a {
+  color: var(--odt-blue, #13139c);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.odt-links-list a:hover {
+  text-decoration: underline;
+}
+
+.odt-links-add {
+  margin-top: 8px;
+}

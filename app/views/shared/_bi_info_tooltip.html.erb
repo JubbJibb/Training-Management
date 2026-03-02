@@ -1,0 +1,29 @@
+<%# Reusable Flowbite-style info tooltip. Locals: title, body, placement (top|bottom|left|right, default top). %>
+<%
+  title = local_assigns[:title].to_s
+  body  = local_assigns[:body].to_s
+  placement = (local_assigns[:placement] || "top").to_s
+  id = "bi-tt-#{SecureRandom.hex(4)}"
+%>
+<% if title.present? %>
+<span class="bi-info-tooltip" data-placement="<%= placement %>">
+  <button type="button"
+          class="bi-info-tooltip__trigger"
+          aria-label="<%= title %>"
+          aria-describedby="<%= id %>"
+          data-bi-tooltip-trigger>
+    <svg class="bi-info-tooltip__icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 16v-4M12 8h.01"/>
+    </svg>
+  </button>
+  <span id="<%= id %>"
+        class="bi-info-tooltip__content"
+        role="tooltip"
+        data-bi-tooltip-content>
+    <span class="bi-info-tooltip__title"><%= title %></span>
+    <span class="bi-info-tooltip__body"><%= body %></span>
+    <span class="bi-info-tooltip__arrow" aria-hidden="true"></span>
+  </span>
+</span>
+<% end %>

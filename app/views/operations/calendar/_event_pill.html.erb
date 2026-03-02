@@ -11,7 +11,7 @@
   registered = event.total_registered_seats
   fill_text = (max_seats.positive? && fill_pct) ? "#{fill_pct}% (#{registered}/#{max_seats})" : nil
 %>
-<%= link_to operations_calendar_event_path(event), class: "calendar-event-pill #{'calendar-event-pill--cancelled' if cancelled}", data: { turbo_frame: "calendar_side_panel" } do %>
+<%= link_to operations_calendar_event_path(event), class: "calendar-event-pill #{'calendar-event-pill--cancelled' if cancelled}", data: { turbo_frame: "_top" } do %>
   <span class="calendar-event-pill__title" title="<%= event.title %>"><%= truncate(event.title, length: 28) %></span>
   <% if time_str.present? %>
     <span class="calendar-event-pill__time"><%= time_str %></span>

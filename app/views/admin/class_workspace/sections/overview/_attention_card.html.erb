@@ -1,0 +1,41 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || tc.checklist_items.presence || []
+  incomplete = checklist_items.reject { |i| i["done"] }
+  outstanding = tc.outstanding_amount
+  public_enabled = tc.respond_to?(:public_enabled?) && tc.public_enabled?
+  issues = []
+  issues << { label: "Checklist incomplete (#{incomplete.size} items)", cta: "Open Checklist", path: admin_class_workspace_edit_path(tc) } if incomplete.any?
+  issues << { label: "Outstanding payment: #{number_to_thb(outstanding)}", cta: "View Finance", path: admin_class_workspace_finance_path(tc) } if outstanding.positive?
+  issues << { label: "Public page disabled", cta: "Enable Public Page", path: admin_class_workspace_public_path(tc), method: :patch, params: { public_enabled: true } } if !public_enabled && tc.respond_to?(:public_enabled?)
+  show_card = issues.any?
+%>
+<% if show_card %>
+  <%= turbo_frame_tag "attention_needed_card" do %>
+    <div class="insight-card insight-card--attention">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Attention needed</h3>
+          <p class="insight-card__subtitle">Items requiring action</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <ul class="odt-attention-list">
+          <% issues.first(3).each do |issue| %>
+            <li><%= issue[:label] %></li>
+          <% end %>
+        </ul>
+        <div class="odt-attention-ctas">
+          <% issues.first(3).each do |issue| %>
+            <% if issue[:method] == :patch %>
+              <%= button_to issue[:cta], issue[:path], method: :patch, params: issue[:params] || {}, class: "odt-btn odt-btn--primary odt-btn--sm", form: { data: { turbo_frame: "_top" } } %>
+            <% else %>
+              <%= link_to issue[:cta], issue[:path], class: "odt-btn odt-btn--primary odt-btn--sm" %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

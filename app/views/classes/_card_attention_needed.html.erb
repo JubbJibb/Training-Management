@@ -1,0 +1,26 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  incomplete_items = local_assigns[:incomplete_items]
+  incomplete_items ||= (local_assigns[:checklist_items] || @checklist_items || klass.checklist_items.presence || []).reject { |i| i["done"] }
+  show_card = incomplete_items.any?
+%>
+<% if show_card %>
+  <%= turbo_frame_tag "attention_needed_card" do %>
+    <div class="odt-card odt-attention-panel">
+      <header class="odt-card__header">
+        <div class="odt-card__header-inner">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          <h2 class="odt-card__title">Attention needed</h2>
+        </div>
+      </header>
+      <div class="odt-card__body">
+        <ul class="odt-attention-list">
+          <% incomplete_items.each do |item| %>
+            <li><%= item["title"] %></li>
+          <% end %>
+        </ul>
+        <p class="odt-attention-cta"><%= link_to "Complete preparation →", admin_class_workspace_edit_path(klass) %></p>
+      </div>
+    </div>
+  <% end %>
+<% end %>

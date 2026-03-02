@@ -2,8 +2,8 @@
   mode = params[:mode].to_s.presence || "queue"
   is_queue = (mode == "queue")
   doc_filter = params[:doc_filter].to_s.presence
-  queue_url = admin_training_class_path(@training_class, tab: "documents", mode: "queue")
-  register_url = admin_training_class_path(@training_class, tab: "documents", mode: "register")
+  queue_url = edit_admin_training_class_path(@training_class, tab: "documents", mode: "queue")
+  register_url = edit_admin_training_class_path(@training_class, tab: "documents", mode: "register")
 
   # Queue counts from @attendees
   need_qt = @attendees.select { |a| a.quotation_no.blank? }
@@ -11,9 +11,9 @@
   paid_missing_receipt = @attendees.select { |a| a.payment_status == "Paid" && a.receipt_no.blank? }
   missing_slip = @attendees.select { |a| !a.payment_slips.attached? || a.payment_slips.empty? }
 %>
-<div class="documents-tab">
+<div class="documents-tab documents-tab--odt">
   <% export_cta = capture do %>
-    <button type="button" class="btn btn--primary" data-bs-toggle="modal" data-bs-target="#exportExcelModal" aria-label="Export to Excel (Accounting)" id="doc-export-primary-cta">
+    <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-bs-toggle="modal" data-bs-target="#exportExcelModal" aria-label="Export to Excel (Accounting)" id="doc-export-primary-cta">
       <i class="bi bi-download" aria-hidden="true"></i>
       Export to Excel (Accounting)
     </button>
@@ -24,7 +24,7 @@
       actions: export_cta,
       extra_class: "documents-tab__header" %>
 
-  <nav class="tabs tabs--sub" role="tablist" aria-label="Document view mode">
+  <nav class="tabs tabs--sub tabs--odt" role="tablist" aria-label="Document view mode">
     <%= link_to queue_url, class: "tabs__tab #{'active' if is_queue}", role: "tab", aria_selected: is_queue do %>
       <i class="bi bi-list-check" aria-hidden="true"></i>
       Document Queue

@@ -1,0 +1,146 @@
+/*
+ * Financials submenu — Material 3 style
+ * 16px rounded, soft shadow, 52–56px rows, icon + label, hover/selected, divider before Export History
+ * Indicators: ! (alert), • (recent), count badge
+ */
+
+.nav-dropdown--financials {
+  position: relative;
+}
+
+.nav-dropdown--financials .nav-dropdown__toggle {
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 10px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-dropdown--financials .nav-dropdown__toggle:hover {
+  color: #13139c;
+}
+
+.nav-dropdown--financials.active .nav-dropdown__toggle {
+  color: #13139c;
+}
+
+/* Panel: 16px rounded, soft shadow, no list bullets */
+.nav-dropdown--financials .nav-dropdown__panel--financials {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 260px;
+  padding: 6px 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(19, 19, 156, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(19, 19, 156, 0.08);
+  background: #fff;
+  list-style: none;
+  margin: 0;
+  z-index: 1050;
+  display: none;
+}
+
+.nav-dropdown--financials.show .nav-dropdown__panel--financials,
+.nav-dropdown--financials .nav-dropdown__panel--financials.show {
+  display: block;
+}
+
+/* Menu item: 52–56px row, icon 24px, label, optional indicators */
+.nav-dropdown--financials .nav-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 16px;
+  font-size: 0.9375rem;
+  color: #1f2937;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.nav-dropdown--financials .nav-dropdown__item:hover {
+  background: rgba(19, 19, 156, 0.06);
+  color: #13139c;
+}
+
+.nav-dropdown--financials .nav-dropdown__item:focus {
+  outline: none;
+}
+
+.nav-dropdown--financials .nav-dropdown__item:focus-visible {
+  outline: 2px solid rgba(19, 19, 156, 0.4);
+  outline-offset: 2px;
+}
+
+.nav-dropdown--financials .nav-dropdown__item--active {
+  background: rgba(19, 19, 156, 0.08);
+  color: #13139c;
+  font-weight: 500;
+}
+
+.nav-dropdown--financials .nav-dropdown__icon {
+  font-size: 1.25rem;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #6b7280;
+}
+
+.nav-dropdown--financials .nav-dropdown__item:hover .nav-dropdown__icon,
+.nav-dropdown--financials .nav-dropdown__item--active .nav-dropdown__icon {
+  color: #13139c;
+}
+
+.nav-dropdown--financials .nav-dropdown__label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Alert "!" for overdue / issues */
+.nav-dropdown--financials .nav-dropdown__alert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: #dc2626;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Count badge */
+.nav-dropdown--financials .nav-dropdown__count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #13139c;
+  background: rgba(19, 19, 156, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Divider before Export History */
+.nav-dropdown--financials .nav-dropdown__divider {
+  height: 1px;
+  background: rgba(19, 19, 156, 0.1);
+  margin: 6px 12px;
+}

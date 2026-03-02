@@ -1,49 +1,56 @@
+<%
+  sort_column = @sort_column.presence || "date"
+  sort_direction = @sort_direction.presence == "desc" ? "desc" : "asc"
+  sort_params = request.query_parameters.slice("tab", "instructor", "date_from", "date_to", "class_type").compact
+  index_path = @index_path.presence || admin_training_classes_path
+%>
 <%= turbo_frame_tag "tc_index_table" do %>
   <% if @training_classes.any? %>
     <div class="tc-index-saas-table-wrap">
       <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Training classes">
         <colgroup>
-          <col style="width: 35%;">
-          <col style="width: 20%;">
-          <col style="width: 15%;">
+          <col style="width: 24%;">
+          <col style="width: 10%;">
+          <col style="width: 10%;">
+          <col style="width: 16%;">
           <col style="width: 12%;">
-          <col style="width: 18%;">
+          <col style="width: 12%;">
+          <col style="width: 16%;">
         </colgroup>
         <thead>
           <tr>
-            <th scope="col" class="tc-saas-th tc-saas-th--class">Class</th>
-            <th scope="col" class="tc-saas-th tc-saas-th--fill">Fill</th>
-            <th scope="col" class="tc-saas-th tc-saas-th--revenue">Revenue</th>
-            <th scope="col" class="tc-saas-th tc-saas-th--instructor">Instructor</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--class">
+              <%= link_to index_path, **sort_params.merge(sort: "title", direction: (sort_column == "title" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
+                Class <%= sort_column == "title" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--date">
+              <%= link_to index_path, **sort_params.merge(sort: "date", direction: (sort_column == "date" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
+                Date <%= sort_column == "date" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th">Status</th>
+            <th scope="col" class="tc-saas-th tc-saas-th--fill">
+              <%= link_to index_path, **sort_params.merge(sort: "fill", direction: (sort_column == "fill" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
+                Fill <%= sort_column == "fill" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--revenue">
+              <%= link_to index_path, **sort_params.merge(sort: "revenue", direction: (sort_column == "revenue" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
+                Revenue <%= sort_column == "revenue" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--instructor">
+              <%= link_to index_path, **sort_params.merge(sort: "instructor", direction: (sort_column == "instructor" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
+                Instructor <%= sort_column == "instructor" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
             <th scope="col" class="tc-saas-th tc-saas-th--actions">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @training_classes.each do |tc| %>
-            <tr class="tc-saas-tr">
-              <td class="tc-saas-td tc-saas-td--class">
-                <div class="tc-saas-class-cell">
-                  <%= link_to tc.title, admin_training_class_path(tc), class: "tc-saas-class-link" %>
-                  <span class="tc-saas-class-meta"><%= tc.date.strftime("%b %d, %Y") %> · <%= tc.duration %></span>
-                </div>
-              </td>
-              <td class="tc-saas-td tc-saas-td--fill">
-                <%= render "admin/training_classes/fill_rate_cell", tc: tc %>
-              </td>
-              <td class="tc-saas-td tc-saas-td--revenue">
-                <span class="tc-saas-revenue">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></span>
-              </td>
-              <td class="tc-saas-td tc-saas-td--instructor">
-                <span class="tc-saas-instructor"><%= tc.instructor.presence || "—" %></span>
-              </td>
-              <td class="tc-saas-td tc-saas-td--actions">
-                <div class="tc-saas-actions">
-                  <%= link_to new_admin_training_class_attendee_path(tc), class: "tc-saas-actions-btn", title: "Add Attendee", aria: { label: "Add Attendee" } do %><i class="bi bi-person-plus" aria-hidden="true"></i><% end %>
-                  <%= link_to edit_admin_training_class_path(tc), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
-                  <%= link_to admin_training_class_path(tc), data: { turbo_method: :delete, turbo_confirm: "Delete this training class?" }, class: "tc-saas-actions-btn tc-saas-actions-btn--danger", title: "Delete", aria: { label: "Delete" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
-                </div>
-              </td>
-            </tr>
+            <%= render "admin/training_classes/table_row", tc: tc, sort_column: sort_column, sort_direction: sort_direction, sort_params: sort_params, index_path: index_path %>
           <% end %>
         </tbody>
       </table>

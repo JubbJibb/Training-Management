@@ -1,0 +1,26 @@
+<%
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  result = summary.dig(:result) || {}
+  paid = rev[:paid].to_f
+  total_costs = costs[:total].to_f
+  profit = result[:profit].to_f
+  margin = result[:margin_pct].to_f
+  profit_class = profit >= 0 ? "finance-pl-overview__value--profit" : "finance-pl-overview__value--loss"
+%>
+<div class="finance-pl-overview">
+  <div class="finance-pl-overview__block finance-pl-overview__block--revenue">
+    <span class="finance-pl-overview__label"><i class="bi bi-cash-coin" aria-hidden="true"></i> รายรับ (Paid)</span>
+    <span class="finance-pl-overview__value finance-pl-overview__value--revenue"><%= number_to_thb(paid) %></span>
+  </div>
+  <div class="finance-pl-overview__block finance-pl-overview__block--costs">
+    <span class="finance-pl-overview__label"><i class="bi bi-graph-down" aria-hidden="true"></i> ค่าใช้จ่าย</span>
+    <span class="finance-pl-overview__value finance-pl-overview__value--costs"><%= number_to_thb(total_costs) %></span>
+  </div>
+  <div class="finance-pl-overview__block finance-pl-overview__block--result">
+    <span class="finance-pl-overview__label"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> กำไร / ขาดทุน</span>
+    <span class="finance-pl-overview__value <%= profit_class %>"><%= number_to_thb(profit) %></span>
+    <span class="finance-pl-overview__sub">Margin <%= number_to_percent(margin) %></span>
+  </div>
+</div>

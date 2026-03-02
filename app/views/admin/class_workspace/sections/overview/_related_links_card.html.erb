@@ -1,0 +1,33 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  links = tc.related_links.presence || []
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Related Links</h3>
+      <p class="insight-card__subtitle"><%= links.any? ? "Links and resources" : "No links yet" %></p>
+    </div>
+    <div class="insight-card__header-actions">
+      <%= link_to "+ Add link", admin_class_workspace_edit_path(tc), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if links.any? %>
+      <ul class="odt-links-list">
+        <% links.each do |link| %>
+          <li>
+            <% h = link.is_a?(Hash) ? link : { "url" => link.to_s, "label" => link.to_s } %>
+            <% url = h["url"].to_s %>
+            <% url = "https://#{url}" if url.present? && !url.start_with?("http") %>
+            <i class="bi bi-box-arrow-up-right" aria-hidden="true" style="font-size: 0.75rem; margin-right: 6px; color: #6b7280;"></i>
+            <%= link_to (h["label"].presence || h["url"]), url, target: "_blank", rel: "noopener" %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="insight-class-details__text insight-class-details__text--muted" style="margin: 0;">No links yet.</p>
+    <% end %>
+  </div>
+</div>

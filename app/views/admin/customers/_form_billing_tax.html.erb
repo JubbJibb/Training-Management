@@ -14,7 +14,9 @@
         <% end %>
       </p>
     </div>
-    <%= link_to "Sync from latest registration", sync_document_info_admin_customer_path(customer), data: { turbo_method: :post }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    <% if customer.persisted? %>
+      <%= link_to "Sync from latest registration", sync_document_info_admin_customer_path(customer), data: { turbo_method: :post }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    <% end %>
   </div>
   <div class="customer-edit-section__body">
     <div class="customer-edit-grid customer-edit-grid--2">

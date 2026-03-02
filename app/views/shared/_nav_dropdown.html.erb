@@ -1,0 +1,43 @@
+<%
+  # Reusable top-nav dropdown: white panel, large text, no icons in list.
+  # locals: label (string), items (array of { text:, path: }), icon (optional Bi class), title (optional tooltip), active_class (optional, e.g. "active")
+  label = local_assigns[:label] || "Menu"
+  items = local_assigns[:items] || []
+  icon = local_assigns[:icon]
+  title_attr = local_assigns[:title].presence
+  active_class = local_assigns[:active_class].to_s
+  button_id = "navDropdown#{label.parameterize.camelize}"
+  menu_id = "nav-dropdown-menu-#{label.parameterize}"
+%>
+<div class="nav-dropdown nav-dropdown--panel <%= active_class %>" data-controller="nav-dropdown" data-nav-dropdown-optional-hover-value="true" data-action="mouseenter->nav-dropdown#openOnHover mouseleave->nav-dropdown#closeOnHover">
+  <button type="button"
+    class="nav-link nav-link--dropdown nav-dropdown__trigger"
+    id="<%= button_id %>"
+    data-nav-dropdown-target="trigger"
+    data-action="click->nav-dropdown#toggle"
+    aria-expanded="false"
+    aria-haspopup="true"
+    aria-controls="<%= menu_id %>"
+    <%= "title=\"#{title_attr}\"".html_safe if title_attr %>
+  >
+    <% if icon.present? %><i class="bi <%= icon %> nav-link-icon" aria-hidden="true"></i><% end %><%= label %>
+  </button>
+  <div class="nav-dropdown-panel"
+    id="<%= menu_id %>"
+    role="menu"
+    aria-labelledby="<%= button_id %>"
+    data-nav-dropdown-target="panel"
+    hidden
+  >
+    <% items.each do |item| %>
+      <% path = item[:path] || item["path"] %>
+      <% text = item[:text] || item["text"] || "Item" %>
+      <% current = current_page?(path) rescue false %>
+      <%= link_to text,
+          path,
+          class: "nav-dropdown-panel__item #{'nav-dropdown-panel__item--active' if current}",
+          role: "menuitem",
+          data: { nav_dropdown_target: "item" } %>
+    <% end %>
+  </div>
+</div>

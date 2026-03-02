@@ -1,0 +1,48 @@
+<%
+  kpis = local_assigns[:kpis] || @kpis || {}
+  revenue = (kpis[:revenue_mtd] || kpis[:revenue] || 0).to_f
+  costs = (kpis[:expense_mtd] || 0).to_f
+  profit = revenue - costs
+  cash = (kpis[:collected_mtd] || 0).to_f
+  outstanding = (kpis[:outstanding] || 0).to_f
+  margin_pct = revenue.positive? ? (profit / revenue * 100).round(1) : 0
+  detail_params = params.permit(:period, :date_from, :date_to, :client_type, :status).to_h
+  kpi_cells = [
+    { icon: "currency-dollar", label: "Revenue", value: number_to_thb(revenue), sub: "in period", metric: "revenue" },
+    { icon: "graph-down", label: "Costs", value: number_to_thb(costs), sub: "in period", metric: "costs" },
+    { icon: "graph-up", label: "Profit", value: number_to_thb(profit), sub: "#{margin_pct}% margin", value_variant: (profit >= 0 ? nil : "danger"), metric: "profit" },
+    { icon: "wallet2", label: "Cash Received", value: number_to_thb(cash), sub: "MTD", metric: "cash_received" },
+    { icon: "receipt", label: "Outstanding", value: number_to_thb(outstanding), sub: "AR", value_variant: (outstanding > 0 ? "danger" : nil), metric: "outstanding" }
+  ]
+%>
+<%= turbo_frame_tag "financials_overview_kpi" do %>
+  <section class="insights-kpi-section" aria-label="Key metrics">
+    <div class="odt-kpi-strip insights-kpi-strip financials-overview-kpi odt-kpi-strip--clickable">
+      <div class="odt-kpi-strip__inner">
+        <% kpi_cells.each do |cell| %>
+          <%= link_to financials_overview_kpi_detail_path(detail_params.merge(metric: cell[:metric])),
+              class: "odt-kpi-strip__cell odt-kpi-strip__cell--link",
+              data: {
+                controller: "kpi-detail-modal",
+                action: "click->kpi-detail-modal#open",
+                kpi_detail_modal_url_value: financials_overview_kpi_detail_path(detail_params.merge(metric: cell[:metric]))
+              },
+              aria: { label: "View details for #{cell[:label]}" } do %>
+            <div class="odt-kpi-strip__head">
+              <% if cell[:icon].present? %>
+                <span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span>
+              <% end %>
+              <span class="odt-kpi-strip__label"><%= cell[:label] %></span>
+            </div>
+            <span class="odt-kpi-strip__value <%= "odt-kpi-strip__value--#{cell[:value_variant]}" if cell[:value_variant].present? %>">
+              <%= cell[:value] %>
+            </span>
+            <% if cell[:sub].present? %>
+              <span class="odt-kpi-strip__sub"><%= cell[:sub] %></span>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </section>
+<% end %>

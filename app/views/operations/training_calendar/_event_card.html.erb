@@ -1,0 +1,43 @@
+<%
+  event = local_assigns[:event]
+  chip_variant = local_assigns[:chip_variant] # "chip-purple", "chip-emerald", "chip-sky"
+  single_day = local_assigns[:single_day] # true = 1-day class
+  cell_span = local_assigns[:cell_span].to_i # 1 = cell ไม่ span, 2+ = cell span หลายวัน
+  card_class = "tc-event-card"
+  card_class += " tc-event-card--#{chip_variant}" if chip_variant.present?
+  card_class += " tc-event-card--single-day" if single_day
+  card_class += " tc-event-card--cancelled" if event.status_label == "Cancelled"
+  # Class 1 วัน ไม่ span: ความกว้างการ์ดเท่ากับสัดส่วน 1 วัน (ช่องเดียว)
+  single_day_width_style = if single_day
+    cell_span > 1 ? "max-width: #{100.0 / cell_span}%;" : "max-width: 100%;"
+  else
+    ""
+  end
+  fill_pct = event.fill_rate_percent || 0
+  max_seats = event.max_attendees.to_i
+  fill_range = fill_pct <= 25 ? "r0-25" : (fill_pct <= 60 ? "r25-60" : (fill_pct <= 85 ? "r60-85" : "r85-100"))
+  card_class += " tc-event-card--fill-#{fill_range}" if max_seats.positive?
+  card_class += " tc-event-card--public" if event.respond_to?(:public_enabled?) && event.public_enabled?
+  card_class += " tc-event-card--private" if event.respond_to?(:public_enabled?) && !event.public_enabled?
+  time_str = if event.start_time.present? && event.end_time.present?
+    "#{event.start_time.strftime('%H:%M')}–#{event.end_time.strftime('%H:%M')}"
+  else
+    "All day"
+  end
+  cancelled = event.status_label == "Cancelled"
+  registered = event.total_registered_seats
+  is_full = max_seats.positive? && fill_pct >= 100
+  public_label = event.respond_to?(:public_enabled?) && event.public_enabled? ? "Public" : "Private"
+%>
+<%= link_to admin_class_workspace_path(event), class: card_class, style: single_day_width_style, data: { turbo_frame: "_top" } do %>
+  <span class="tc-event-card__dot tc-event-card__dot--public" aria-hidden="true"></span>
+  <span class="tc-event-card__title" title="<%= event.title %>"><%= truncate(event.title, length: 24) %></span>
+  <span class="tc-event-card__time"><%= time_str %></span>
+  <% if max_seats.positive? %>
+    <span class="tc-event-card__seats"><%= registered %>/<%= max_seats %></span>
+    <div class="tc-event-card__bar" role="presentation"><div class="tc-event-card__bar-fill" style="width: <%= [fill_pct, 100].min %>%;"></div></div>
+  <% end %>
+  <span class="tc-event-card__badge tc-event-card__badge--<%= public_label.downcase %>"><%= public_label %></span>
+  <% if is_full %><span class="tc-event-card__badge tc-event-card__badge--full">Full</span><% end %>
+  <% if cancelled %><span class="tc-event-card__badge tc-event-card__badge--cancelled">Cancelled</span><% end %>
+<% end %>

@@ -1,0 +1,56 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  receivables = local_assigns[:receivables] || @receivables || []
+  filter = local_assigns[:receivables_filter] || @receivables_filter || "all"
+  path_base = admin_class_workspace_finance_path(training_class)
+%>
+<%= turbo_frame_tag "receivables_table" do %>
+  <div class="finance-dash-card finance-dash-card--full">
+    <div class="finance-dash-card__accent"></div>
+    <div class="finance-dash-card__header">
+      <span class="finance-dash-card__title"><i class="bi bi-receipt" aria-hidden="true"></i> Receivables</span>
+    </div>
+    <div class="finance-dash-card__body">
+      <div class="finance-dash-pills">
+        <%= link_to "All", path_base, class: "finance-dash-pill #{'finance-dash-pill--active' if filter == 'all'}", data: { turbo_frame: "receivables_table" } %>
+        <%= link_to "Outstanding", admin_class_workspace_finance_path(training_class, receivables_tab: "outstanding"), class: "finance-dash-pill #{'finance-dash-pill--active' if filter == 'outstanding'}", data: { turbo_frame: "receivables_table" } %>
+        <%= link_to "Paid", admin_class_workspace_finance_path(training_class, receivables_tab: "paid"), class: "finance-dash-pill #{'finance-dash-pill--active' if filter == 'paid'}", data: { turbo_frame: "receivables_table" } %>
+      </div>
+      <% if receivables.any? %>
+        <div class="finance-dash-table-wrap">
+          <table class="finance-dash-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Customer</th>
+                <th scope="col" class="text-end">Amount</th>
+                <th scope="col">Status</th>
+                <th scope="col">Due date</th>
+                <th scope="col">Invoice</th>
+                <th scope="col">Receipt</th>
+                <th scope="col" class="finance-dash-table__th-actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% receivables.each do |r| %>
+                <tr>
+                  <td class="finance-dash-table__truncate"><%= r[:customer_name] %></td>
+                  <td class="text-end"><%= number_to_thb(r[:amount]) %></td>
+                  <td><%= odt_badge(r[:status].to_s, status: r[:status] == "paid" ? :paid : :pending, size: :sm) %></td>
+                  <td><%= r[:due_date].present? ? r[:due_date].strftime("%d/%m/%y") : (r[:payment_date].present? ? r[:payment_date].to_s : "—") %></td>
+                  <td><%= r[:invoice_status].to_s == "issued" ? "✓" : "—" %></td>
+                  <td><%= r[:receipt_status].to_s == "issued" ? "✓" : "—" %></td>
+                  <td class="finance-dash-table__th-actions">
+                    <% if r[:status].to_s == "outstanding" %>
+                      <%= link_to "Record payment", admin_class_workspace_attendees_path(training_class), class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo_frame: "_top" } %><% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="finance-dash-empty-inline"><i class="bi bi-check-circle"></i> No receivables <%= filter == "paid" ? "paid yet." : (filter == "outstanding" ? "outstanding ✅" : "recorded.") %></p>
+      <% end %>
+    </div>
+  </div>
+<% end %>

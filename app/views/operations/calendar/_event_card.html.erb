@@ -18,7 +18,7 @@
     "cal-event-card__fill-bar--low"
   end
 %>
-<%= link_to operations_calendar_event_path(event), class: "cal-event-card #{'cal-event-card--cancelled' if cancelled}", data: { turbo_frame: "calendar_side_panel" } do %>
+<%= link_to operations_calendar_event_path(event), class: "cal-event-card #{'cal-event-card--cancelled' if cancelled}", data: { turbo_frame: "_top" } do %>
   <div class="cal-event-card__inner">
     <span class="cal-event-card__title" title="<%= event.title %>"><%= event.title %></span>
     <% if time_str.present? %>

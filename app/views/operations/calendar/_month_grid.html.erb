@@ -7,6 +7,7 @@
   grid_end = month_end.end_of_week(:monday)
   grid_days = (grid_start..grid_end).to_a
   weekdays = %w[MON TUE WED THU FRI SAT SUN]
+  max_visible = 2
 %>
 <div class="cal-grid" role="grid" aria-label="Calendar month view">
   <div class="cal-grid__head" role="row">
@@ -21,12 +22,20 @@
           <%
             other_month = day.month != month_start.month
             is_today = day == today
+            day_events = events_by_date[day] || []
+            visible_events = day_events.first(max_visible)
+            more_count = day_events.size - max_visible
           %>
           <div class="cal-grid__cell calendar-day <%= 'cal-grid__cell--other' if other_month %> <%= 'cal-grid__cell--today' if is_today %>" data-date="<%= day.iso8601 %>" role="gridcell">
             <div class="cal-grid__day-num"><%= day.day %></div>
             <div class="cal-grid__events calendar-day__events">
-              <% (events_by_date[day] || []).each do |ev| %>
+              <% visible_events.each do |ev| %>
                 <%= render "operations/calendar/event_card", event: ev %>
+              <% end %>
+              <% if more_count.positive? %>
+                <%= link_to operations_calendar_event_path(day_events[max_visible]), class: "cal-more-link", data: { turbo_frame: "_top" } do %>
+                  +<%= more_count %> more
+                <% end %>
               <% end %>
             </div>
           </div>

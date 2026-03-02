@@ -1,0 +1,20 @@
+<%
+  filters = local_assigns[:filters] || {}
+  chips = []
+  chips << { key: :instructor, label: "Instructor: #{filters[:instructor]}", value: filters[:instructor] } if filters[:instructor].present?
+  chips << { key: :location, label: "Location: #{filters[:location]}", value: filters[:location] } if filters[:location].present?
+  chips << { key: :status, label: "Status: #{filters[:status]}", value: filters[:status] } if filters[:status].present? && filters[:status] != "all"
+  chips << { key: :type, label: "Type: #{filters[:type]}", value: filters[:type] } if filters[:type].present? && filters[:type] != "all"
+  chips << { key: :nearly_full, label: "Nearly full", value: "1" } if filters[:nearly_full] == "1"
+  chips << { key: :q, label: "Search: #{filters[:q]}", value: filters[:q] } if filters[:q].present?
+%>
+<% if chips.any? %>
+  <div class="tc-chips__list" data-training-calendar-target="chips">
+    <% chips.each do |chip| %>
+      <span class="tc-chip" data-filter-key="<%= chip[:key] %>" data-filter-value="<%= chip[:value] %>">
+        <%= chip[:label] %>
+        <button type="button" class="tc-chip__remove" aria-label="Remove <%= chip[:label] %>" data-action="click->training-calendar#removeChip" data-filter-key="<%= chip[:key] %>">×</button>
+      </span>
+    <% end %>
+  </div>
+<% end %>

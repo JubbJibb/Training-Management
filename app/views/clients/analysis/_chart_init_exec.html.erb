@@ -1,6 +1,6 @@
 <script>
 (function() {
-  var colors = ['#13139c', '#F5C400', '#059669', '#6b7280'];
+  var colors = ['#1e40af', '#93c5fd', '#1e3a8a', '#3b82f6', '#60a5fa', '#2563eb', '#dbeafe'];
   function initExecCharts() {
     if (typeof Chart === 'undefined') return;
     document.querySelectorAll('.ca-exec-donuts canvas[data-chart-type]').forEach(function(canvas) {
@@ -20,7 +20,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          cutout: '60%',
+          cutout: '80%',
           plugins: { legend: { display: false } },
           scales: {}
         }

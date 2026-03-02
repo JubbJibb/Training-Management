@@ -1,0 +1,154 @@
+<%
+  top_channels = local_assigns[:top_channels] || []
+  top_courses = local_assigns[:top_courses] || []
+  top_spenders = local_assigns[:top_spenders] || []
+  repeat_learners = local_assigns[:repeat_learners] || []
+  active_tab = local_assigns[:active_tab].to_s.presence || "channels"
+%>
+<div class="insight-card insight-card--top-lists">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Top lists</h3>
+      <p class="insight-card__subtitle">ช่องทาง · คอร์ส · จ่ายสูง · เรียนซ้ำ</p>
+    </div>
+    <div class="insight-card__header-actions insight-tabs">
+      <button type="button" class="insight-tab <%= 'insight-tab--active' if active_tab == 'channels' %>" role="tab" aria-selected="<%= active_tab == 'channels' %>" data-tab="channels">ช่องทาง</button>
+      <button type="button" class="insight-tab <%= 'insight-tab--active' if active_tab == 'courses' %>" role="tab" aria-selected="<%= active_tab == 'courses' %>" data-tab="courses">คอร์ส</button>
+      <button type="button" class="insight-tab <%= 'insight-tab--active' if active_tab == 'spenders' %>" role="tab" aria-selected="<%= active_tab == 'spenders' %>" data-tab="spenders">จ่ายสูง</button>
+      <button type="button" class="insight-tab <%= 'insight-tab--active' if active_tab == 'repeat' %>" role="tab" aria-selected="<%= active_tab == 'repeat' %>" data-tab="repeat">เรียนซ้ำ</button>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <div class="insight-top-lists-panes">
+      <div class="insight-top-lists-pane" id="top-list-channels" data-pane="channels" style="<%= 'display:none' unless active_tab == 'channels' %>">
+        <% if top_channels.any? %>
+          <div class="insight-odt-table__scroll" style="max-height: 300px; overflow-y: auto;">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Channel</th>
+                  <th class="text-end">Leads</th>
+                  <th class="text-end">Paid</th>
+                  <th class="text-end">CVR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% top_channels.each do |r| %>
+                  <tr>
+                    <td><%= r[:channel].to_s.truncate(28) %></td>
+                    <td class="text-end"><%= r[:leads] %></td>
+                    <td class="text-end"><%= r[:paid] %></td>
+                    <td class="text-end"><%= r[:cvr] %>%</td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "ไม่มีข้อมูลช่องทาง", icon: "broadcast", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+      <div class="insight-top-lists-pane" id="top-list-courses" data-pane="courses" style="<%= 'display:none' unless active_tab == 'courses' %>">
+        <% if top_courses.any? %>
+          <div class="insight-odt-table__scroll" style="max-height: 300px; overflow-y: auto;">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th class="text-end">Revenue</th>
+                  <th class="text-end">Paid</th>
+                  <th class="text-end">CVR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% top_courses.each do |r| %>
+                  <tr>
+                    <td><%= r[:course].to_s.truncate(32) %></td>
+                    <td class="text-end"><%= number_to_thb(r[:revenue]) %></td>
+                    <td class="text-end"><%= r[:paid_count] %></td>
+                    <td class="text-end"><%= r[:cvr] %>%</td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "ไม่มีข้อมูลคอร์ส", icon: "journal-bookmark", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+      <div class="insight-top-lists-pane" id="top-list-spenders" data-pane="spenders" style="<%= 'display:none' unless active_tab == 'spenders' %>">
+        <% if top_spenders.any? %>
+          <div class="insight-odt-table__scroll" style="max-height: 300px; overflow-y: auto;">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th class="text-end">Total paid</th>
+                  <th class="text-end">Classes</th>
+                  <th>Last activity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% top_spenders.each do |r| %>
+                  <tr>
+                    <td><%= r[:customer].to_s.truncate(24) %></td>
+                    <td class="text-end"><%= number_to_thb(r[:total_paid]) %></td>
+                    <td class="text-end"><%= r[:classes_attended] %></td>
+                    <td><%= r[:last_activity].respond_to?(:strftime) ? r[:last_activity].strftime("%Y-%m-%d") : (r[:last_activity].to_s.presence || "—") %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "ไม่มีข้อมูลลูกค้าจ่ายสูง", icon: "currency-dollar", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+      <div class="insight-top-lists-pane" id="top-list-repeat" data-pane="repeat" style="<%= 'display:none' unless active_tab == 'repeat' %>">
+        <% if repeat_learners.any? %>
+          <div class="insight-odt-table__scroll" style="max-height: 300px; overflow-y: auto;">
+            <table class="insight-odt-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th class="text-end">#classes</th>
+                  <th class="text-end">Repeat rate</th>
+                  <th>Favorite course</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% repeat_learners.each do |r| %>
+                  <tr>
+                    <td><%= r[:customer].to_s.truncate(24) %></td>
+                    <td class="text-end"><%= r[:num_classes] %></td>
+                    <td class="text-end"><%= r[:repeat_rate] %>%</td>
+                    <td><%= r[:favorite_course].to_s.truncate(28) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <%= render "shared/empty_state", title: "ไม่มีข้อมูลผู้เรียนซ้ำ", icon: "arrow-repeat", extra_class: "insight-odt-table__empty" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var container = document.querySelector('.insight-card--top-lists');
+  if (!container) return;
+  container.querySelectorAll('.insight-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab = this.getAttribute('data-tab');
+      container.querySelectorAll('.insight-tab').forEach(function(b) { b.classList.remove('insight-tab--active'); b.setAttribute('aria-selected', 'false'); });
+      this.classList.add('insight-tab--active'); this.setAttribute('aria-selected', 'true');
+      container.querySelectorAll('.insight-top-lists-pane').forEach(function(pane) {
+        pane.style.display = pane.getAttribute('data-pane') === tab ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>

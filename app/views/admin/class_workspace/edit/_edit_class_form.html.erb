@@ -1,0 +1,22 @@
+<%# Main form grid: 2/3 main (sections) + 1/3 side panel. Receives local: f %>
+<%= hidden_field_tag :from_workspace, "1" %>
+<% if @training_class.errors.any? %>
+  <div class="odt-edit-errors alert alert-danger" role="alert">
+    <h5 class="odt-edit-errors__title">Please fix the following errors:</h5>
+    <ul class="mb-0"><% @training_class.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul>
+  </div>
+<% end %>
+
+<div class="odt-edit-class">
+  <div class="odt-edit-class__main">
+    <%= render "admin/class_workspace/edit/edit_section_basic", f: f %>
+    <%= render "admin/class_workspace/edit/edit_section_schedule", f: f %>
+    <%= render "admin/class_workspace/edit/edit_section_logistics", f: f %>
+    <%= render "admin/class_workspace/edit/edit_section_pricing", f: f %>
+  </div>
+  <aside class="odt-edit-class__side">
+    <%= render "admin/class_workspace/edit/edit_side_panel" %>
+  </aside>
+</div>
+
+<%= render "admin/class_workspace/edit/sticky_action_bar", f: f %>

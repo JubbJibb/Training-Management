@@ -18,19 +18,23 @@
       datasets.forEach(function(ds, i) {
         if (!ds.backgroundColor) ds.backgroundColor = colors[i % colors.length];
         if (!ds.borderColor && type === 'line') ds.borderColor = colors[i % colors.length];
-        if (type === 'line') ds.fill = false;
-        if (type === 'line') ds.tension = 0.2;
+        if (type === 'line' && ds.fill === undefined) ds.fill = false;
+        if (type === 'line') ds.tension = (ds.tension !== undefined ? ds.tension : 0.2);
       });
-      new Chart(canvas, {
+      var stacked = canvas.getAttribute('data-stacked') === 'true';
+      var scales = { y: { beginAtZero: true } };
+      if (stacked && type === 'bar') scales = { x: { stacked: true }, y: { stacked: true, beginAtZero: true } };
+      var chart = new Chart(canvas, {
         type: type,
         data: { labels: labels, datasets: datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: type === 'bar' ? { y: { beginAtZero: true } } : { y: { beginAtZero: true } },
+          scales: scales,
           plugins: { legend: { position: 'bottom' } }
         }
       });
+      canvas.chart = chart;
     });
   }
   if (document.readyState === 'loading') {

@@ -1,0 +1,53 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  capacity = local_assigns[:capacity] || tc.max_attendees.to_i
+  time_str = [tc.start_time, tc.end_time].compact.any? ? [tc.start_time&.strftime("%I:%M %p"), tc.end_time&.strftime("%I:%M %p")].compact.join(" – ") : "—"
+  date_str = tc.date.strftime("%b %d, %Y")
+  date_str += " – #{tc.end_date.strftime("%b %d, %Y")}" if tc.end_date.present? && tc.end_date != tc.date
+  desc = tc.description.present? ? strip_tags(tc.description) : nil
+  needs_toggle = desc && desc.length > 120
+  subtitle_parts = [date_str, time_str, tc.location.presence].compact
+  subtitle_str = subtitle_parts.any? ? subtitle_parts.join(" · ") : "Schedule and venue"
+%>
+<div class="insight-card insight-card--class-details">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Class Details</h3>
+      <p class="insight-card__subtitle"><%= subtitle_str %></p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <%= render "admin/class_workspace/sections/overview/public_status_row", training_class: tc %>
+    <div class="insight-progress-row">
+      <span class="insight-progress-row__label">Instructor</span>
+      <span class="insight-progress-row__value"><%= tc.instructor.presence || "—" %></span>
+    </div>
+    <div class="insight-progress-row">
+      <span class="insight-progress-row__label">Duration</span>
+      <span class="insight-progress-row__value"><%= tc.duration.presence || "—" %></span>
+    </div>
+    <div class="insight-progress-row">
+      <span class="insight-progress-row__label">Capacity</span>
+      <span class="insight-progress-row__value"><%= capacity.positive? ? "#{capacity} seats" : "—" %></span>
+    </div>
+    <div class="insight-progress-row">
+      <span class="insight-progress-row__label">Price / seat</span>
+      <span class="insight-progress-row__value"><%= tc.price.present? ? number_to_thb(tc.price) : "—" %></span>
+    </div>
+
+    <div class="insight-class-details__desc<%= ' is-expanded' unless needs_toggle %>"<%= raw(' data-controller="description-toggle" data-description-toggle-expanded-value="false"') if desc.present? && needs_toggle %>>
+      <h4 class="insight-card__subheading">Description</h4>
+      <% if desc.present? %>
+        <div class="insight-class-details__text<%= ' insight-class-details__text--clamp' if needs_toggle %>">
+          <%= simple_format(desc) %>
+        </div>
+        <% if needs_toggle %>
+          <button type="button" class="insight-class-details__read-more" data-description-toggle-target="button" data-action="description-toggle#toggle">Read more</button>
+        <% end %>
+      <% else %>
+        <p class="insight-class-details__text insight-class-details__text--muted">—</p>
+      <% end %>
+    </div>
+  </div>
+</div>

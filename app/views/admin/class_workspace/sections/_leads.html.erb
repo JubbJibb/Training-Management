@@ -1,0 +1,93 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  leads = local_assigns[:leads] || @leads || []
+  sort_column = local_assigns[:sort_column].presence || @leads_sort_column.presence || "name"
+  sort_direction = local_assigns[:sort_direction].presence || @leads_sort_direction.presence || "asc"
+  leads_path = admin_class_workspace_leads_path(training_class)
+%>
+<div class="workspace-section workspace-section--leads attendees-ledger">
+  <div class="attendees-ledger__toolbar">
+    <%= link_to new_admin_training_class_attendee_path(training_class, return_to: request.original_url), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+      <i class="bi bi-person-plus" aria-hidden="true"></i> Add Lead
+    <% end %>
+    <div class="attendees-ledger__toolbar-actions">
+    </div>
+  </div>
+
+  <% if leads.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Leads">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--no">#No</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">
+              <%= link_to leads_path, sort: "name", direction: (sort_column == "name" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "name" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                Name <%= sort_column == "name" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--type">
+              <%= link_to leads_path, sort: "participant_type", direction: (sort_column == "participant_type" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "participant_type" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                Type <%= sort_column == "participant_type" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--seats">
+              <%= link_to leads_path, sort: "seats", direction: (sort_column == "seats" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "seats" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                Seats <%= sort_column == "seats" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--source">
+              <%= link_to leads_path, sort: "source_channel", direction: (sort_column == "source_channel" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "source_channel" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                Source <%= sort_column == "source_channel" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--added">
+              <%= link_to leads_path, sort: "created_at", direction: (sort_column == "created_at" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "created_at" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                Added <%= sort_column == "created_at" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leads.each_with_index do |lead, idx| %>
+            <tr class="attendees-ledger__row" data-attendee-id="<%= lead.id %>" id="ledger-row-lead-<%= lead.id %>">
+              <td class="attendees-ledger__td attendees-ledger__td--no"><%= idx + 1 %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--name">
+                <%= link_to edit_admin_training_class_attendee_path(training_class, lead, return_to: request.original_url), class: "attendees-ledger__name-link" do %>
+                  <span class="attendees-ledger__name"><%= lead.name %></span>
+                  <% if lead.email.present? %><span class="attendees-ledger__email"><%= lead.email %></span><% end %>
+                <% end %>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--type">
+                <%= odt_badge(lead.participant_type.presence || "—", variant: lead.participant_type == "Corp" ? :info : :neutral, size: :sm) %>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--seats"><%= lead.seats %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--source">
+                <%= odt_badge(lead.source_channel.presence || "—", variant: :neutral, size: :sm) %>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--added"><%= lead.created_at.present? ? lead.created_at.to_date.strftime("%b %d, %Y") : "—" %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--actions">
+                <div class="attendees-ledger__actions-cell">
+                  <%= odt_split_button(
+                    primary: { url: edit_admin_training_class_attendee_path(training_class, lead, return_to: request.original_url, mode: "edit"), icon: "pencil", title: "Edit", label: "Edit" },
+                    dropdown_items: [
+                      { label: "Move to Attendee", icon: "person-check", url: move_to_attendee_admin_training_class_attendee_path(training_class, lead), method: :patch, confirm: "Convert #{lead.name} to attendee?" },
+                      { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(training_class, lead, return_to: request.original_url), method: :delete, confirm: "Remove this lead from the class?" }
+                    ]
+                  ) %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <%= render "admin/class_workspace/shared/empty_state",
+        icon: "person-plus",
+        title: "No potential customers yet",
+        message: "Add leads to follow up and convert to attendees.",
+        action_label: "Add Lead",
+        action_url: new_admin_training_class_attendee_path(training_class, return_to: request.original_url) %>
+  <% end %>
+</div>

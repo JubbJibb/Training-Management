@@ -49,7 +49,7 @@ module Admin
     end
     
     def class_expense_params
-      params.require(:class_expense).permit(:description, :amount, :category)
+      params.require(:class_expense).permit(:description, :amount, :category, :expense_date, :payment_status, :is_estimated)
     end
   end
 end

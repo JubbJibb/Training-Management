@@ -14,7 +14,7 @@
           var values = data.values || [];
           var ctx = el.querySelector('canvas');
           if (!ctx) return;
-          var colors = ['#13139c', '#F5C400', '#059669', '#6b7280', '#dc2626'];
+          var colors = ['#1e40af', '#93c5fd', '#1e3a8a', '#3b82f6', '#60a5fa', '#2563eb', '#dbeafe'];
           new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -24,6 +24,7 @@
             options: {
               responsive: true,
               maintainAspectRatio: true,
+              cutout: '80%',
               plugins: { legend: { display: false } }
             }
           });

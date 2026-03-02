@@ -1,0 +1,28 @@
+<%
+  range = local_assigns[:range]
+  events = local_assigns[:events] || []
+  events_by_date = local_assigns[:events_by_date] || {}
+  week_start = local_assigns[:week_start] || range.begin
+  week_end = local_assigns[:week_end] || range.end
+  filters = local_assigns[:filters] || {}
+  days = (range.begin..range.end).to_a.uniq
+%>
+<div class="tc-agenda" role="list" aria-label="Agenda list">
+  <% days.each do |day| %>
+    <% day_events = events_by_date[day] || [] %>
+    <% next if day_events.empty? %>
+    <section class="tc-agenda__day" data-date="<%= day.iso8601 %>">
+      <h3 class="tc-agenda__day-title"><%= day.strftime("%A, %b %d") %></h3>
+      <ul class="tc-agenda__list">
+        <% day_events.sort_by { |e| [e.date, e.start_time || Time.current] }.each do |ev| %>
+          <li class="tc-agenda__item">
+            <%= render "operations/training_calendar/event_card", event: ev %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+  <% if events.empty? %>
+    <p class="tc-agenda__empty">No classes in this period.</p>
+  <% end %>
+</div>

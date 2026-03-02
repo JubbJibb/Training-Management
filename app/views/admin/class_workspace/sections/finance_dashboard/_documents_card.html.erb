@@ -1,0 +1,66 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  docs = local_assigns[:docs_summary] || @docs_summary || {}
+  inv_issued = docs[:invoice_issued_count].to_i
+  inv_needed = docs[:invoice_needed_count].to_i
+  rcpt_issued = docs[:receipt_issued_count].to_i
+  rcpt_needed = docs[:receipt_needed_count].to_i
+  qt_issued = docs[:quotation_issued_count].to_i
+  qt_needed = docs[:quotation_needed_count].to_i
+  missing_inv = docs[:missing_invoice_count].to_i
+  missing_rcpt = docs[:missing_receipt_count].to_i
+  missing_qt = docs[:missing_quotation_count].to_i
+  docs_path = admin_class_workspace_documents_path(training_class)
+  chips = []
+  chips << { label: "INVOICE", count: inv_issued, total: inv_needed, variant: (inv_issued == inv_needed && inv_needed.positive?) ? :success : :warning } if inv_needed.positive?
+  chips << { label: "RECEIPT", count: rcpt_issued, total: rcpt_needed, variant: (rcpt_issued == rcpt_needed && rcpt_needed.positive?) ? :success : :neutral } if rcpt_needed.positive?
+  chips << { label: "QUOTATION", count: qt_issued, total: qt_needed, variant: (qt_issued == qt_needed && qt_needed.positive?) ? :success : :neutral } if qt_needed.positive?
+  has_missing = missing_inv.positive? || missing_rcpt.positive? || missing_qt.positive?
+%>
+<div class="finance-dash-card finance-dash-card--documents" id="documents_widget">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__header">
+    <span class="finance-dash-card__title"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Documents</span>
+  </div>
+  <div class="finance-dash-card__body">
+    <% if chips.any? %>
+      <div class="finance-dash-chips">
+        <% chips.each do |c| %>
+          <span class="finance-dash-chip"><%= odt_badge("#{c[:label]} #{c[:count]}/#{c[:total]}", variant: c[:variant], size: :sm) %></span>
+        <% end %>
+      </div>
+      <% if has_missing %>
+        <div class="finance-dash-docs-missing-list">
+          <% if missing_inv.positive? %>
+            <%= link_to docs_path, class: "finance-dash-docs-missing-list__row", data: { turbo_frame: "_top" } do %>
+              <span class="finance-dash-docs-missing-list__label">Invoices missing</span>
+              <span class="finance-dash-docs-missing-list__count"><%= missing_inv %></span>
+              <i class="bi bi-chevron-right finance-dash-docs-missing-list__arrow" aria-hidden="true"></i>
+            <% end %>
+          <% end %>
+          <% if missing_rcpt.positive? %>
+            <%= link_to docs_path, class: "finance-dash-docs-missing-list__row", data: { turbo_frame: "_top" } do %>
+              <span class="finance-dash-docs-missing-list__label">Receipts missing</span>
+              <span class="finance-dash-docs-missing-list__count"><%= missing_rcpt %></span>
+              <i class="bi bi-chevron-right finance-dash-docs-missing-list__arrow" aria-hidden="true"></i>
+            <% end %>
+          <% end %>
+          <% if missing_qt.positive? %>
+            <%= link_to docs_path, class: "finance-dash-docs-missing-list__row", data: { turbo_frame: "_top" } do %>
+              <span class="finance-dash-docs-missing-list__label">Quotations missing</span>
+              <span class="finance-dash-docs-missing-list__count"><%= missing_qt %></span>
+              <i class="bi bi-chevron-right finance-dash-docs-missing-list__arrow" aria-hidden="true"></i>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="finance-dash-empty-inline"><i class="bi bi-inbox"></i> No documents yet.</p>
+    <% end %>
+    <div class="finance-dash-card__actions">
+      <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-toast="Generate invoice (TODO)"><i class="bi bi-receipt"></i> Generate invoice</button>
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-toast="Upload receipt (TODO)"><i class="bi bi-upload"></i> Upload receipt</button>
+      <%= link_to docs_path, class: "finance-dash-card__link", data: { turbo_frame: "_top" } do %>View all<% end %>
+    </div>
+  </div>
+</div>

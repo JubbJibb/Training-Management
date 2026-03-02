@@ -1,0 +1,50 @@
+<%
+  form_url = local_assigns[:form_url] || financials_overview_path
+  turbo_frame = local_assigns[:turbo_frame] || "financials_overview"
+  show_status = local_assigns.fetch(:show_status_filter, true)
+  include_basis = local_assigns.fetch(:include_basis_hidden, false)
+%>
+<div class="insights-filter-bar-wrap">
+  <%= odt_filters_row form_url: form_url, form_method: :get, form_options: { data: { turbo_frame: turbo_frame } }, extra_class: "insights-filter-bar" do %>
+    <%= hidden_field_tag :basis, params[:basis].presence || "accrual" if include_basis %>
+    <div class="odt-filters-row__field">
+      <label for="financials_period" class="odt-filters-row__label">Period</label>
+      <select name="period" id="financials_period" class="odt-filters-row__input">
+        <option value="mtd" <%= "selected" if params[:period] == "mtd" %>>MTD</option>
+        <option value="qtd" <%= "selected" if params[:period] == "qtd" %>>QTD</option>
+        <option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option>
+        <option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option>
+      </select>
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="financials_date_from" class="odt-filters-row__label">Start</label>
+      <input type="date" name="date_from" id="financials_date_from" class="odt-filters-row__input" value="<%= params[:date_from] %>">
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="financials_date_to" class="odt-filters-row__label">End</label>
+      <input type="date" name="date_to" id="financials_date_to" class="odt-filters-row__input" value="<%= params[:date_to] %>">
+    </div>
+    <div class="odt-filters-row__field">
+      <label for="financials_client_type" class="odt-filters-row__label">Client type</label>
+      <select name="client_type" id="financials_client_type" class="odt-filters-row__input">
+        <option value="">All</option>
+        <option value="Indi" <%= "selected" if params[:client_type] == "Indi" %>>Individual</option>
+        <option value="Corp" <%= "selected" if params[:client_type] == "Corp" %>>Corporate</option>
+      </select>
+    </div>
+    <% if show_status %>
+      <div class="odt-filters-row__field">
+        <label for="financials_status" class="odt-filters-row__label">Status</label>
+        <select name="status" id="financials_status" class="odt-filters-row__input">
+          <option value="">All</option>
+          <option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option>
+          <option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option>
+        </select>
+      </div>
+    <% end %>
+    <div class="odt-filters-row__actions">
+      <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+      <%= link_to "Clear", form_url, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: turbo_frame } %>
+    </div>
+  <% end %>
+</div>

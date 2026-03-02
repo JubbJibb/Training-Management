@@ -1,0 +1,44 @@
+<%
+  trend_rows = local_assigns[:trend_rows] || @trend_rows || []
+%>
+<%= turbo_frame_tag "financials_overview_trend" do %>
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Trend</h3>
+        <p class="insight-card__subtitle">Revenue vs Costs vs Profit</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if trend_rows.any? %>
+        <div class="insight-odt-table__scroll">
+          <table class="insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Period</th>
+                <th scope="col" class="text-end">Revenue</th>
+                <th scope="col" class="text-end">Costs</th>
+                <th scope="col" class="text-end">Profit</th>
+                <th scope="col" class="text-end">Margin %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% trend_rows.each do |row| %>
+                <tr>
+                  <td><%= row[:label] %></td>
+                  <td class="text-end"><%= number_to_thb(row[:revenue]) %></td>
+                  <td class="text-end"><%= number_to_thb(row[:costs]) %></td>
+                  <td class="text-end <%= row[:profit].to_f < 0 ? 'text-danger' : '' %>"><%= number_to_thb(row[:profit]) %></td>
+                  <td class="text-end"><%= row[:margin] %>%</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="insight-odt-table__empty text-muted p-4 mb-0">No trend data for selected period</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>

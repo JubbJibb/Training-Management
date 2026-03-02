@@ -1,0 +1,29 @@
+<%
+  kpi_classes = local_assigns[:kpi_classes] || 0
+  kpi_seats_sold = local_assigns[:kpi_seats_sold] || 0
+  kpi_revenue = local_assigns[:kpi_revenue] || 0
+  kpi_utilization = local_assigns[:kpi_utilization]
+  kpi_nearly_full = local_assigns[:kpi_nearly_full] || 0
+%>
+<div class="tc-kpis">
+  <div class="tc-kpis__card">
+    <span class="tc-kpis__label">Classes</span>
+    <span class="tc-kpis__value"><%= kpi_classes %></span>
+  </div>
+  <div class="tc-kpis__card">
+    <span class="tc-kpis__label">Seats sold</span>
+    <span class="tc-kpis__value"><%= kpi_seats_sold %></span>
+  </div>
+  <div class="tc-kpis__card">
+    <span class="tc-kpis__label">Revenue forecast</span>
+    <span class="tc-kpis__value"><%= number_to_currency(kpi_revenue) %></span>
+  </div>
+  <div class="tc-kpis__card">
+    <span class="tc-kpis__label">Utilization</span>
+    <span class="tc-kpis__value"><%= kpi_utilization.present? ? "#{kpi_utilization}%" : "—" %></span>
+  </div>
+  <div class="tc-kpis__card">
+    <span class="tc-kpis__label">Nearly full (≥80%)</span>
+    <span class="tc-kpis__value"><%= kpi_nearly_full %></span>
+  </div>
+</div>

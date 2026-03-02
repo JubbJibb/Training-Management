@@ -1,4 +1,4 @@
-<%# Revenue Composition & Discounts: tabs (Segment Split / Promotions Performance) %>
+<%# Revenue Composition & Discounts: Flowbite-style card. Tabs (Segment Split / Promotions Performance). %>
 <%
   segment_split = local_assigns[:segment_split] || { indi: { amount: 0, count: 0, seats: 0 }, corp: { amount: 0, count: 0, seats: 0 } }
   promotions_performance = local_assigns[:promotions_performance] || []
@@ -8,7 +8,7 @@
   indi_pct = total_seg.positive? ? ((indi[:amount].to_f / total_seg) * 100).round(0) : 0
   corp_pct = total_seg.positive? ? ((corp[:amount].to_f / total_seg) * 100).round(0) : 0
 %>
-<%= odt_card(title: "Revenue Composition & Discounts", icon: "pie-chart", extra_class: "class-finance-revenue-card") do %>
+<%= render "shared/pie_chart_card", title: "Revenue Composition & Discounts", extra_class: "class-finance-revenue-card" do %>
   <ul class="nav nav-tabs class-finance-tabs" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-segment" type="button" role="tab" aria-selected="true">Segment Split</button>
@@ -66,7 +66,7 @@
                     <span class="cell-stack__secondary">
                       <span class="class-finance-promo-chips">
                         <% r[:chips].each do |chip| %>
-                          <span class="odt-badge odt-badge--neutral odt-badge--sm"><%= chip %></span>
+                          <span class="odt-badge odt-badge--neutral odt-badge--pill odt-badge--sm"><%= chip %></span>
                         <% end %>
                       </span>
                     </span>

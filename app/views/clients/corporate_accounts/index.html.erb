@@ -6,6 +6,11 @@
   </div>
 
   <%= turbo_frame_tag "clients_main", data: { turbo_action: "advance" } do %>
+    <% if @load_error.present? %>
+      <div class="alert alert-warning mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>Data could not be loaded: <%= @load_error %>. Showing empty data.
+      </div>
+    <% end %>
     <div class="corporate-accounts-odt__filter-section">
       <%= render "clients/shared/date_filter" do %>
         <div class="odt-filters-row__field">

@@ -13,7 +13,7 @@ class Attendee < ApplicationRecord
   validates :participant_type, inclusion: { in: %w[Indi Corp] }
   validates :seats, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
   validates :payment_status, inclusion: { in: %w[Pending Paid] }, allow_nil: true
-  validates :document_status, inclusion: { in: %w[QT INV Receipt] }, allow_nil: true
+  validates :document_status, inclusion: { in: %w[QT INV Receipt] }, allow_blank: true
   validates :attendance_status, inclusion: { in: %w[มาเรียน No-show] }, allow_nil: true
   validates :status, inclusion: { in: %w[attendee potential] }, allow_nil: true
   validate :payment_slips_content_type
@@ -48,17 +48,19 @@ class Attendee < ApplicationRecord
     promotions.loaded? ? promotions.select(&:active?) : promotions.where(active: true)
   end
   
-  def calculate_final_price
-    base = base_price
-    return (base * 1.07).round(2) if active_promotions.empty?
-    
-    final_price = base
-    active_promotions.each do |promotion|
-      discount = promotion.calculate_discount(base)
-      final_price -= discount
+  # ตอนคำเงิน: เลือกได้ว่า Include VAT หรือไม่ (ตามคลาส หรือ override ต่อคน)
+  def vat_excluded?
+    if read_attribute(:vat_excluded).nil?
+      training_class.respond_to?(:vat_excluded?) ? training_class.vat_excluded? : false
+    else
+      read_attribute(:vat_excluded)
     end
-    final_price = [final_price, 0].max # ไม่ให้ราคาติดลบ
-    (final_price * 1.07).round(2) # รวม VAT 7% และปัดเป็นทศนิยม 2 ตำแหน่ง
+  end
+
+  def calculate_final_price
+    before_vat = calculate_price_before_vat
+    return before_vat if vat_excluded?
+    (before_vat * 1.07).round(2) # รวม VAT 7% เมื่อไม่ใช่ VAT excluded
   end
   
   def calculate_price_before_vat
@@ -74,6 +76,7 @@ class Attendee < ApplicationRecord
   end
   
   def calculate_vat_amount
+    return 0.0 if vat_excluded?
     (calculate_price_before_vat * 0.07).round(2)
   end
   
@@ -264,7 +267,7 @@ class Attendee < ApplicationRecord
   scope :indi, -> { where(participant_type: "Indi") }
   scope :paid, -> { where(payment_status: "Paid") }
   scope :attended, -> { where(attendance_status: "มาเรียน") }
-  scope :attendees, -> { where("status = ? OR status IS NULL OR status = ''", "attendee") }
+  scope :attendees, -> { where(status: "attendee") }
   scope :potential_customers, -> { where(status: "potential") }
 end
 

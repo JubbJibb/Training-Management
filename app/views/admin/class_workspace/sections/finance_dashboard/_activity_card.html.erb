@@ -1,0 +1,37 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  activities = []
+  activities << { icon: "pencil", type: "class", text: "Class updated", at: training_class.updated_at } if training_class.updated_at.present?
+  training_class.attendees.attendees.order(updated_at: :desc).limit(4).each do |a|
+    activities << { icon: "person", type: "attendee", text: "#{a.name} updated", at: a.updated_at } if a.updated_at.present?
+  end
+  activities = activities.sort_by { |x| x[:at].to_i }.reverse.first(5)
+  type_badges = { "class" => "Class", "attendee" => "Attendee" }
+%>
+<div class="finance-dash-card finance-dash-card--activity">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__header">
+    <span class="finance-dash-card__title"><i class="bi bi-activity" aria-hidden="true"></i> Activity</span>
+  </div>
+  <div class="finance-dash-card__body">
+    <% if activities.any? %>
+      <ul class="finance-dash-activity-list finance-dash-activity-list--compact">
+        <% activities.each do |act| %>
+          <li class="finance-dash-activity-list__item">
+            <i class="bi bi-<%= act[:icon] %> finance-dash-activity-list__icon" aria-hidden="true"></i>
+            <% if act[:type] %>
+              <span class="finance-dash-activity-list__badge"><%= type_badges[act[:type]] || act[:type] %></span>
+            <% end %>
+            <span class="finance-dash-activity-list__text"><%= act[:text] %></span>
+            <span class="finance-dash-activity-list__time"><%= time_ago_in_words(act[:at]) %> ago</span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <div class="finance-dash-empty-state">
+        <i class="bi bi-activity finance-dash-empty-state__icon" aria-hidden="true"></i>
+        <p class="finance-dash-empty-state__text">No recent finance activity.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

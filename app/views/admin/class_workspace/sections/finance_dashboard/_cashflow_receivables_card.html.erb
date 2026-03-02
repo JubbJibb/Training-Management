@@ -1,0 +1,67 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  outstanding = rev[:outstanding].to_f
+  paid_revenue = rev[:paid].to_f
+  paid_costs = costs[:paid].to_f
+  net_cash = paid_revenue - paid_costs
+  receivables_list = defined?(@receivables) ? @receivables.select { |r| r[:status] == "outstanding" }.first(5) : []
+  aging_0_7 = defined?(@aging_0_7) ? @aging_0_7 : 0
+  aging_8_30 = defined?(@aging_8_30) ? @aging_8_30 : 0
+  aging_30_plus = defined?(@aging_30_plus) ? @aging_30_plus : 0
+  overdue_count = defined?(@overdue_count) ? @overdue_count : 0
+  show_reminder = outstanding.positive?
+%>
+<div class="finance-dash-card finance-dash-card--cashflow">
+  <div class="finance-dash-card__header finance-dash-card__header--with-metrics">
+    <span class="finance-dash-card__title"><i class="bi bi-wallet2" aria-hidden="true"></i> Cashflow & Receivables</span>
+    <div class="finance-dash-card__header-metrics">
+      <span class="finance-dash-card__metric"><span class="finance-dash-card__metric-label">Outstanding</span><span class="finance-dash-card__metric-value <%= outstanding.positive? ? 'finance-dash-card__metric-value--warning' : '' %>"><%= number_to_thb(outstanding) %></span></span>
+      <span class="finance-dash-card__metric"><span class="finance-dash-card__metric-label">Net cash</span><span class="finance-dash-card__metric-value"><%= number_to_thb(net_cash) %></span></span>
+      <span class="finance-dash-card__metric"><span class="finance-dash-card__metric-label">Overdue</span><span class="finance-dash-card__metric-value <%= overdue_count.positive? ? 'finance-dash-card__metric-value--warning' : '' %>"><%= overdue_count %></span></span>
+    </div>
+  </div>
+  <div class="finance-dash-card__body">
+    <% if receivables_list.any? %>
+      <div class="finance-dash-table-wrap">
+        <table class="finance-dash-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col">Contact</th>
+              <th scope="col" class="text-end">Amount</th>
+              <th scope="col" class="cell--center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% receivables_list.each do |row| %>
+              <tr>
+                <td class="finance-dash-table__truncate"><%= row[:customer_name] %></td>
+                <td class="text-end"><%= number_to_thb(row[:amount]) %></td>
+                <td class="cell--center"><%= odt_badge(row[:status].to_s, status: :pending, size: :sm) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="finance-dash-empty-inline"><i class="bi bi-check-circle"></i> No outstanding receivables.</p>
+    <% end %>
+    <h4 class="finance-dash-subheading">Aging</h4>
+    <div class="finance-dash-aging finance-dash-aging--compact">
+      <div class="finance-dash-aging__row"><span class="finance-dash-aging__label"><i class="bi bi-circle-fill finance-dash-aging__dot"></i> 0–7 days</span><span class="finance-dash-aging__value"><%= aging_0_7 %> items</span></div>
+      <div class="finance-dash-aging__row"><span class="finance-dash-aging__label"><i class="bi bi-circle-fill finance-dash-aging__dot"></i> 8–30 days</span><span class="finance-dash-aging__value"><%= aging_8_30 %> items</span></div>
+      <div class="finance-dash-aging__row"><span class="finance-dash-aging__label"><i class="bi bi-circle-fill finance-dash-aging__dot"></i> 30+ days</span><span class="finance-dash-aging__value"><%= aging_30_plus %> items</span></div>
+    </div>
+    <div class="finance-dash-card__actions">
+      <%= link_to admin_class_workspace_attendees_path(training_class), class: "odt-btn odt-btn--#{show_reminder ? 'secondary' : 'primary'} odt-btn--sm", data: { turbo_frame: "_top" } do %><i class="bi bi-cash-coin"></i> Record payment<% end %>
+      <% if show_reminder %>
+        <a href="<%= mailto_send_reminder_all_attendees(training_class, training_class.attendees.attendees.reject { |a| a.payment_status == "Paid" }) %>" class="odt-btn odt-btn--primary odt-btn--sm"><i class="bi bi-send"></i> Send reminder</a>
+      <% else %>
+        <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" disabled title="No outstanding receivables"><i class="bi bi-send"></i> Send reminder</button>
+        <span class="finance-dash-card__action-hint">No outstanding receivables.</span>
+      <% end %>
+    </div>
+  </div>
+</div>

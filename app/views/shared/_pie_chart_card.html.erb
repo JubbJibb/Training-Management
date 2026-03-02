@@ -1,0 +1,109 @@
+<%#
+  Flowbite-style card wrapper for all pie/donut charts.
+  Locals:
+    title (required)
+    info_title, info_text, info_link (optional) — popover content
+    show_download (optional, default false) — show download CSV button
+    filter_items (optional) — array of { id:, label: } for checkboxes
+    preset_label (optional) — e.g. "Last 7 days"
+    preset_dropdown_items (optional) — array of { label:, url: } for dropdown
+    report_link_url, report_link_text (optional) — footer CTA link
+    chart_id (optional) — id for chart container div
+    extra_class (optional)
+  Yields: chart content (rendered inside .pie-chart-card__chart)
+%>
+<%
+  title = local_assigns[:title]
+  info_title = local_assigns[:info_title]
+  info_text = local_assigns[:info_text]
+  info_link = local_assigns[:info_link]
+  show_download = local_assigns.fetch(:show_download, false)
+  filter_items = local_assigns[:filter_items] || []
+  preset_label = local_assigns[:preset_label]
+  preset_dropdown_items = local_assigns[:preset_dropdown_items] || []
+  report_link_url = local_assigns[:report_link_url]
+  report_link_text = local_assigns[:report_link_text]
+  chart_id = local_assigns[:chart_id]
+  extra_class = local_assigns[:extra_class]
+  card_class = ["pie-chart-card"].push(extra_class).compact.join(" ")
+  has_footer = preset_label.present? || preset_dropdown_items.any? || (report_link_url.present? && report_link_text.present?)
+%>
+<div class="<%= card_class %>">
+  <div class="pie-chart-card__header">
+    <div class="pie-chart-card__head-inner">
+      <h5 class="pie-chart-card__title"><%= title %></h5>
+      <% if info_title.present? && info_text.present? %>
+        <div class="pie-chart-card__info-wrap">
+          <button type="button" class="pie-chart-card__info-btn" aria-label="More information" title="<%= info_title %>: <%= info_text.truncate(80) %>">
+            <svg class="pie-chart-card__info-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.529 9.988a2.502 2.502 0 1 1 5 .191A2.441 2.441 0 0 1 12 12.582V14m-.01 3.008H12M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    <% if show_download %>
+      <div class="pie-chart-card__header-actions">
+        <button type="button" class="pie-chart-card__download-btn" title="Download CSV" aria-label="Download data">
+          <svg class="pie-chart-card__download-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <% if filter_items.any? %>
+    <div class="pie-chart-card__filters">
+      <% filter_items.each do |item| %>
+        <div class="pie-chart-card__filter-item">
+          <input id="pie-filter-<%= item[:id] %>" type="checkbox" value="<%= item[:id] %>" class="pie-chart-card__filter-input">
+          <label for="pie-filter-<%= item[:id] %>" class="pie-chart-card__filter-label"><%= item[:label] %></label>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="pie-chart-card__chart" <%= "id=#{chart_id}" if chart_id.present? %>>
+    <%= yield %>
+  </div>
+
+  <% if has_footer %>
+    <div class="pie-chart-card__footer">
+      <div class="pie-chart-card__footer-inner">
+        <% if preset_dropdown_items.any? %>
+          <% dropdown_id = "pie-preset-#{chart_id.presence || SecureRandom.hex(3)}" %>
+          <div class="pie-chart-card__preset-dropdown dropdown">
+            <button type="button" class="pie-chart-card__preset-btn dropdown-toggle" data-bs-toggle="dropdown" id="<%= dropdown_id %>-btn" aria-haspopup="true" aria-expanded="false">
+              <%= preset_label || preset_dropdown_items.first[:label] %>
+              <svg class="pie-chart-card__preset-chevron" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
+              </svg>
+            </button>
+            <ul class="pie-chart-card__preset-menu dropdown-menu" aria-labelledby="<%= dropdown_id %>-btn">
+              <% preset_dropdown_items.each do |opt| %>
+                <li>
+                  <% if opt[:url].present? %>
+                    <%= link_to opt[:label], opt[:url], class: "pie-chart-card__preset-link dropdown-item" %>
+                  <% else %>
+                    <span class="dropdown-item"><%= opt[:label] %></span>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% elsif preset_label.present? %>
+          <span class="pie-chart-card__preset-label"><%= preset_label %></span>
+        <% end %>
+        <% if report_link_url.present? && report_link_text.present? %>
+          <%= link_to report_link_url, class: "pie-chart-card__report-link" do %>
+            <%= report_link_text %>
+            <svg class="pie-chart-card__report-link-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m14 0-4 4m4-4-4-4"/>
+            </svg>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

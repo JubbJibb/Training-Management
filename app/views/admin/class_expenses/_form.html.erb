@@ -1,0 +1,59 @@
+<% if @class_expense.errors.any? %>
+  <div class="alert alert-danger" role="alert">
+    <h5>พบข้อผิดพลาด:</h5>
+    <ul class="mb-0">
+      <% @class_expense.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="mb-3">
+  <%= f.label :description, "รายการ *", class: "form-label" %>
+  <%= f.text_field :description, class: "form-control", required: true,
+      placeholder: "เช่น ค่าขนม, ค่าอาหาร, เครื่องดื่ม, อุปกรณ์" %>
+</div>
+
+<div class="mb-3">
+  <%= f.label :category, "หมวดหมู่", class: "form-label" %>
+  <%= f.select :category,
+      options_for_select([["เลือกหมวดหมู่", ""]] + ClassExpense::CATEGORIES.map { |c| [c, c] },
+      @class_expense.category),
+      {},
+      { class: "form-select" } %>
+</div>
+
+<div class="mb-3">
+  <%= f.label :amount, "จำนวนเงิน (บาท) *", class: "form-label" %>
+  <div class="input-group">
+    <span class="input-group-text">฿</span>
+    <%= f.number_field :amount,
+        class: "form-control",
+        step: 0.01,
+        min: 0.01,
+        required: true,
+        placeholder: "0.00" %>
+  </div>
+</div>
+
+<div class="mb-3">
+  <%= f.label :expense_date, "วันที่", class: "form-label" %>
+  <%= f.date_field :expense_date, class: "form-control", value: @class_expense.expense_date || Date.current %>
+</div>
+
+<div class="mb-3">
+  <%= f.label :payment_status, "สถานะการจ่าย", class: "form-label" %>
+  <%= f.select :payment_status,
+      options_for_select(ClassExpense::PAYMENT_STATUSES, @class_expense.payment_status.presence || "unpaid"),
+      {},
+      { class: "form-select" } %>
+</div>
+
+<div class="mb-3">
+  <div class="form-check">
+    <%= f.check_box :is_estimated, class: "form-check-input", id: "class_expense_is_estimated" %>
+    <%= f.label :is_estimated, "ค่าใช้จ่ายประมาณการ", class: "form-check-label", for: "class_expense_is_estimated" %>
+  </div>
+  <small class="form-text text-muted">ติ๊กถ้ายังเป็นตัวเลขประมาณการ ยังไม่ได้จ่ายจริง</small>
+</div>

@@ -1,0 +1,9 @@
+<%= render layout: "layouts/class_workspace" do %>
+  <div class="workspace-section workspace-section--edit odt-edit-page">
+    <div class="workspace-edit-form-wrap">
+      <%= form_with model: [:admin, @training_class], local: true, data: { turbo_frame: "_top" }, html: { class: "odt-edit-form" } do |f| %>
+        <%= render "admin/class_workspace/edit/edit_class_form", f: f %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

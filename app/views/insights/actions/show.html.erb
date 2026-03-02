@@ -44,7 +44,7 @@
                 <% warning.each do |item| %>
                   <li class="list-group-item d-flex justify-content-between align-items-center">
                     <%= item[:label] %> <% if item[:count].to_i > 1 %><span class="badge bg-warning text-dark rounded-pill"><%= item[:count] %></span><% end %>
-                    <% url = item[:path] == "finance_ar" ? finance_ar_path : (item[:path] == "training_class" && item[:training_class_id].present? ? admin_training_class_path(item[:training_class_id]) : (item[:path] == "admin_dashboard" ? admin_dashboard_index_path : "#")) %>
+                    <% url = item[:path] == "finance_ar" ? finance_ar_path : (item[:path] == "training_class" && item[:training_class_id].present? ? admin_class_workspace_path(item[:training_class_id]) : (item[:path] == "admin_dashboard" ? admin_dashboard_index_path : "#")) %>
                     <%= link_to item[:cta], url, class: "btn btn-sm btn-outline-warning" %>
                   </li>
                 <% end %>

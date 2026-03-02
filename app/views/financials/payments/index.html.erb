@@ -1,0 +1,125 @@
+<% content_for :title, "Payment Tracking" %>
+<div class="tc-index-page financials-page pt-page">
+  <%= render "components/odt/page_header", title: "Payment Tracking", subtitle: "Verify · Issue receipt · Send to customer", icon: "wallet2" do %>
+  <% end %>
+
+  <%= turbo_frame_tag "financials_payments_workspace", data: { turbo_action: "advance" } do %>
+    <div class="tc-index-filter-wrap">
+      <%= render "financials/payments/filter_bar" %>
+    </div>
+
+    <div class="pt-summary-bar-wrap">
+      <%= render "financials/payments/summary_pills", summary: @summary %>
+    </div>
+
+    <div class="tc-index-bulk-bar" id="pt-bulk-bar" style="display: none;" role="region" aria-label="Bulk actions">
+      <span class="tc-index-bulk-bar__count" id="pt-bulk-count">0</span> selected
+      <%= form_with url: bulk_verify_financials_payments_path, method: :post, id: "pt-bulk-form", data: { turbo_frame: "_top" }, class: "pt-bulk-form d-inline" do %>
+        <% params.permit(:period, :date_from, :date_to, :client_type, :workflow_status, :class_id, :instructor, :overdue_only, :has_slip, :completed_today).each do |k, v| %>
+          <%= hidden_field_tag k, v if v.present? %>
+        <% end %>
+        <button type="submit" name="bulk_action" value="verify" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary">Mark as verified</button>
+      <% end %>
+      <%= form_with url: bulk_send_summary_financials_payments_path, method: :post, class: "pt-bulk-form d-inline", data: { turbo_frame: "_top" } do %>
+        <% params.permit(:period, :date_from, :date_to, :client_type, :workflow_status, :class_id, :instructor, :overdue_only, :has_slip, :completed_today).each do |k, v| %>
+          <%= hidden_field_tag k, v if v.present? %>
+        <% end %>
+        <button type="submit" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary">Send payment summary</button>
+      <% end %>
+      <%= form_with url: bulk_send_receipt_financials_payments_path, method: :post, class: "pt-bulk-form d-inline", data: { turbo_frame: "_top" } do %>
+        <% params.permit(:period, :date_from, :date_to, :client_type, :workflow_status, :class_id, :instructor, :overdue_only, :has_slip, :completed_today).each do |k, v| %>
+          <%= hidden_field_tag k, v if v.present? %>
+        <% end %>
+        <button type="submit" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary">Send receipt</button>
+      <% end %>
+      <a href="#" id="pt-bulk-export-btn" class="tc-index-filter-bar__btn tc-index-filter-bar__btn--secondary" data-turbo-frame="_top" style="display: none;">Export selected</a>
+    </div>
+
+    <%= render "financials/payments/payments_table", payments: @payments, selected_id: nil %>
+  <% end %>
+</div>
+<style>
+  .pt-summary-bar-wrap { margin-bottom: var(--space-3); }
+  .pt-summary-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .pt-summary-pills__pill { display: inline-flex; flex-direction: column; align-items: center; padding: var(--space-2) var(--space-3); border: 1px solid #e5e7eb; border-radius: var(--radius-sm); background: #fff; color: var(--color-ink); text-decoration: none; font-size: var(--font-size-sm); transition: border-color 0.15s, background 0.15s; min-width: 100px; }
+  .pt-summary-pills__pill:hover { border-color: var(--odt-blue); background: rgba(19, 19, 156, 0.04); }
+  .pt-summary-pills__pill--active { border-color: var(--odt-blue); background: rgba(19, 19, 156, 0.08); font-weight: 600; }
+  .pt-summary-pills__num { font-size: 1.125rem; font-weight: 700; color: var(--odt-blue); }
+  .pt-summary-pills__label { margin-top: 2px; font-size: 0.75rem; color: var(--odt-muted); text-align: center; }
+  .tc-index-bulk-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; margin-bottom: var(--space-2); flex-wrap: wrap; }
+  .tc-index-bulk-bar__count { font-weight: 600; color: var(--odt-blue); }
+</style>
+<script>
+(function() {
+  var tableEl = document.querySelector('.pt-payments-table');
+  var bulkBar = document.getElementById('pt-bulk-bar');
+  var bulkCount = document.getElementById('pt-bulk-count');
+  var selectAll = document.getElementById('pt-select-all');
+  var rows = tableEl ? tableEl.querySelectorAll('tbody tr[data-detail-url]') : [];
+
+  rows.forEach(function(row) {
+    var detailUrl = row.getAttribute('data-detail-url');
+    row.addEventListener('click', function(ev) {
+      if (ev.target.closest('.attendees-ledger__td--check') || ev.target.closest('.attendees-ledger__td--actions') || ev.target.closest('.pt-table-action') || ev.target.closest('.pt-table-action-form') || ev.target.closest('button')) return;
+      if (ev.target.closest('a')) return;
+      if (ev.detail === 2 && detailUrl) {
+        window.location.href = detailUrl;
+      }
+    });
+  });
+
+  function updateBulkBar() {
+    var checks = document.querySelectorAll('.pt-row-check:checked');
+    var n = checks.length;
+    if (bulkCount) bulkCount.textContent = n;
+    if (bulkBar) bulkBar.style.display = n > 0 ? 'flex' : 'none';
+    if (selectAll) {
+      var total = document.querySelectorAll('.pt-row-check').length;
+      selectAll.checked = total > 0 && n === total;
+      selectAll.indeterminate = n > 0 && n < total;
+    }
+    var ids = Array.from(checks).map(function(c) { return c.value; });
+    document.querySelectorAll('.pt-bulk-form').forEach(function(form) {
+      form.querySelectorAll('input[name="payment_ids[]"]').forEach(function(el) { el.remove(); });
+      ids.forEach(function(id) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payment_ids[]';
+        input.value = id;
+        form.appendChild(input);
+      });
+    });
+    var exportBtn = document.getElementById('pt-bulk-export-btn');
+    if (exportBtn && ids.length) {
+      var q = new URLSearchParams();
+      ids.forEach(function(id) { q.append('payment_ids[]', id); });
+      exportBtn.href = '<%= bulk_export_financials_payments_path %>?' + q.toString();
+      exportBtn.style.display = '';
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      document.querySelectorAll('.pt-row-check').forEach(function(c) { c.checked = selectAll.checked; });
+      updateBulkBar();
+    });
+  }
+  document.querySelectorAll('.pt-row-check').forEach(function(c) {
+    c.addEventListener('change', updateBulkBar);
+  });
+
+  document.querySelectorAll('.pt-bulk-form').forEach(function(form) {
+    form.addEventListener('submit', function() {
+      var ids = Array.from(document.querySelectorAll('.pt-row-check:checked')).map(function(c) { return c.value; });
+      form.querySelectorAll('input[name="payment_ids[]"]').forEach(function(el) { el.remove(); });
+      ids.forEach(function(id) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'payment_ids[]';
+        input.value = id;
+        form.appendChild(input);
+      });
+    });
+  });
+})();
+</script>

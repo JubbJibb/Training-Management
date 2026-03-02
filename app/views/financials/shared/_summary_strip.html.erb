@@ -1,0 +1,16 @@
+<%
+  # Inline summary row: Revenue | Costs | Profit | Cash Received | Outstanding (no KPI cards).
+  # Pass summary_items: [ { label: "Revenue", value: "฿123,456", variant: nil|"warning"|"accent" }, ... ]
+  summary_items = local_assigns[:summary_items] || []
+%>
+<div class="fin-summary-strip" role="region" aria-label="Summary metrics">
+  <% summary_items.each_with_index do |item, i| %>
+    <div class="fin-summary-strip__item fin-summary-strip__item--<%= item[:variant].presence || 'default' %>">
+      <span class="fin-summary-strip__label"><%= item[:label] %></span>
+      <span class="fin-summary-strip__value"><%= item[:value] %></span>
+    </div>
+    <% if i < summary_items.size - 1 %>
+      <div class="fin-summary-strip__divider" aria-hidden="true"></div>
+    <% end %>
+  <% end %>
+</div>

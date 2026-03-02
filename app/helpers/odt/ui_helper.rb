@@ -115,6 +115,13 @@ module Odt
       render "components/odt/action_menu", items: items, button_title: button_title
     end
 
+    # Renders ODT Split button: primary action (left) + dropdown (right).
+    # primary: { url:, icon:, title:, label:, data: {} }
+    # dropdown_items: [ { label:, icon:, url:, method: :get|:delete, confirm:, data: {} }, ... ]
+    def odt_split_button(primary:, dropdown_items:, button_class: "attendees-ledger__action", split_class: "attendees-ledger__split-btn", more_label: "More actions")
+      render "components/odt/split_button", primary: primary, dropdown_items: dropdown_items, button_class: button_class, split_class: split_class, more_label: more_label
+    end
+
     # Renders ODT AmountCell. amount (number or string), incl_vat: "incl. VAT", tooltip: optional
     def odt_amount_cell(amount, incl_vat: "incl. VAT", tooltip: nil)
       render "components/odt/amount_cell", amount: amount, incl_vat: incl_vat, tooltip: tooltip

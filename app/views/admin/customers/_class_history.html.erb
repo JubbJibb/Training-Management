@@ -18,11 +18,11 @@
               <td class="col-xl truncate"><%= a.training_class&.title.presence || "—" %></td>
               <td class="col-sm truncate"><%= a.training_class&.date&.strftime("%d %b %Y") || "—" %></td>
               <td class="col-xs"><%= a.seats.to_i %></td>
-              <td class="col-sm"><span class="badge badge-modern <%= a.payment_status == "Paid" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= a.payment_status.presence || "—" %></span></td>
+              <td class="col-sm"><%= odt_badge(a.payment_status.presence || "—", status: (a.payment_status == "Paid" ? :paid : :pending), size: :sm) %></td>
               <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(a.total_final_price.to_f.round(2), delimiter: ",") %></td>
               <td class="cell-actions actions">
                 <% if a.training_class %>
-                  <%= link_to admin_training_class_path(a.training_class), class: "odt-icon-btn odt-icon-btn--ghost", title: "View class", aria: { label: "View class" } do %>
+                  <%= link_to admin_class_workspace_path(a.training_class), class: "odt-icon-btn odt-icon-btn--ghost", title: "View class", aria: { label: "View class" } do %>
                     <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                   <% end %>
                 <% end %>

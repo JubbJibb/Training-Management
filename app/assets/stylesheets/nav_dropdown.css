@@ -1,0 +1,107 @@
+/*
+ * Reusable top-nav dropdown panel – Material 3 style.
+ * White floating panel, large menu text, navy hover/active.
+ * Use with shared/_nav_dropdown.html.erb + nav_dropdown_controller.js
+ */
+
+/* Wrapper: position for absolute panel, left-align under trigger */
+.navbar .nav-dropdown--panel {
+  position: relative;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown__trigger {
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 10px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.35;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown__trigger:hover {
+  color: #1E1B8F;
+}
+
+.navbar .nav-dropdown--panel.active .nav-dropdown__trigger {
+  color: #1E1B8F;
+}
+
+/* Panel: white surface, rounded, shadow, left-aligned under trigger */
+.navbar .nav-dropdown--panel .nav-dropdown-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  width: 280px;
+  max-width: min(280px, calc(100vw - 24px));
+  background: #FFFFFF;
+  border: 1px solid #E6E8EF;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  z-index: 1050;
+  min-width: 0;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown-panel[hidden] {
+  display: none !important;
+}
+
+.navbar .nav-dropdown--panel.show .nav-dropdown-panel {
+  display: flex !important;
+}
+
+/* Menu item: block, full width, large text */
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 22px;
+  font-weight: 500;
+  color: #0F172A;
+  text-decoration: none;
+  border: none;
+  border-radius: 12px;
+  transition: background 0.15s ease, color 0.15s ease;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .navbar .nav-dropdown--panel .nav-dropdown-panel__item {
+    font-size: 20px;
+  }
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item:hover {
+  background: #F3F6FF;
+  color: #0B1B5A;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item--active,
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item:active {
+  background: #E9EEFF;
+  color: #0B1B5A;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item:focus {
+  outline: none;
+}
+
+.navbar .nav-dropdown--panel .nav-dropdown-panel__item:focus-visible {
+  outline: 2px solid rgba(13, 51, 165, 0.35);
+  outline-offset: 2px;
+  border-radius: 12px;
+}

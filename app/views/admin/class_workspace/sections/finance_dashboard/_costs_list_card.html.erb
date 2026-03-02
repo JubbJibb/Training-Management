@@ -1,0 +1,60 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  expenses = local_assigns[:class_expenses] || @class_expenses || []
+  full_width = local_assigns[:full_width]
+  payment_status_label = { "paid" => "จ่ายแล้ว", "deposit" => "มัดจำ", "unpaid" => "ยังไม่จ่าย" }
+  card_class = "finance-dash-card" + (full_width ? " finance-dash-card--costs-full" : "")
+%>
+<div class="<%= card_class %>">
+  <div class="finance-dash-card__accent"></div>
+  <div class="finance-dash-card__header">
+    <span class="finance-dash-card__title"><i class="bi bi-currency-dollar" aria-hidden="true"></i> รายการค่าใช้จ่าย</span>
+    <%= link_to "เพิ่มรายการ", new_admin_training_class_class_expense_path(training_class), class: "finance-dash-card__action", data: { turbo_frame: "_top" } %>
+  </div>
+  <div class="finance-dash-card__body">
+    <% if expenses.any? %>
+      <div class="finance-dash-costs-table-wrap">
+        <table class="finance-dash-costs-table" role="table">
+          <thead>
+            <tr>
+              <th class="finance-dash-costs-table__th">รายการ</th>
+              <th class="finance-dash-costs-table__th finance-dash-costs-table__th--num">จำนวนเงิน</th>
+              <th class="finance-dash-costs-table__th">สถานะ</th>
+              <th class="finance-dash-costs-table__th">วันที่</th>
+              <th class="finance-dash-costs-table__th finance-dash-costs-table__th--actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses.each do |exp| %>
+              <tr class="finance-dash-costs-table__row">
+                <td class="finance-dash-costs-table__td">
+                  <span class="finance-dash-costs-table__desc"><%= exp.description.to_s.truncate(full_width ? 80 : 40) %></span>
+                  <% if exp.category.present? %>
+                    <span class="finance-dash-costs-table__cat"><%= exp.category %></span>
+                  <% end %>
+                  <% if exp.is_estimated? %>
+                    <span class="finance-dash-costs-table__badge finance-dash-costs-table__badge--est">ประมาณการ</span>
+                  <% end %>
+                </td>
+                <td class="finance-dash-costs-table__td finance-dash-costs-table__td--num"><%= number_to_thb(exp.amount.to_f) %></td>
+                <td class="finance-dash-costs-table__td">
+                  <span class="finance-dash-costs-table__status finance-dash-costs-table__status--<%= exp.payment_status.presence || 'unpaid' %>">
+                    <%= payment_status_label[exp.payment_status.presence || "unpaid"] %>
+                  </span>
+                </td>
+                <td class="finance-dash-costs-table__td finance-dash-costs-table__td--date">
+                  <%= exp.expense_date.present? ? exp.expense_date.strftime("%d/%m/%y") : "—" %>
+                </td>
+                <td class="finance-dash-costs-table__td finance-dash-costs-table__td--actions">
+                  <%= link_to edit_admin_training_class_class_expense_path(training_class, exp), class: "finance-dash-costs-table__action", title: "แก้ไข", data: { turbo_frame: "_top" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="finance-dash-hint"><i class="bi bi-info-circle"></i> ยังไม่มีรายการค่าใช้จ่าย <%= link_to "เพิ่มรายการ", new_admin_training_class_class_expense_path(training_class), class: "finance-dash-hint__link", data: { turbo_frame: "_top" } %></p>
+    <% end %>
+  </div>
+</div>

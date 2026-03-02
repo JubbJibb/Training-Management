@@ -1,0 +1,13 @@
+<%
+  message = local_assigns[:message] || "No data"
+  icon = local_assigns[:icon].presence || "inbox"
+  action_url = local_assigns[:action_url]
+  action_label = local_assigns[:action_label] || "Add"
+%>
+<div class="fin-empty-state" role="status" aria-live="polite">
+  <i class="bi bi-<%= icon %> fin-empty-state__icon" aria-hidden="true"></i>
+  <p class="fin-empty-state__message"><%= message %></p>
+  <% if action_url.present? %>
+    <%= link_to action_label, action_url, class: "odt-btn odt-btn--primary odt-btn--sm fin-empty-state__action" %>
+  <% end %>
+</div>

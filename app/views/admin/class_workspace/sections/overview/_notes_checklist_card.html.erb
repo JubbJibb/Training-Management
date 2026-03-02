@@ -1,0 +1,71 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || tc.checklist_items.presence || []
+  defaults = ["Venue booked", "Slides ready", "Food confirmed", "Name list printed", "Certificates prepared", "Invoice issued"]
+  existing_titles = checklist_items.map { |i| i["title"].to_s }.compact
+  missing = defaults - existing_titles
+  out = checklist_items.dup
+  missing.each { |title| out << { "id" => SecureRandom.uuid, "title" => title, "done" => false, "created_at" => Time.current.iso8601, "updated_at" => Time.current.iso8601 } }
+  checklist_items = out
+  notes = tc.internal_notes.to_s
+  quick_tags = %w[Ops Sales Venue Invoice Food]
+%>
+<div id="workspace-notes-checklist-card" class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Notes & Checklist</h3>
+      <p class="insight-card__subtitle">Checklist and internal notes</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <%= form_with url: admin_class_workspace_checklist_path(tc), method: :patch, data: { turbo_frame: "_top" }, id: "workspace-checklist-form" do %>
+      <div class="odt-checklist-grid">
+        <% checklist_items.each do |item| %>
+          <label class="odt-checklist-grid__item">
+            <%= check_box_tag "checklist_items[][done]", "1", item["done"], class: "form-check-input" %>
+            <input type="hidden" name="checklist_items[][id]" value="<%= item['id'] %>">
+            <input type="hidden" name="checklist_items[][title]" value="<%= item['title'] %>">
+            <span><%= item["title"] %></span>
+          </label>
+        <% end %>
+      </div>
+      <div class="d-flex justify-content-end mt-2">
+        <button type="submit" class="odt-btn odt-btn--secondary odt-btn--sm">Save checklist</button>
+      </div>
+    <% end %>
+    <div class="mt-4 pt-3 border-top border-light">
+      <div class="odt-notes-tabs" role="tablist">
+        <% quick_tags.each do |tag| %>
+          <button type="button" class="odt-notes-tabs__tab" data-notes-tag="[<%= tag %>] " title="Insert tag"><%= tag %></button>
+        <% end %>
+      </div>
+      <div id="workspace-notes-errors"></div>
+      <%= form_with url: admin_class_workspace_notes_path(tc), method: :patch, id: "workspace-notes-form", class: "notes-form", data: { turbo_frame: "_top" } do %>
+        <%= text_area_tag :internal_notes, notes, class: "form-control notes-form__textarea mt-2", rows: 4, placeholder: "Internal notes (use tags: Ops, Sales, Venue, Invoice, Food)...", data: { notes_target: "input" } %>
+        <div class="d-flex justify-content-end mt-3">
+          <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Save notes</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var form = document.getElementById('workspace-notes-form');
+  if (!form) return;
+  var body = form.closest('.insight-card__body');
+  if (!body) return;
+  body.querySelectorAll('[data-notes-tag]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var ta = form.querySelector('[data-notes-target="input"]');
+      if (!ta) return;
+      var tag = btn.getAttribute('data-notes-tag');
+      var start = ta.selectionStart, end = ta.selectionEnd, val = ta.value;
+      ta.value = val.slice(0, start) + tag + val.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + tag.length;
+      ta.focus();
+    });
+  });
+})();
+</script>

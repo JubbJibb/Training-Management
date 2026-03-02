@@ -1,0 +1,13 @@
+<%
+  summary = local_assigns[:executive_summary] || @data&.dig(:executive_summary) || {}
+  text = summary[:text].to_s.presence
+%>
+<div class="bi-executive-summary">
+  <% if text.present? && text.length > 80 %>
+    <p class="bi-executive-summary__text">เลือกช่วงเวลาและตัวกรองด้านบน แล้วดูตัวชี้วัดและกราฟด้านล่าง</p>
+  <% elsif text.present? %>
+    <p class="bi-executive-summary__text"><%= text %></p>
+  <% else %>
+    <p class="bi-executive-summary__text bi-executive-summary__text--muted">เลือกช่วงเวลาและกด Apply เพื่อดูสรุป</p>
+  <% end %>
+</div>

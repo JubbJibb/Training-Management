@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_23_060000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -79,6 +79,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
     t.string "quotation_no"
     t.string "receipt_no"
     t.integer "seats", default: 1, null: false
+    t.datetime "slip_verified_at"
     t.string "source_channel"
     t.string "status", default: "attendee"
     t.string "tax_id"
@@ -86,7 +87,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
     t.integer "total_classes", default: 0
     t.integer "training_class_id", null: false
     t.datetime "updated_at", null: false
+    t.boolean "vat_excluded"
     t.index ["customer_id"], name: "index_attendees_on_customer_id"
+    t.index ["due_date", "payment_status"], name: "index_attendees_on_due_date_and_payment_status"
     t.index ["email", "training_class_id"], name: "index_attendees_on_email_and_training_class_id", unique: true
     t.index ["training_class_id"], name: "index_attendees_on_training_class_id"
   end
@@ -96,6 +99,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
     t.string "category"
     t.datetime "created_at", null: false
     t.string "description", null: false
+    t.date "expense_date"
+    t.boolean "is_estimated", default: false, null: false
+    t.string "payment_status", default: "unpaid"
     t.integer "training_class_id", null: false
     t.datetime "updated_at", null: false
     t.index ["training_class_id"], name: "index_class_expenses_on_training_class_id"
@@ -202,6 +208,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
   end
 
   create_table "training_classes", force: :cascade do |t|
+    t.text "checklist_items", default: "[]"
     t.decimal "cost", precision: 10, scale: 2, default: "0.0"
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -209,12 +216,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
     t.date "end_date"
     t.time "end_time"
     t.string "instructor"
+    t.text "internal_notes"
+    t.datetime "internal_notes_updated_at"
+    t.bigint "internal_notes_updated_by_id"
     t.string "location", null: false
     t.integer "max_attendees"
+    t.text "notes", default: "[]"
     t.decimal "price", precision: 10, scale: 2, default: "0.0"
+    t.boolean "public_enabled", default: false, null: false
+    t.string "public_slug"
+    t.text "related_links", default: "[]"
     t.time "start_time"
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.boolean "vat_excluded", default: false, null: false
+    t.index ["public_slug"], name: "index_training_classes_on_public_slug", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -226,4 +242,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_14_120000) do
   add_foreign_key "class_expenses", "training_classes"
   add_foreign_key "custom_field_values", "custom_fields"
   add_foreign_key "export_jobs", "admin_users", column: "requested_by_id"
+  add_foreign_key "training_classes", "admin_users", column: "internal_notes_updated_by_id", on_delete: :nullify
 end

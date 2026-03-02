@@ -1,0 +1,40 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  public_url = training_class.public_url_with_fallback
+  no_card = local_assigns[:no_card]
+%>
+<div id="workspace-public-section">
+<% if no_card %>
+  <div class="public-page-section">
+    <div class="public-page-section__row">
+      <span class="overview-detail__inline-label">Public page</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <%= button_to (training_class.public_enabled? ? "Disable" : "Enable"), admin_class_workspace_public_path(training_class), method: :patch, params: { public_enabled: !training_class.public_enabled? }, form: { class: "d-inline" }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+        <% if training_class.public_enabled? && training_class.public_slug.present? %>
+          <span class="badge bg-success">Enabled</span>
+          <input type="text" class="form-control form-control-sm flex-grow-1" style="max-width: 240px;" readonly value="<%= public_url %>" data-copy-target>
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-copy-btn data-copy-value="<%= public_url %>">Copy</button>
+          <%= link_to "Preview", public_url, class: "odt-btn odt-btn--secondary odt-btn--sm", target: "_blank", rel: "noopener" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <%= odt_card title: "Public Page", icon: "link-45deg" do %>
+    <div class="public-page-section">
+      <div class="public-page-section__row">
+        <label class="form-label small">Public page</label>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <%= button_to (training_class.public_enabled? ? "Disable" : "Enable"), admin_class_workspace_public_path(training_class), method: :patch, params: { public_enabled: !training_class.public_enabled? }, form: { class: "d-inline" }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+          <% if training_class.public_enabled? && training_class.public_slug.present? %>
+            <span class="badge bg-success">Enabled</span>
+            <input type="text" class="form-control form-control-sm flex-grow-1" style="max-width: 240px;" readonly value="<%= public_url %>" data-copy-target>
+            <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-copy-btn data-copy-value="<%= public_url %>">Copy</button>
+            <%= link_to "Preview", public_url, class: "odt-btn odt-btn--secondary odt-btn--sm", target: "_blank", rel: "noopener" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+</div>

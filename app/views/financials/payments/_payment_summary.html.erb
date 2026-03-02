@@ -1,0 +1,115 @@
+<%
+  payment = local_assigns[:payment]
+  customer = local_assigns[:customer] || payment.customer
+  training_class = local_assigns[:training_class] || payment.training_class
+  registration = local_assigns[:registration] || payment
+  doc = registration
+  company_name = "Odd-E (Thailand) Co., Ltd."
+  company_address = "2549/41-43 Phahonyothin, Lat Yao, Chatuchak, Bangkok 10900"
+  company_tax_id = Rails.application.config.x.company_tax_id.presence || "0-1055-56110-71-8"
+  bank_name = "Krung Thai Bank (ธ.กรุงไทย)"
+  account_holder = "Odd-E (Thailand) Co., Ltd."
+  account_type_number = "Savings / Account number as per company"
+  instruction_text = "After payment, please send your payment slip to ODTTraining@odds.team"
+  base = (registration.base_price * (registration.seats || 1)).round(2)
+  before_vat = registration.total_price_before_vat.to_f.round(2)
+  vat_amount = registration.total_vat_amount.to_f.round(2)
+  grand_total = registration.total_final_price.to_f.round(2)
+  promotions = registration.active_promotions.to_a
+  total_discount = (registration.total_discount_amount.to_f * (registration.seats || 1)).round(2)
+%>
+<div class="payment-summary" id="payment-summary-content">
+  <div class="payment-summary__badges">
+    <span class="payment-summary__badge payment-summary__badge--<%= registration.payment_status == 'Paid' ? 'paid' : 'pending' %>"><%= registration.payment_status.presence || 'Pending' %></span>
+    <% if registration.document_status == "Receipt" %>
+      <span class="payment-summary__badge payment-summary__badge--receipt">Receipt</span>
+    <% elsif registration.document_status.present? %>
+      <span class="payment-summary__badge payment-summary__badge--doc"><%= registration.document_status %></span>
+    <% end %>
+  </div>
+
+  <header class="payment-summary__header">
+    <div class="payment-summary__logo">
+      <%= image_tag "odt_logo.svg", alt: "ODT", class: "payment-summary__logo-img" %>
+    </div>
+    <div class="payment-summary__company">
+      <div class="payment-summary__company-name"><%= company_name %></div>
+      <div class="payment-summary__company-address"><%= company_address %></div>
+      <div class="payment-summary__company-tax">Tax ID: <%= company_tax_id %></div>
+    </div>
+  </header>
+
+  <section class="payment-summary__section">
+    <h3 class="payment-summary__section-title">Training details</h3>
+    <div class="payment-summary__row"><span class="payment-summary__label">Course / Class</span><span class="payment-summary__value"><%= training_class.title %></span></div>
+    <div class="payment-summary__row"><span class="payment-summary__label">Date</span><span class="payment-summary__value"><%= training_class.date&.strftime("%d/%m/%Y") || "—" %></span></div>
+    <% if training_class.start_time.present? || training_class.end_time.present? %>
+      <div class="payment-summary__row">
+        <span class="payment-summary__label">Time</span>
+        <span class="payment-summary__value">
+          <%= training_class.start_time.present? && training_class.end_time.present? ? "#{training_class.start_time.strftime('%H:%M')} – #{training_class.end_time.strftime('%H:%M')}" : (training_class.start_time&.strftime('%H:%M') || training_class.end_time&.strftime('%H:%M') || "—") %>
+        </span>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="payment-summary__section">
+    <h3 class="payment-summary__section-title">Registrant details</h3>
+    <div class="payment-summary__row"><span class="payment-summary__label">Name</span><span class="payment-summary__value"><%= registration.name.presence || "—" %></span></div>
+    <div class="payment-summary__row"><span class="payment-summary__label">Email</span><span class="payment-summary__value"><%= registration.email.presence || "—" %></span></div>
+    <% if registration.participant_type == "Corp" || registration.company.present? %>
+      <div class="payment-summary__row"><span class="payment-summary__label">Company</span><span class="payment-summary__value"><%= registration.company.presence || customer&.company || "—" %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Tax ID</span><span class="payment-summary__value"><%= registration.tax_id.presence || customer&.tax_id || "—" %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Billing address</span><span class="payment-summary__value"><%= registration.document_billing_address.presence || customer&.billing_address || customer&.address || "—" %></span></div>
+    <% end %>
+  </section>
+
+  <%
+    vat_excluded = registration.respond_to?(:vat_excluded?) ? registration.vat_excluded? : training_class.vat_excluded?
+  %>
+  <section class="payment-summary__section payment-summary__pricing">
+    <h3 class="payment-summary__section-title">Payment breakdown</h3>
+    <div class="payment-summary__pricing-table">
+      <div class="payment-summary__pricing-row">
+        <span class="payment-summary__pricing-label">Base price</span>
+        <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(base) %></span>
+      </div>
+      <% promotions.each do |promo| %>
+        <div class="payment-summary__pricing-row payment-summary__pricing-row--discount">
+          <span class="payment-summary__pricing-label">Discount: <%= promo.display_name %></span>
+          <span class="payment-summary__pricing-amount">−฿<%= number_with_delimiter((promo.calculate_discount(registration.base_price) * (registration.seats || 1)).round(2)) %></span>
+        </div>
+      <% end %>
+      <% if promotions.empty? && total_discount.positive? %>
+        <div class="payment-summary__pricing-row payment-summary__pricing-row--discount">
+          <span class="payment-summary__pricing-label">Discounts</span>
+          <span class="payment-summary__pricing-amount">−฿<%= number_with_delimiter(total_discount) %></span>
+        </div>
+      <% end %>
+      <% unless vat_excluded %>
+        <div class="payment-summary__pricing-row">
+          <span class="payment-summary__pricing-label">Subtotal (before VAT)</span>
+          <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(before_vat) %></span>
+        </div>
+        <div class="payment-summary__pricing-row">
+          <span class="payment-summary__pricing-label">VAT (7%)</span>
+          <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(vat_amount) %></span>
+        </div>
+      <% end %>
+      <div class="payment-summary__pricing-row payment-summary__pricing-row--total">
+        <span class="payment-summary__pricing-label"><%= vat_excluded ? "Total (VAT excluded)" : "Grand total" %></span>
+        <span class="payment-summary__pricing-grand">฿<%= number_with_delimiter(grand_total) %></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="payment-summary__section payment-summary__bank">
+    <h3 class="payment-summary__section-title">Payment method</h3>
+    <div class="payment-summary__bank-rows">
+      <div class="payment-summary__row"><span class="payment-summary__label">Bank</span><span class="payment-summary__value"><%= bank_name %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account type / Number</span><span class="payment-summary__value"><%= account_type_number %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account holder</span><span class="payment-summary__value"><%= account_holder %></span></div>
+    </div>
+    <p class="payment-summary__instruction"><%= instruction_text %></p>
+  </section>
+</div>

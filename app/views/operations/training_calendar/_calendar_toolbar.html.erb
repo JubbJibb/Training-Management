@@ -1,0 +1,58 @@
+<%
+  view = local_assigns[:view] || "month"
+  filters = local_assigns[:filters] || {}
+  month_start = local_assigns[:month_start]
+  month_end = local_assigns[:month_end]
+  week_start = local_assigns[:week_start]
+  week_end = local_assigns[:week_end]
+  prev_date = view == "month" ? (month_start - 1.month) : (week_start - 1.week)
+  next_date = view == "month" ? (month_start + 1.month) : (week_start + 1.week)
+  base_q = { view: view, start_date: filters[:start_date], q: filters[:q], instructor: filters[:instructor], location: filters[:location], status: filters[:status], type: filters[:type], nearly_full: filters[:nearly_full] }.compact
+%>
+<div class="tc-calendar-toolbar">
+  <div class="tc-calendar-toolbar__nav">
+    <%= link_to operations_training_calendar_path(base_q.merge(start_date: prev_date.to_s)), class: "tc-calendar-toolbar__nav-btn", data: { turbo_frame: "_top" }, aria: { label: "Previous" } do %>
+      <i class="bi bi-chevron-left"></i>
+    <% end %>
+    <span class="tc-calendar-toolbar__nav-label">
+      <% if view == "month" && month_start %>
+        <%= month_start.strftime("%B %Y") %>
+      <% elsif week_start && week_end %>
+        <%= week_start.strftime("%b %d") %> – <%= week_end.strftime("%b %d, %Y") %>
+      <% end %>
+    </span>
+    <%= link_to operations_training_calendar_path(base_q.merge(start_date: next_date.to_s)), class: "tc-calendar-toolbar__nav-btn", data: { turbo_frame: "_top" }, aria: { label: "Next" } do %>
+      <i class="bi bi-chevron-right"></i>
+    <% end %>
+    <%= link_to operations_training_calendar_path(base_q.merge(start_date: Date.current.to_s)), class: "tc-calendar-toolbar__nav-btn tc-calendar-toolbar__nav-btn--today", data: { turbo_frame: "_top" } do %>
+      Today
+    <% end %>
+  </div>
+  <div class="tc-calendar-toolbar__view">
+    <span class="tc-calendar-toolbar__view-label">View</span>
+    <div class="tc-calendar-toolbar__toggle" role="group" aria-label="Month, Week, Agenda">
+      <%= link_to "Month", operations_training_calendar_path(base_q.merge(view: "month")), class: "tc-calendar-toolbar__toggle-btn #{view == 'month' ? 'is-active' : ''}", data: { turbo_frame: "_top" } %>
+      <%= link_to "Week", operations_training_calendar_path(base_q.merge(view: "week")), class: "tc-calendar-toolbar__toggle-btn #{view == 'week' ? 'is-active' : ''}", data: { turbo_frame: "_top" } %>
+      <%= link_to "Agenda", operations_training_calendar_path(base_q.merge(view: "agenda")), class: "tc-calendar-toolbar__toggle-btn #{view == 'agenda' ? 'is-active' : ''}", data: { turbo_frame: "_top" } %>
+    </div>
+  </div>
+  <div class="tc-calendar-toolbar__search">
+    <%= form_with url: operations_training_calendar_path, method: :get, class: "tc-calendar-toolbar__search-form", data: { turbo_frame: "_top" } do |f| %>
+      <%= hidden_field_tag :view, view %>
+      <%= hidden_field_tag :start_date, filters[:start_date] %>
+      <%= hidden_field_tag :instructor, filters[:instructor] %>
+      <%= hidden_field_tag :location, filters[:location] %>
+      <%= hidden_field_tag :status, filters[:status] %>
+      <%= hidden_field_tag :type, filters[:type] %>
+      <%= hidden_field_tag :nearly_full, filters[:nearly_full] %>
+      <label for="tc_search" class="visually-hidden">Search class, instructor, client</label>
+      <input type="search" name="q" id="tc_search" class="tc-calendar-toolbar__search-input" placeholder="Search class / instructor / client…" value="<%= filters[:q] %>" aria-label="Search">
+      <button type="submit" class="tc-calendar-toolbar__search-btn" aria-label="Search"><i class="bi bi-search"></i></button>
+    <% end %>
+  </div>
+  <div class="tc-calendar-toolbar__actions">
+    <button type="button" class="tc-calendar-toolbar__btn tc-calendar-toolbar__btn--secondary" data-action="click->training-calendar#openFilterDrawer" aria-label="Filters">
+      <i class="bi bi-funnel"></i> Filter
+    </button>
+  </div>
+</div>

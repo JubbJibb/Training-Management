@@ -19,7 +19,7 @@
               <td class="col-lg truncate"><%= row[:doc_no] %></td>
               <td class="col-md truncate"><%= row[:date] %></td>
               <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(row[:amount].to_f.round(2), delimiter: ",") %></td>
-              <td class="col-sm"><span class="badge badge-modern <%= row[:status] == "issued" ? "badge-payment-paid" : "badge-payment-pending" %>"><%= row[:status] %></span></td>
+              <td class="col-sm"><%= odt_badge(row[:status].to_s, status: (row[:status] == "issued" ? :paid : :pending), size: :sm) %></td>
             </tr>
           <% end %>
         </tbody>

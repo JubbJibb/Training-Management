@@ -1,0 +1,56 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  capacity = local_assigns[:capacity] || klass.max_attendees.to_i
+  confirmed = local_assigns[:confirmed] || klass.total_registered_seats
+  revenue = local_assigns[:revenue] || klass.net_revenue
+  outstanding = klass.outstanding_amount
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || klass.checklist_items.presence || []
+  fill_pct = klass.fill_rate_percent.to_i
+  fill_pct = [[fill_pct, 100].min, 0].max
+  done_count = checklist_items.count { |i| i["done"] }
+  incomplete_items = checklist_items.reject { |i| i["done"] }
+
+  capacity_badge = capacity.positive? ? (fill_pct >= 100 ? "Full" : (fill_pct >= 75 ? "On track" : (fill_pct >= 40 ? "Building" : "Low"))) : "—"
+  finance_badge = outstanding.positive? ? "Outstanding" : "Settled"
+  ops_text = incomplete_items.empty? ? "Ready" : "#{incomplete_items.size} to do"
+  capacity_badge_class = capacity_badge.parameterize.gsub("-", "_")
+  capacity_badge_class = "gray" if capacity_badge == "—" || capacity_badge == "Low"
+  capacity_badge_class = "green" if capacity_badge == "On track" || capacity_badge == "Full"
+  capacity_badge_class = "gold" if capacity_badge == "Building"
+  finance_badge_class = outstanding.positive? ? "orange" : "green"
+  ops_badge_class = incomplete_items.empty? ? "green" : "orange"
+%>
+<div class="odt-card">
+  <header class="odt-card__header">
+    <div class="odt-card__header-inner">
+      <i class="bi bi-graph-up" aria-hidden="true"></i>
+      <h2 class="odt-card__title">Executive Snapshot</h2>
+    </div>
+  </header>
+  <div class="odt-card__body">
+    <div class="odt-kpi-grid">
+      <div class="odt-kpi-tile">
+        <span class="odt-kpi-tile__label">Capacity forecast</span>
+        <span class="odt-kpi-tile__value"><%= capacity.positive? ? "#{fill_pct}%" : "—" %></span>
+        <% if capacity.positive? %>
+          <div class="odt-kpi-tile__progress">
+            <div class="odt-progress" role="progressbar" aria-valuenow="<%= fill_pct %>" aria-valuemin="0" aria-valuemax="100">
+              <div class="odt-progress__bar" style="width: <%= fill_pct %>%;"></div>
+            </div>
+          </div>
+        <% end %>
+        <span class="odt-badge odt-badge--<%= capacity_badge_class %> odt-badge--pill odt-badge--sm"><%= capacity_badge %></span>
+      </div>
+      <div class="odt-kpi-tile">
+        <span class="odt-kpi-tile__label">Finance state</span>
+        <span class="odt-kpi-tile__value"><%= number_to_thb(revenue) %></span>
+        <span class="odt-badge odt-badge--<%= finance_badge_class %>"><%= finance_badge %></span>
+      </div>
+      <div class="odt-kpi-tile">
+        <span class="odt-kpi-tile__label">Operational readiness</span>
+        <span class="odt-kpi-tile__value"><%= done_count %> / <%= checklist_items.size %></span>
+        <span class="odt-badge odt-badge--<%= ops_badge_class %> odt-badge--pill odt-badge--sm"><%= ops_text %></span>
+      </div>
+    </div>
+  </div>
+</div>

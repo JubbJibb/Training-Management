@@ -5,33 +5,29 @@
   direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
   base_params = local_assigns[:base_params] || {}
 %>
-<tr id="<%= dom_id(customer, :row) %>" class="tc-saas-tr">
-  <td class="tc-saas-td tc-saas-td--customer">
-    <div class="tc-saas-class-cell">
-      <%= link_to admin_customer_path(customer), class: "tc-saas-class-link" do %>
-        <%= customer.company_name %>
-      <% end %>
-      <% if customer.email.present? %>
-        <span class="tc-saas-class-meta"><%= customer.email %></span>
-      <% end %>
-    </div>
+<tr id="<%= dom_id(customer, :row) %>" class="attendees-ledger__row">
+  <td class="attendees-ledger__td attendees-ledger__td--name">
+    <%= link_to admin_customer_path(customer), class: "attendees-ledger__name-link", data: { turbo_frame: "_top" } do %>
+      <span class="attendees-ledger__name"><%= customer.company_name %></span>
+      <% if customer.email.present? %><span class="attendees-ledger__email"><%= customer.email %></span><% end %>
+    <% end %>
   </td>
-  <td class="tc-saas-td tc-saas-td--center">
-    <span class="badge <%= customer.participant_type == 'Corp' ? 'badge-type-corp' : 'badge-type-indi' %> badge-modern"><%= customer.participant_type.presence || "—" %></span>
+  <td class="attendees-ledger__td attendees-ledger__td--type">
+    <%= odt_badge(customer.participant_type.presence || "—", variant: (customer.participant_type == "Corp" ? :info : :neutral), size: :sm) %>
   </td>
-  <td class="tc-saas-td tc-saas-td--center"><%= customer.respond_to?(:times_attended) ? customer.times_attended.to_i : 0 %></td>
-  <td class="tc-saas-td truncate">
+  <td class="attendees-ledger__td attendees-ledger__td--seats"><%= customer.respond_to?(:times_attended) ? customer.times_attended.to_i : 0 %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--payment-date">
     <% la = customer.respond_to?(:last_attended_at) ? customer.last_attended_at : nil %>
-    <%= la.present? ? (la.is_a?(Date) ? la.strftime("%d/%m/%y") : (la.respond_to?(:strftime) ? la.strftime("%d/%m/%y") : la.to_s)) : "—" %>
+    <%= la.present? ? (la.is_a?(Date) ? la.strftime("%b %d, %Y") : (la.respond_to?(:strftime) ? la.strftime("%b %d, %Y") : la.to_s)) : "—" %>
   </td>
-  <td class="tc-saas-td tc-saas-td--num"><%= number_to_thb(customer.respond_to?(:total_spent_net_raw) ? customer.total_spent_net_raw.to_f : 0) %></td>
-  <td class="tc-saas-td tc-saas-td--num"><%= number_to_thb(customer.respond_to?(:outstanding_raw) ? customer.outstanding_raw.to_f : 0) %></td>
-  <td class="tc-saas-td tc-saas-td--center"><%= customer.respond_to?(:seats_total_raw) ? customer.seats_total_raw.to_i : 0 %></td>
-  <td class="tc-saas-td tc-saas-td--center"><%= render "admin/customers/billing_tax_icons", customer: customer, segment: segment, sort: sort, direction: direction, base_params: base_params %></td>
-  <td class="tc-saas-td tc-saas-td--actions">
-    <div class="tc-saas-actions">
-      <%= link_to register_for_class_admin_customer_path(customer), class: "tc-saas-actions-btn", title: "สมัครเรียน", aria: { label: "สมัครเรียน" } do %><i class="bi bi-person-plus" aria-hidden="true"></i><% end %>
-      <%= link_to edit_admin_customer_path(customer), class: "tc-saas-actions-btn", title: "Edit", aria: { label: "Edit" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+  <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(customer.respond_to?(:total_spent_net_raw) ? customer.total_spent_net_raw.to_f : 0) %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(customer.respond_to?(:outstanding_raw) ? customer.outstanding_raw.to_f : 0) %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--seats"><%= customer.respond_to?(:seats_total_raw) ? customer.seats_total_raw.to_i : 0 %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--source"><%= render "admin/customers/billing_tax_icons", customer: customer, segment: segment, sort: sort, direction: direction, base_params: base_params %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--actions">
+    <div class="attendees-ledger__actions-cell">
+      <%= link_to register_for_class_admin_customer_path(customer), class: "attendees-ledger__action", title: "สมัครเรียน", aria: { label: "สมัครเรียน" }, data: { turbo_frame: "_top" } do %><i class="bi bi-person-plus" aria-hidden="true"></i><% end %>
+      <%= link_to edit_admin_customer_path(customer), class: "attendees-ledger__action", title: "Edit", aria: { label: "Edit" }, data: { turbo_frame: "_top" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
     </div>
   </td>
 </tr>

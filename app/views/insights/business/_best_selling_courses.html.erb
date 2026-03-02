@@ -1,0 +1,51 @@
+<%
+  best = local_assigns[:best_selling_courses] || @data&.dig(:best_selling_courses) || {}
+  by_revenue = best[:by_revenue] || []
+  by_paid = best[:by_paid] || []
+  by_cvr = best[:by_cvr] || []
+  active_tab = local_assigns[:active_best_tab].to_s.presence || "revenue"
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">คอร์สขายดี</h3>
+      <p class="insight-card__subtitle">เรียงตามรายได้ / จำนวนชำระ / CVR</p>
+    </div>
+    <div class="insight-card__header-actions">
+      <div class="bi-tabs" role="tablist">
+        <button type="button" class="bi-tab <%= 'bi-tab--active' if active_tab == 'revenue' %>" role="tab" data-bi-tab="revenue" aria-selected="<%= active_tab == 'revenue' %>">ตามรายได้</button>
+        <button type="button" class="bi-tab <%= 'bi-tab--active' if active_tab == 'paid' %>" role="tab" data-bi-tab="paid" aria-selected="<%= active_tab == 'paid' %>">ตามจำนวนชำระ</button>
+        <button type="button" class="bi-tab <%= 'bi-tab--active' if active_tab == 'cvr' %>" role="tab" data-bi-tab="cvr" aria-selected="<%= active_tab == 'cvr' %>">ตาม CVR</button>
+      </div>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <div class="bi-best-panes">
+      <div class="bi-best-pane" data-pane="revenue" style="<%= 'display:none' unless active_tab == 'revenue' %>">
+        <%= render "insights/business/best_selling_table", rows: by_revenue %>
+      </div>
+      <div class="bi-best-pane" data-pane="paid" style="<%= 'display:none' unless active_tab == 'paid' %>">
+        <%= render "insights/business/best_selling_table", rows: by_paid %>
+      </div>
+      <div class="bi-best-pane" data-pane="cvr" style="<%= 'display:none' unless active_tab == 'cvr' %>">
+        <%= render "insights/business/best_selling_table", rows: by_cvr %>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var card = document.querySelector('.insight-card .bi-tabs');
+  if (!card) return;
+  var container = card.closest('.insight-card');
+  card.querySelectorAll('.bi-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tab = this.getAttribute('data-bi-tab');
+      card.querySelectorAll('.bi-tab').forEach(function(b) { b.classList.remove('bi-tab--active'); b.setAttribute('aria-selected', 'false'); });
+      this.classList.add('bi-tab--active'); this.setAttribute('aria-selected', 'true');
+      container.querySelectorAll('.bi-best-pane').forEach(function(p) { p.style.display = p.getAttribute('data-pane') === tab ? '' : 'none'; });
+    });
+  });
+})();
+</script>

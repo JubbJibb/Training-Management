@@ -48,7 +48,7 @@
       <div class="dashboard-grid__right">
         <%
           low = @data.dig(:alerts, :low_enrollment_upcoming) || []
-          alert_items = low.map { |c| { title: "#{c[:title]} (#{c[:date]})", label: "Fill #{c[:fill_rate]}%", url: admin_training_class_path(c[:id]), cta: "View" } }
+          alert_items = low.map { |c| { title: "#{c[:title]} (#{c[:date]})", label: "Fill #{c[:fill_rate]}%", url: admin_class_workspace_path(c[:id]), cta: "View" } }
         %>
         <%= render "insights/shared/alert_list", title: "Low enrollment (upcoming)", items: alert_items %>
       </div>

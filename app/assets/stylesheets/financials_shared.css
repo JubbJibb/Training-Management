@@ -1,0 +1,154 @@
+/*
+ * Financials shared UI — summary strip, status badge, empty state, section card
+ * Navy #13139c, light blue surfaces, max 1 container card per section
+ */
+
+/* ——— Summary strip (single row, inline metrics, not cards) ——— */
+.fin-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  padding: 12px 20px;
+  background: rgba(19, 19, 156, 0.04);
+  border: 1px solid rgba(19, 19, 156, 0.1);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.fin-summary-strip__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0 16px;
+  min-width: 0;
+}
+
+.fin-summary-strip__item--default .fin-summary-strip__value { color: #1f2937; }
+.fin-summary-strip__item--warning .fin-summary-strip__value { color: #b45309; }
+.fin-summary-strip__item--accent .fin-summary-strip__value { color: #13139c; font-weight: 600; }
+
+.fin-summary-strip__label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.fin-summary-strip__value {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fin-summary-strip__divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(19, 19, 156, 0.12);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .fin-summary-strip { flex-direction: column; align-items: stretch; }
+  .fin-summary-strip__divider { width: 100%; height: 1px; }
+}
+
+/* ——— Status badge (reusable) ——— */
+.fin-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.fin-status-badge--success { background: #d1fae5; color: #065f46; }
+.fin-status-badge--warning { background: #fef3c7; color: #b45309; }
+.fin-status-badge--danger,
+.fin-status-badge--overdue { background: #fee2e2; color: #b91c1c; }
+.fin-status-badge--info { background: #dbeafe; color: #1e40af; }
+.fin-status-badge--secondary { background: #e5e7eb; color: #4b5563; }
+
+/* ——— Empty state ——— */
+.fin-empty-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: #6b7280;
+}
+
+.fin-empty-state__icon {
+  font-size: 2rem;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.fin-empty-state__message {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+}
+
+.fin-empty-state__action {
+  margin-top: 0.5rem;
+}
+
+/* ——— Section container (max one card per section) ——— */
+.fin-section {
+  background: #fff;
+  border: 1px solid rgba(19, 19, 156, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(19, 19, 156, 0.06);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.fin-section__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #13139c;
+  margin: 0 0 1rem;
+}
+
+/* ——— Table wrapper (use with .table-financials) ——— */
+.fin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fin-table-wrap .table-financials tbody tr.fin-row--overdue {
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.fin-table-wrap .table-financials tbody tr.fin-row--overdue:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* ——— Loading / error states ——— */
+.fin-loading,
+.fin-error {
+  padding: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.fin-error {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.06);
+  border-radius: 12px;
+}
+
+.fin-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(19, 19, 156, 0.06);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.fin-bulk-bar__count {
+  font-weight: 600;
+  color: #13139c;
+}

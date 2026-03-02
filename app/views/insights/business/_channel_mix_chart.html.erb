@@ -1,0 +1,42 @@
+<%
+  rows = local_assigns[:channel_mix_data] || []
+  channel_colors = ["#13139c", "#2563eb", "#059669", "#ffc700", "#6b7280", "#dc2626"]
+  # Aggregate totals per channel (sum across all weeks)
+  keys = rows.flat_map { |r| r.keys - [:label] }.uniq
+  totals_by_channel = keys.map do |key|
+    total = rows.sum { |r| (r[key] || 0).to_i }
+    { channel: key, total: total }
+  end
+  total_count = totals_by_channel.sum { |h| h[:total] }
+  legend_items = totals_by_channel.each_with_index.map do |h, i|
+    { label: h[:channel].to_s, color: channel_colors[i % channel_colors.size] }
+  end
+  datasets_for_donut = totals_by_channel.each_with_index.map do |h, i|
+    { label: h[:channel].to_s, data: [h[:total]], color: channel_colors[i % channel_colors.size] }
+  end
+%>
+<div class="insight-card insight-card--channel-mix">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Channel mix</h3>
+      <p class="insight-card__subtitle">สัดส่วนช่องทางในช่วงที่เลือก</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if totals_by_channel.any? && total_count.positive? %>
+      <%= render "shared/donut_chart_flowbite",
+        center_value: number_with_delimiter(total_count),
+        center_subtitle: "รายการทั้งหมด",
+        legend_items: legend_items do %>
+        <div class="channel-mix-donut-wrap">
+          <div id="business_channel_mix" class="apex-chart-mount" data-apex-chart data-apex-type="donut"
+            data-labels="[]"
+            data-datasets='<%= datasets_for_donut.to_json.gsub("'", "&#39;") %>'></div>
+        </div>
+      <% end %>
+    <% else %>
+      <%= render "shared/empty_state", title: "ไม่มีข้อมูล channel mix", icon: "pie-chart", extra_class: "insight-odt-table__empty" %>
+    <% end %>
+  </div>
+</div>

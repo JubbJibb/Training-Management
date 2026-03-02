@@ -1,0 +1,49 @@
+<%
+  rows = local_assigns[:rows] || []
+%>
+<% if rows.any? %>
+  <div class="bi-table-wrap">
+    <table class="bi-table" role="table">
+      <thead>
+        <tr>
+          <th scope="col">คอร์ส</th>
+          <th scope="col" class="text-end">
+            <span class="bi-info-tooltip-trigger-wrap">รายได้<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:revenue_header), placement: "top" %></span>
+          </th>
+          <th scope="col" class="text-end">ชำระ</th>
+          <th scope="col" class="text-end">
+            <span class="bi-info-tooltip-trigger-wrap">เฉลี่ย/คน (฿)<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:avg_head_header), placement: "top" %></span>
+          </th>
+          <th scope="col" class="text-end">
+            <span class="bi-info-tooltip-trigger-wrap">CVR<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:cvr_header), placement: "top" %></span>
+          </th>
+          <th scope="col" class="bi-table__spark">แนวโน้ม</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.each do |r| %>
+          <tr>
+            <td class="bi-table__course"><%= r[:course].to_s.truncate(40) %></td>
+            <td class="text-end"><%= number_to_thb(r[:revenue]) %></td>
+            <td class="text-end"><%= r[:paid] %></td>
+            <td class="text-end"><%= number_to_thb(r[:avg_price_head]) %></td>
+            <td class="text-end"><%= r[:cvr] %>%</td>
+            <td class="bi-table__spark">
+              <% if r[:sparkline].present? && r[:sparkline].any? %>
+                <% mx = r[:sparkline].max.to_f %>
+                <% mx = 1 if mx.zero? %>
+                <svg class="bi-spark" viewBox="0 0 60 16" preserveAspectRatio="none">
+                  <polyline fill="none" stroke="currentColor" stroke-width="0.8" stroke-opacity="0.7" points="<%= r[:sparkline].each_with_index.map { |v, i| x = r[:sparkline].size > 1 ? (i.to_f / (r[:sparkline].size - 1)) * 60 : 0; y = 16 - (v.to_f / mx * 14); "#{x},#{y}" }.join(' ') %>"/>
+                </svg>
+              <% else %>
+                —
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <%= render "shared/empty_state", title: "ไม่มีข้อมูลคอร์ส", icon: "journal-bookmark", extra_class: "bi-empty" %>
+<% end %>

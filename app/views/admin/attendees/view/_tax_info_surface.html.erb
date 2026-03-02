@@ -1,0 +1,31 @@
+<% attendee = local_assigns[:attendee] %>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+    <span>Tax information</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <div class="attendee-view-grid">
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Tax ID</span>
+        <span class="attendee-view-value"><%= attendee.tax_id.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Name (Thai)</span>
+        <span class="attendee-view-value"><%= attendee.name_thai.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Billing name</span>
+        <span class="attendee-view-value"><%= attendee.billing_name.presence || attendee.document_billing_name.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Address</span>
+        <span class="attendee-view-value"><%= attendee.address.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Billing address</span>
+        <span class="attendee-view-value"><%= attendee.billing_address.presence || attendee.document_billing_address.presence || "—" %></span>
+      </div>
+    </div>
+  </div>
+</div>

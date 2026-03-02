@@ -1,0 +1,44 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+  fs = local_assigns[:finance_summary] || @finance_summary
+  attendees = tc.attendees.attendees
+  gross_sales = attendees.sum(&:gross_sales_amount)
+  net_before_vat = attendees.sum(&:total_price_before_vat)
+  cost = tc.total_cost
+  cash_received = fs&.dig(:revenue, :paid) || attendees.select { |a| a.payment_status == "Paid" }.sum(&:total_final_price)
+  outstanding = fs&.dig(:revenue, :outstanding) || tc.outstanding_amount
+  outstanding_positive = outstanding.to_f.positive?
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Quick Finance</h3>
+      <p class="insight-card__subtitle">Summary for this class</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <ul class="quick-finance-list" aria-label="Quick finance summary">
+      <li class="quick-finance-list__row">
+        <span class="quick-finance-list__label">Gross sales</span>
+        <span class="quick-finance-list__value" style="font-variant-numeric: tabular-nums;"><%= number_to_thb(gross_sales) %></span>
+      </li>
+      <li class="quick-finance-list__row">
+        <span class="quick-finance-list__label">Net (before VAT)</span>
+        <span class="quick-finance-list__value" style="font-variant-numeric: tabular-nums;"><%= number_to_thb(net_before_vat) %></span>
+      </li>
+      <li class="quick-finance-list__row">
+        <span class="quick-finance-list__label">Cost</span>
+        <span class="quick-finance-list__value" style="font-variant-numeric: tabular-nums;"><%= number_to_thb(cost) %></span>
+      </li>
+      <li class="quick-finance-list__row">
+        <span class="quick-finance-list__label">Cash received</span>
+        <span class="quick-finance-list__value amount-positive" style="font-variant-numeric: tabular-nums;"><%= number_to_thb(cash_received) %></span>
+      </li>
+      <li class="quick-finance-list__row">
+        <span class="quick-finance-list__label">Outstanding</span>
+        <span class="quick-finance-list__value" style="font-variant-numeric: tabular-nums; font-weight: 600;<%= outstanding_positive ? ' color: #dc2626;' : '' %>"><%= number_to_thb(outstanding) %></span>
+      </li>
+    </ul>
+  </div>
+</div>

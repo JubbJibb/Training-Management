@@ -1,0 +1,55 @@
+<%
+  pricing = local_assigns[:pricing_insights] || @data&.dig(:pricing_insights) || {}
+  avg_trend = pricing[:avg_price_trend] || []
+  distribution = pricing[:distribution] || []
+  labels_avg = avg_trend.map { |r| r[:label] }
+  data_avg = avg_trend.map { |r| r[:avg_price_per_head].to_f }
+  dist_labels = distribution.map { |d| d[:bucket] }
+  dist_data = distribution.map { |d| d[:count].to_i }
+%>
+<div class="insight-two-col insight-two-col--balance">
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">แนวโน้มราคาเฉลี่ยต่อคน</h3>
+        <p class="insight-card__subtitle">รายวัน (฿/คน)</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+        <% if avg_trend.any? %>
+          <div class="insights-chart-card">
+            <div class="insights-chart-container" style="height: 220px;">
+              <div id="business_avg_price_trend" class="apex-chart-mount" data-apex-chart data-apex-type="area"
+                data-labels="<%= labels_avg.to_json %>"
+                data-datasets="<%= [{ label: 'เฉลี่ย ฿/คน', data: data_avg, color: '#ffc700' }].to_json %>"></div>
+            </div>
+          </div>
+        <% else %>
+          <%= render "insights/shared/empty_chart", message: "ไม่มีข้อมูลราคา" %>
+        <% end %>
+    </div>
+  </div>
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">การกระจายราคา (฿/คน)</h3>
+        <p class="insight-card__subtitle">จำนวนใบชำระในแต่ละช่วงราคา</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+        <% if distribution.any? %>
+          <div class="insights-chart-card">
+            <div class="insights-chart-container" style="height: 220px;">
+              <div id="business_price_dist" class="apex-chart-mount" data-apex-chart data-apex-type="bar"
+                data-labels="<%= dist_labels.to_json %>"
+                data-datasets="<%= [{ label: 'จำนวน', data: dist_data, color: '#13139c' }].to_json %>"></div>
+            </div>
+          </div>
+        <% else %>
+          <%= render "insights/shared/empty_chart", message: "ไม่มีข้อมูล" %>
+        <% end %>
+    </div>
+  </div>
+</div>

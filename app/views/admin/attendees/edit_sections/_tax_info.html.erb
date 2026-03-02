@@ -1,0 +1,31 @@
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+    <span>Tax information</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <p class="attendee-edit-surface__hint">For invoices/receipts. Syncs to linked Customer when saved.</p>
+    <div class="attendee-edit-fields attendee-edit-fields--grid">
+      <div class="attendee-edit-field">
+        <%= f.label :tax_id, "Tax ID", class: "attendee-edit-field__label" %>
+        <%= f.text_field :tax_id, class: "form-control form-control-odt", placeholder: "e.g. 0-1055-56110-71-8" %>
+      </div>
+      <div class="attendee-edit-field">
+        <%= f.label :name_thai, "Name (Thai)", class: "attendee-edit-field__label" %>
+        <%= f.text_field :name_thai, class: "form-control form-control-odt", placeholder: "ชื่อในใบกำกับ" %>
+      </div>
+      <div class="attendee-edit-field attendee-edit-field--full">
+        <%= f.label :billing_name, "Billing name", class: "attendee-edit-field__label" %>
+        <%= f.text_field :billing_name, class: "form-control form-control-odt", placeholder: "Company or legal name" %>
+      </div>
+      <div class="attendee-edit-field attendee-edit-field--full">
+        <%= f.label :address, "Address", class: "attendee-edit-field__label" %>
+        <%= f.text_area :address, class: "form-control form-control-odt", rows: 2, placeholder: "General address" %>
+      </div>
+      <div class="attendee-edit-field attendee-edit-field--full">
+        <%= f.label :billing_address, "Billing address", class: "attendee-edit-field__label" %>
+        <%= f.text_area :billing_address, class: "form-control form-control-odt", rows: 3, placeholder: "Address for invoice" %>
+      </div>
+    </div>
+  </div>
+</div>

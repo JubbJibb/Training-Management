@@ -1,0 +1,14 @@
+<%# Sticky action bar: Cancel + Save (right); optional View public page (left) %>
+<div class="odt-edit-actions">
+  <div class="odt-edit-actions__inner">
+    <% if @training_class.public_enabled? && @training_class.public_slug.present? %>
+      <div class="odt-edit-actions__left">
+        <%= link_to "View public page", public_class_path(@training_class.public_slug), class: "odt-btn odt-btn--ghost odt-btn--sm", target: "_blank", rel: "noopener" %>
+      </div>
+    <% end %>
+    <div class="odt-edit-actions__right">
+      <%= link_to "Cancel", admin_class_workspace_overview_path(@training_class), class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+      <%= f.submit "Save changes", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+    </div>
+  </div>
+</div>

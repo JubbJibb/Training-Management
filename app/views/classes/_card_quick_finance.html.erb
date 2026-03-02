@@ -1,0 +1,48 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  finance = local_assigns[:finance_summary] || @finance_summary
+  attendees = klass.attendees.attendees
+  gross_sales = attendees.sum(&:gross_sales_amount)
+  net_before_vat = attendees.sum(&:total_price_before_vat)
+  cost = klass.total_cost
+  cash_received = finance&.dig(:revenue, :paid) || attendees.select { |a| a.payment_status == "Paid" }.sum(&:total_final_price)
+  outstanding = finance&.dig(:revenue, :outstanding) || klass.outstanding_amount
+  outstanding_positive = outstanding.to_f.positive?
+%>
+<%= turbo_frame_tag "quick_finance_card" do %>
+  <div class="odt-card">
+    <header class="odt-card__header">
+      <div class="odt-card__header-inner">
+        <i class="bi bi-cash-coin" aria-hidden="true"></i>
+        <h2 class="odt-card__title">Quick Finance</h2>
+      </div>
+    </header>
+    <div class="odt-card__body">
+      <div class="odt-finance-list">
+        <div class="odt-finance-list__row">
+          <span class="odt-finance-list__label">Gross</span>
+          <span class="odt-finance-list__value"><%= number_to_thb(gross_sales) %></span>
+        </div>
+        <div class="odt-finance-list__row">
+          <span class="odt-finance-list__label">Net (before VAT)</span>
+          <span class="odt-finance-list__value"><%= number_to_thb(net_before_vat) %></span>
+        </div>
+        <div class="odt-finance-list__row">
+          <span class="odt-finance-list__label">Cost</span>
+          <span class="odt-finance-list__value"><%= number_to_thb(cost) %></span>
+        </div>
+        <div class="odt-finance-list__row">
+          <span class="odt-finance-list__label">Cash Received</span>
+          <span class="odt-finance-list__value odt-finance-list__value--green"><%= number_to_thb(cash_received) %></span>
+        </div>
+        <div class="odt-finance-list__row">
+          <span class="odt-finance-list__label">Outstanding</span>
+          <span class="odt-finance-list__value <%= outstanding_positive ? 'odt-finance-list__value--red' : '' %>"><%= number_to_thb(outstanding) %></span>
+        </div>
+      </div>
+      <div class="odt-finance-list__footer">
+        <%= link_to "View finance", admin_class_workspace_finance_path(klass), class: "odt-card__link" %>
+      </div>
+    </div>
+  </div>
+<% end %>

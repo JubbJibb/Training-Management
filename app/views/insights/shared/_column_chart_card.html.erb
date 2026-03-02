@@ -1,0 +1,76 @@
+<%# Flowbite-style card with column chart. Locals: title, value, subtitle, badge_text, badge_up (bool), money_spent, conversion_pct, chart_labels, chart_datasets, report_path (optional), preset_label (e.g. "Last 7 days"), stacked (bool) %>
+<%
+  title = local_assigns[:title] || "Leads"
+  value = local_assigns[:value] || "0"
+  subtitle = local_assigns[:subtitle] || "Leads generated per week"
+  badge_text = local_assigns[:badge_text]
+  badge_up = local_assigns.fetch(:badge_up, true)
+  money_spent = local_assigns[:money_spent] || "—"
+  conversion_pct = local_assigns[:conversion_pct] || "—"
+  chart_labels = local_assigns[:chart_labels] || []
+  chart_datasets = local_assigns[:chart_datasets] || []
+  report_path = local_assigns[:report_path]
+  preset_label = local_assigns[:preset_label] || "Last 7 days"
+  stacked = local_assigns.fetch(:stacked, true)
+  chart_id = "column-chart-#{SecureRandom.hex(4)}"
+%>
+<div class="insight-card bi-column-chart-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="bi-column-chart-card__header">
+      <div class="bi-column-chart-card__head-inner">
+      <div class="bi-column-chart-card__icon-wrap">
+        <svg class="bi-column-chart-card__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M4.5 17H4a1 1 0 0 1-1-1 3 3 0 0 1 3-3h1m0-3.05A2.5 2.5 0 1 1 9 5.5M19.5 17h.5a1 1 0 0 0 1-1 3 3 0 0 0-3-3h-1m0-3.05a2.5 2.5 0 1 0-2-4.45m.5 13.5h-7a1 1 0 0 1-1-1 3 3 0 0 1 3-3h3a3 3 0 0 1 3 3 1 1 0 0 1-1 1Zm-1-9.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/>
+        </svg>
+      </div>
+      <div>
+        <h5 class="bi-column-chart-card__value"><%= value %></h5>
+        <p class="bi-column-chart-card__subtitle"><%= subtitle %></p>
+      </div>
+    </div>
+    <% if badge_text.present? %>
+      <span class="bi-column-chart-card__badge bi-column-chart-card__badge--<%= badge_up ? 'up' : 'down' %>">
+        <svg class="bi-column-chart-card__badge-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+          <% if badge_up %>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v13m0-13 4 4m-4-4-4 4"/>
+          <% else %>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14 4-4m-4 4-4-4"/>
+          <% end %>
+        </svg>
+        <%= badge_text %>
+      </span>
+    <% end %>
+  </div>
+  </div>
+  <div class="insight-card__body">
+  <div class="bi-column-chart-card__meta">
+    <dl class="bi-column-chart-card__meta-item">
+      <dt>Money spent:</dt>
+      <dd><%= money_spent %></dd>
+    </dl>
+    <dl class="bi-column-chart-card__meta-item bi-column-chart-card__meta-item--end">
+      <dt>Conversion:</dt>
+      <dd><%= conversion_pct %></dd>
+    </dl>
+  </div>
+
+  <% if chart_labels.any? && chart_datasets.any? %>
+    <div class="insights-chart-container bi-column-chart-card__chart" style="height: 200px;">
+      <div id="<%= chart_id %>" class="apex-chart-mount" data-apex-chart data-apex-type="bar" data-apex-stacked="<%= stacked %>"
+        data-labels="<%= chart_labels.to_json %>"
+        data-datasets="<%= chart_datasets.to_json %>"></div>
+    </div>
+  <% end %>
+
+  <div class="bi-column-chart-card__footer">
+    <span class="bi-column-chart-card__preset"><%= preset_label %></span>
+    <% if report_path.present? %>
+      <%= link_to report_path, class: "bi-column-chart-card__link" do %>
+        รายงาน Leads
+        <svg class="bi-column-chart-card__link-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m14 0-4 4m4-4-4-4"/></svg>
+      <% end %>
+    <% end %>
+  </div>
+  </div>
+</div>

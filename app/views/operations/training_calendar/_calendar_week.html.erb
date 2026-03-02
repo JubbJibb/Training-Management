@@ -1,0 +1,31 @@
+<%
+  range = local_assigns[:range]
+  events_by_date = local_assigns[:events_by_date] || {}
+  week_start = local_assigns[:week_start] || range.begin
+  week_end = local_assigns[:week_end] || range.end
+  filters = local_assigns[:filters] || {}
+  week_days = (week_start..week_end).to_a
+  # TODO: time-slot grid for drag/drop/resize; for now day columns, empty cell = quick add with that date
+%>
+<div class="tc-grid tc-grid--week" role="grid" aria-label="Calendar week view">
+  <div class="tc-grid__row tc-grid__row--head">
+    <% week_days.each do |day| %>
+      <div class="tc-grid__head-cell" data-date="<%= day.iso8601 %>">
+        <span class="tc-grid__day-name"><%= day.strftime("%a") %></span>
+        <span class="tc-grid__day-num"><%= day.day %></span>
+        <span class="tc-grid__month"><%= day.strftime("%b") %></span>
+      </div>
+    <% end %>
+  </div>
+  <div class="tc-grid__row tc-grid__row--body">
+    <% week_days.each do |day| %>
+      <div class="tc-grid__cell tc-slot" data-date="<%= day.iso8601 %>" data-tc-calendar-target="slot" data-action="click->tc-calendar#onSlotClick" role="gridcell" tabindex="-1">
+        <div class="tc-grid__events">
+          <% (events_by_date[day] || []).each do |ev| %>
+            <%= render "operations/training_calendar/event_card", event: ev %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

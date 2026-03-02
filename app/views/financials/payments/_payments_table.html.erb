@@ -1,0 +1,87 @@
+<%
+  payments = local_assigns[:payments] || @payments || []
+  selected_id = local_assigns[:selected_id]
+%>
+<% if payments.any? %>
+  <div class="attendees-ledger__table-wrap pt-table-wrap">
+    <table class="attendees-ledger__table workspace-documents-table pt-payments-table" role="table" aria-label="Payment Tracking">
+          <thead>
+            <tr>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--check">
+                <input type="checkbox" id="pt-select-all" class="form-check-input" aria-label="Select all" title="Select all">
+              </th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Customer</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--class">Class</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Amount</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--status">Payment status</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--doc">Document</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--slip">Slip</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Due</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% payments.each do |p| %>
+              <%
+                workflow_status = PaymentWorkflowStatus.for(p)
+                label = PaymentWorkflowStatus.label(p)
+                first_slip = p.payment_slips.attached? ? p.payment_slips.first : nil
+                can_issue_receipt = p.document_status != "Receipt" && (p.respond_to?(:slip_verified_at) && p.slip_verified_at.present? || p.payment_status == "Paid")
+                row_class = "attendees-ledger__row"
+                row_class += " pt-table-row--selected" if selected_id && p.id == selected_id
+              %>
+              <tr class="<%= row_class %>" data-payment-id="<%= p.id %>" data-panel-url="<%= panel_financials_payment_path(p) %>" data-detail-url="<%= financials_payment_path(p) %>" tabindex="0" role="button">
+                <td class="attendees-ledger__td attendees-ledger__td--check" onclick="event.stopPropagation()">
+                  <input type="checkbox" name="payment_ids[]" value="<%= p.id %>" class="pt-row-check form-check-input" aria-label="Select payment">
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--name">
+                  <%= link_to financials_payment_path(p), class: "doc-name-link--view pt-table-link pt-table-link--customer", data: { turbo_frame: "_top" }, title: "#{(p.billing_name.presence || p.name)} — #{p.email}", aria: { label: "Open #{p.name}" } do %>
+                    <span class="attendees-ledger__name pt-table-link__name"><%= (p.billing_name.presence || p.name).to_s.truncate(32) %></span>
+                    <span class="attendees-ledger__email pt-table-link__meta"><%= p.email.to_s.truncate(36) %></span>
+                  <% end %>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--class">
+                  <span class="pt-table-cell-truncate doc-cell-value" title="<%= p.training_class.title %>"><%= p.training_class.title.to_s.truncate(28) %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--amount pt-table-cell-num"><%= number_to_thb(p.total_final_price) %></td>
+                <td class="attendees-ledger__td attendees-ledger__td--status">
+                  <span class="pt-badge pt-badge--<%= workflow_status %>"><%= label %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--doc">
+                  <span class="pt-badge pt-badge--doc doc-cell-value"><%= p.document_status.presence || "—" %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--slip">
+                  <% if p.payment_slips.attached? %>
+                    <span class="pt-slip-yes doc-status doc-status--ok" title="Has slip"><i class="bi bi-paperclip doc-status-icon" aria-hidden="true"></i></span>
+                  <% else %>
+                    <span class="pt-slip-no" aria-hidden="true">—</span>
+                  <% end %>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--payment-date pt-table-cell-date"><%= p.due_date&.strftime("%Y-%m-%d") || "—" %></td>
+                <td class="attendees-ledger__td attendees-ledger__td--actions" onclick="event.stopPropagation()">
+                  <div class="pt-table-actions attendees-ledger__actions-cell">
+                    <%= link_to financials_payment_path(p), class: "pt-table-action", title: "View details", aria: { label: "View details" }, data: { turbo_frame: "_top" } do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
+                    <% if first_slip %>
+                      <%= link_to rails_blob_path(first_slip), class: "pt-table-action", title: "View slip", aria: { label: "View slip" }, target: "_blank", rel: "noopener" do %><i class="bi bi-paperclip" aria-hidden="true"></i><% end %>
+                    <% else %>
+                      <span class="pt-table-action pt-table-action--disabled" title="No slip"><i class="bi bi-paperclip" aria-hidden="true"></i></span>
+                    <% end %>
+                    <%= link_to financials_payment_path(p), class: "pt-table-action", title: "Send payment summary (PDF attached)", aria: { label: "Send payment summary" }, data: { turbo_frame: "_top" } do %><i class="bi bi-envelope" aria-hidden="true"></i><% end %>
+                    <% if can_issue_receipt %>
+                      <%= button_to issue_receipt_financials_payment_path(p), method: :patch, form_class: "pt-table-action-form", title: "Issue receipt", aria: { label: "Issue receipt" }, data: { turbo_frame: "_top" } do %><i class="bi bi-receipt" aria-hidden="true"></i><% end %>
+                    <% else %>
+                      <span class="pt-table-action pt-table-action--disabled" title="Issue receipt"><i class="bi bi-receipt" aria-hidden="true"></i></span>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="pt-table-empty">
+    <p class="pt-table-empty__title">No payments</p>
+    <p class="pt-table-empty__sub">Adjust filters or period.</p>
+  </div>
+<% end %>

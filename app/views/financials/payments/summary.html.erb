@@ -1,0 +1,55 @@
+<% content_for :title, "Payment Summary — #{@payment.name}" %>
+
+<div class="financials-payment-page">
+  <%= render "components/odt/page_header", title: "Payment Summary", subtitle: "#{@training_class.title} · #{@payment.name}", icon: "receipt" do %>
+    <%= link_to financials_payments_path, class: "odt-btn odt-btn--secondary odt-btn--sm" do %>
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Payment Tracking
+    <% end %>
+  <% end %>
+
+  <% if flash[:notice] %>
+    <div class="financials-payment-flash financials-payment-flash--success" role="alert">
+      <i class="bi bi-check-circle" aria-hidden="true"></i> <%= flash[:notice] %>
+    </div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="financials-payment-flash financials-payment-flash--alert" role="alert">
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <div class="payment-summary-card">
+    <%= render "financials/payments/payment_summary", payment: @payment, customer: @customer, training_class: @training_class, registration: @payment %>
+
+    <footer class="payment-summary-card__actions">
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm payment-summary-card__btn" id="payment-summary-copy" title="Copy summary to clipboard">
+        <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary
+      </button>
+      <%= link_to summary_financials_payment_path(@payment, format: :pdf), class: "odt-btn odt-btn--ghost odt-btn--sm payment-summary-card__btn", title: "Download as PDF", data: { turbo: false } do %>
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
+      <% end %>
+      <%= link_to financials_payment_path(@payment), class: "odt-btn odt-btn--primary odt-btn--sm payment-summary-card__btn", title: "Send email with PDF" do %>
+        <i class="bi bi-send" aria-hidden="true"></i> Send Email
+      <% end %>
+    </footer>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var copyBtn = document.getElementById('payment-summary-copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var el = document.getElementById('payment-summary-content');
+        if (!el) return;
+        var text = el.innerText || el.textContent || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            copyBtn.innerHTML = '<i class="bi bi-check2" aria-hidden="true"></i> Copied';
+            setTimeout(function() { copyBtn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i> Copy Summary'; }, 2000);
+          });
+        }
+      });
+    }
+  });
+</script>

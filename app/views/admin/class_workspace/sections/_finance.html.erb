@@ -1,0 +1,46 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+%>
+<div class="workspace-section workspace-section--finance finance-dash">
+  <section class="finance-dash-section">
+    <h2 class="finance-dash-section__title"><i class="bi bi-bar-chart-line" aria-hidden="true"></i> ตัวชี้วัดหลัก</h2>
+    <div class="finance-dash-section__body">
+      <%= turbo_frame_tag "finance_kpi_summary" do %>
+        <%= render "admin/class_workspace/sections/finance_dashboard/kpi_row", training_class: training_class, finance_summary: summary, profit_basis: params[:profit_basis] %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="finance-dash-section">
+    <h2 class="finance-dash-section__title"><i class="bi bi-graph-up" aria-hidden="true"></i> รายรับ vs รายจ่าย</h2>
+    <div class="finance-dash-section__body">
+      <%= render "admin/class_workspace/sections/finance_dashboard/revenue_expenses_chart", training_class: training_class, finance_summary: summary %>
+    </div>
+  </section>
+
+  <section class="finance-dash-section">
+    <h2 class="finance-dash-section__title"><i class="bi bi-wallet2" aria-hidden="true"></i> กระแสเงินสด และเอกสาร</h2>
+    <div class="finance-dash-section__body">
+      <div class="finance-dash__grid finance-dash__grid--row2">
+        <div class="finance-dash__col finance-dash__col--left">
+          <%= render "admin/class_workspace/sections/finance_dashboard/cashflow_receivables_card", training_class: training_class, finance_summary: summary %>
+        </div>
+        <div class="finance-dash__col finance-dash__col--right">
+          <%= render "admin/class_workspace/sections/finance_dashboard/documents_card", training_class: training_class %>
+          <%= render "admin/class_workspace/sections/finance_dashboard/activity_card", training_class: training_class %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="finance-dash-section">
+    <h2 class="finance-dash-section__title"><i class="bi bi-table" aria-hidden="true"></i> รายการลูกหนี้และรายจ่าย</h2>
+    <div class="finance-dash-section__body">
+      <div class="finance-dash__tables">
+        <%= render "admin/class_workspace/sections/finance_dashboard/receivables_table", training_class: training_class %>
+        <%= render "admin/class_workspace/sections/finance_dashboard/expenses_table", training_class: training_class %>
+      </div>
+    </div>
+  </section>
+</div>

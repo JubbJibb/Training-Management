@@ -1,0 +1,34 @@
+<%
+  chart_data = local_assigns[:chart_data] || @chart_data || {}
+  rows = chart_data[:corporate_vs_individual] || []
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Revenue composition</h3>
+      <p class="insight-card__subtitle">Individual vs Corporate</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if rows.any? %>
+      <div class="insight-odt-table__scroll">
+        <table class="insight-odt-table" role="table">
+          <thead>
+            <tr><th scope="col">Segment</th><th scope="col" class="text-end">Revenue</th></tr>
+          </thead>
+          <tbody>
+            <% rows.each do |row| %>
+              <tr>
+                <td><%= row[:segment] %></td>
+                <td class="text-end"><%= number_to_thb(row[:total]) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="insight-odt-table__empty text-muted p-4 mb-0">No segment data</p>
+    <% end %>
+  </div>
+</div>

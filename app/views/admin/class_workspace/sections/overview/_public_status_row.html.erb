@@ -1,0 +1,18 @@
+<%
+  tc = local_assigns[:training_class] || @training_class
+%>
+<div id="workspace-overview-public-status" class="insight-progress-row insight-progress-row--status">
+  <span class="insight-progress-row__label">Status</span>
+  <span class="insight-progress-row__value">
+    <div class="dropdown d-inline-block overview-status-dropdown">
+      <button type="button" class="overview-status-toggle dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Change Public/Private status" title="<%= tc.public_enabled? ? 'Switch to Private' : 'Switch to Public' %>">
+        <%= tc.public_enabled? ? odt_badge("Public", variant: :info, size: :sm) : odt_badge("Private", variant: :neutral, size: :sm) %>
+        <i class="bi bi-chevron-down overview-status-dropdown__icon" aria-hidden="true"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><%= link_to "Public", admin_class_workspace_public_path(tc, public_enabled: "true"), class: "dropdown-item #{'active' if tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+        <li><%= link_to "Private", admin_class_workspace_public_path(tc, public_enabled: "false"), class: "dropdown-item #{'active' unless tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+      </ul>
+    </div>
+  </span>
+</div>

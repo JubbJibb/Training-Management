@@ -24,6 +24,11 @@
       <% end %>
       <div class="class-detail-header__meta">
         <%= render "shared/badge", text: class_status, variant: status_variant %>
+        <% if local_assigns[:checklist_total].to_i.positive? %>
+          <span class="class-detail-header__meta-item class-detail-header__progress">
+            <i class="bi bi-check2-square" aria-hidden="true"></i> Progress: <%= local_assigns[:checklist_done].to_i %>/<%= local_assigns[:checklist_total] %> done
+          </span>
+        <% end %>
         <span class="class-detail-header__meta-item">
           <i class="bi bi-people" aria-hidden="true"></i>
           <%= registered_seats %>/<%= max_seats.positive? ? max_seats : "—" %> seats
@@ -37,7 +42,7 @@
       </div>
     </div>
     <div class="class-detail-header__actions page-header__actions">
-      <%= link_to edit_admin_training_class_path(tc), class: "btn btn--secondary" do %>
+      <%= link_to edit_admin_training_class_path(tc, tab: "edit"), class: "btn btn--secondary" do %>
         <i class="bi bi-pencil" aria-hidden="true"></i> Edit
       <% end %>
       <%= button_to admin_training_class_path(tc), method: :delete, form: { class: "d-inline", data: { turbo_confirm: "Are you sure you want to delete this training class? This action cannot be undone." } }, class: "btn btn--danger" do %>

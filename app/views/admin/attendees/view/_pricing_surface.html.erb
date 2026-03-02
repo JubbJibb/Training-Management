@@ -1,0 +1,20 @@
+<% attendee = local_assigns[:attendee] %>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-tag" aria-hidden="true"></i>
+    <span>Pricing & Discounts</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <% if attendee.promotions.any? %>
+      <ul class="attendee-view-list">
+        <% attendee.promotions.each do |promo| %>
+          <li><%= promo.display_name %></li>
+        <% end %>
+      </ul>
+      <p class="attendee-edit-field__hint mt-2 mb-0">Amount: <%= number_to_thb(attendee.total_final_price) %><%= attendee.vat_excluded? ? " (VAT excluded)" : " (incl. VAT)" %></p>
+    <% else %>
+      <p class="attendee-edit-surface__hint mb-0">No promotions applied. Base price <%= attendee.vat_excluded? ? "VAT excluded." : "incl. VAT." %></p>
+      <p class="attendee-edit-field__hint mt-1 mb-0">Amount: <%= number_to_thb(attendee.total_final_price) %><%= attendee.vat_excluded? ? " (VAT excluded)" : " (incl. VAT)" %></p>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<%
+  klass = local_assigns[:training_class] || @training_class
+  checklist_items = local_assigns[:checklist_items] || @checklist_items || klass.checklist_items.presence || []
+  done_count = checklist_items.count { |i| i["done"] }
+%>
+<div class="odt-card">
+  <header class="odt-card__header">
+    <div class="odt-card__header-inner">
+      <i class="bi bi-check2-square" aria-hidden="true"></i>
+      <h2 class="odt-card__title">Notes & Checklist</h2>
+    </div>
+  </header>
+  <div class="odt-card__body">
+    <div class="odt-kv-grid">
+      <div class="odt-kv-item">
+        <dt class="odt-label">Checklist</dt>
+        <dd class="odt-value"><%= done_count %> / <%= checklist_items.size %> complete</dd>
+      </div>
+    </div>
+    <p class="odt-attendance-caption" style="margin-top: 12px; margin-bottom: 0;">
+      <%= link_to "Edit in class settings →", admin_class_workspace_edit_path(klass), class: "odt-card__link" %>
+    </p>
+  </div>
+</div>

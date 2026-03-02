@@ -1,0 +1,36 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  summary = local_assigns[:finance_summary] || @finance_summary || {}
+  rev = summary.dig(:revenue) || {}
+  costs = summary.dig(:costs) || {}
+  result = summary.dig(:result) || {}
+  expected = rev[:expected].to_f
+  paid = rev[:paid].to_f
+  outstanding = rev[:outstanding].to_f
+  total_costs = costs[:total].to_f
+  profit = result[:profit].to_f
+  margin = result[:margin_pct].to_f
+  price_per_seat = (training_class.price.to_f > 0) ? training_class.price : 0
+  break_even_seats = (price_per_seat.positive? && total_costs.positive?) ? (total_costs / price_per_seat).ceil : nil
+  seats_sold = training_class.total_registered_seats.to_i
+  attendees = training_class.attendees.attendees
+  paid_count = attendees.count { |a| a.payment_status == "Paid" }
+  pending_count = attendees.size - paid_count
+  invoices_issued = attendees.count { |a| a.invoice_no.present? }
+  invoices_missing = attendees.size - invoices_issued
+  margin_variant = margin >= 20 ? "success" : (margin >= 0 ? nil : "danger")
+  outstanding_variant = outstanding.positive? ? "warning" : nil
+%>
+<%= odt_kpi_strip(
+  cells: [
+    { icon: "currency-exchange", label: "Expected revenue", value: number_to_thb(expected), sub: "in period" },
+    { icon: "cash-coin", label: "Paid", value: number_to_thb(paid), sub: "#{paid_count} paid", value_variant: "success" },
+    { icon: "clock-history", label: "Outstanding", value: number_to_thb(outstanding), sub: "#{pending_count} pending", value_variant: outstanding_variant },
+    { icon: "graph-down", label: "Total costs", value: number_to_thb(total_costs), sub: "incl. expenses" },
+    { icon: "graph-up-arrow", label: "Profit", value: number_to_thb(profit), sub: "Margin " + number_to_percent(margin), value_variant: margin_variant },
+    { icon: "percent", label: "Margin", value: number_to_percent(margin), sub: margin >= 0 ? "net" : "loss" },
+    break_even_seats ? { icon: "people", label: "Break-even", value: "#{break_even_seats} seats", sub: "at current price" } : nil,
+    { icon: "receipt", label: "Invoices", value: "#{invoices_issued} issued", sub: invoices_missing.positive? ? "#{invoices_missing} missing" : "All issued" }
+  ].compact,
+  extra_class: "finance-dash-strip"
+) %>

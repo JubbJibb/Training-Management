@@ -1,0 +1,22 @@
+<%# Basic info: title, description (collapsed by default with expand) %>
+<div class="odt-edit-card">
+  <div class="odt-edit-card__strip"></div>
+  <div class="odt-edit-card__body">
+    <header class="odt-edit-card__header">
+      <span class="odt-edit-card__title"><i class="bi bi-info-circle" aria-hidden="true"></i> Basic info</span>
+    </header>
+    <div class="odt-edit-card__content">
+      <div class="odt-edit-field odt-edit-field--full">
+        <%= f.label :title, class: "odt-edit-field__label" %>
+        <%= f.text_field :title, class: "odt-edit-field__input", required: true, placeholder: "Class title" %>
+      </div>
+      <div class="odt-edit-field odt-edit-field--full odt-edit-description-wrap" data-controller="description-toggle" data-description-toggle-expanded-value="false">
+        <%= f.label :description, class: "odt-edit-field__label" %>
+        <div class="odt-edit-description">
+          <%= f.text_area :description, class: "odt-edit-field__input odt-edit-field__textarea", rows: 4, placeholder: "Brief description of the class" %>
+        </div>
+        <button type="button" class="odt-edit-description__toggle" data-description-toggle-target="button" data-action="click->description-toggle#toggle" aria-expanded="false">Expand</button>
+      </div>
+    </div>
+  </div>
+</div>

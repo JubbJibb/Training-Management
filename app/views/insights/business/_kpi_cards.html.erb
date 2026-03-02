@@ -1,0 +1,50 @@
+<%
+  kpis = local_assigns[:kpis] || @data&.dig(:kpis) || []
+  compare = local_assigns[:compare_to_previous_period] != false && @data&.dig(:compare_to_previous_period) != false
+  icon_map = {
+    "revenue" => "currency-dollar",
+    "paid_orders" => "receipt",
+    "avg_price_per_head" => "person-badge",
+    "cvr" => "percent",
+    "repeat_rate" => "arrow-repeat",
+    "gross_margin" => "graph-up"
+  }
+%>
+<section class="insights-kpi-section" aria-label="Key metrics">
+  <div class="odt-kpi-strip insights-kpi-strip business-insights-kpi">
+    <div class="odt-kpi-strip__inner">
+      <% kpis.each do |kpi| %>
+        <div class="odt-kpi-strip__cell" data-kpi="<%= kpi[:key] %>">
+          <div class="odt-kpi-strip__head">
+            <% if icon_map[kpi[:key].to_s].present? %>
+              <span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= icon_map[kpi[:key].to_s] %>"></i></span>
+            <% end %>
+            <span class="odt-kpi-strip__label bi-info-tooltip-trigger-wrap">
+              <%= kpi[:label] %>
+              <% if bi_tooltip_content(kpi[:key]).present? %>
+                <%= render "shared/bi_info_tooltip", **bi_tooltip_content(kpi[:key]), placement: "top" %>
+              <% end %>
+            </span>
+          </div>
+          <span class="odt-kpi-strip__value <%= 'odt-kpi-strip__value--danger' if kpi[:key].to_s == 'gross_margin' && kpi[:na_reason].present? %>">
+            <% if kpi[:key] == "gross_margin" && kpi[:na_reason].present? %>
+              N/A
+              <%= render "shared/bi_info_tooltip", title: "กำไรขั้นต้น", body: "รายได้ − ต้นทุนคลาส (ถ้าไม่มีข้อมูลต้นทุน จะแสดง N/A)", placement: "top" %>
+            <% elsif kpi[:key] == "gross_margin" %>
+              <%= number_to_thb(kpi[:value_thb]) %>
+            <% elsif kpi[:key] == "revenue" || kpi[:key] == "avg_price_per_head" %>
+              <%= number_to_thb(kpi[:value]) %>
+            <% else %>
+              <%= kpi[:value].is_a?(Numeric) && kpi[:value].to_i == kpi[:value] ? number_with_delimiter(kpi[:value].to_i) : kpi[:value] %><%= "%" if kpi[:key] == "cvr" || kpi[:key] == "repeat_rate" %>
+            <% end %>
+          </span>
+          <% if compare && kpi[:delta_label].present? %>
+            <span class="odt-kpi-strip__sub <%= (kpi[:delta].to_f >= 0) ? 'odt-kpi-strip__trend--up' : 'odt-kpi-strip__trend--down' %>"><%= kpi[:delta_label] %></span>
+          <% elsif kpi[:key] == "gross_margin" && kpi[:value_pct].present? && kpi[:na_reason].blank? %>
+            <span class="odt-kpi-strip__sub"><%= kpi[:value_pct] %>% margin</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

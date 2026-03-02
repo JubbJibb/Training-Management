@@ -174,6 +174,7 @@
               <th class="odt-th col-sm"><span class="th-inner">Due</span></th>
               <th class="odt-th col-sm"><span class="th-inner">Payment Date</span></th>
               <th class="odt-th col-xs"><span class="th-inner">Doc</span></th>
+              <th class="odt-th col-sm"><span class="th-inner">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -181,11 +182,15 @@
               <tr>
                 <td class="col-lg cell-stack"><span class="cell-stack__primary"><%= link_to a.name, edit_admin_training_class_attendee_path(a.training_class, a) %></span></td>
                 <td class="col-lg truncate"><%= a.training_class.title %></td>
-                <td class="col-md truncate"><%= a.customer&.company_name || a.company || "—" %></td>
+                <td class="col-md truncate"><%= a.customer&.company || a.company || "—" %></td>
                 <td class="col-sm odt-table-numeric num">฿<%= number_with_delimiter(a.total_final_price.round(2), delimiter: ",") %></td>
                 <td class="col-sm truncate"><%= a.due_date&.strftime("%d/%m/%y") || "—" %></td>
                 <td class="col-sm truncate"><%= a.display_payment_date.present? ? a.display_payment_date.strftime("%d/%m/%Y") : "—" %></td>
                 <td class="col-xs truncate"><%= a.document_status || "—" %></td>
+                <td class="col-sm cell-actions">
+                  <%= link_to summary_financials_payment_path(a), class: "odt-btn odt-btn--ghost odt-btn--sm", title: "Payment summary" do %><i class="bi bi-receipt"></i><% end %>
+                  <%= link_to financials_payment_path(a), class: "odt-btn odt-btn--secondary odt-btn--sm", title: "Send to customer" do %><i class="bi bi-send"></i><% end %>
+                </td>
               </tr>
             <% end %>
           </tbody>

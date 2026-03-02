@@ -1,0 +1,25 @@
+<%# Location & capacity: location, instructor, max_attendees %>
+<div class="odt-edit-card">
+  <div class="odt-edit-card__strip"></div>
+  <div class="odt-edit-card__body">
+    <header class="odt-edit-card__header">
+      <span class="odt-edit-card__title"><i class="bi bi-geo-alt" aria-hidden="true"></i> Location & capacity</span>
+    </header>
+    <div class="odt-edit-card__content">
+      <div class="odt-edit-field odt-edit-field--full">
+        <%= f.label :location, class: "odt-edit-field__label" %>
+        <%= f.text_field :location, class: "odt-edit-field__input", required: true, placeholder: "Venue or address" %>
+      </div>
+      <div class="odt-edit-fields odt-edit-fields--grid">
+        <div class="odt-edit-field">
+          <%= f.label :instructor, class: "odt-edit-field__label" %>
+          <%= f.text_field :instructor, class: "odt-edit-field__input", placeholder: "Instructor name" %>
+        </div>
+        <div class="odt-edit-field">
+          <%= f.label :max_attendees, class: "odt-edit-field__label" %>
+          <%= f.number_field :max_attendees, class: "odt-edit-field__input", min: 1, placeholder: "Max seats" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

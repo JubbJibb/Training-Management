@@ -1,0 +1,39 @@
+<%#
+  Donut chart layout แบบ Flowbite: วงกลมใหญ่ + ตัวเลข/คำบรรยายตรงกลาง + legend ด้านล่าง (จุดสี + ป้าย).
+  Locals:
+    center_value (required) — ตัวเลขใหญ่ตรงกลาง (e.g. "฿66.4k")
+    center_subtitle (optional) — คำบรรยายใต้ตัวเลข (e.g. "Unique visitors")
+    legend_items (required) — array of { label:, color: } (color ใช้กับจุดใน legend และต้องตรงกับสีใน chart)
+  Yields: เนื้อที่สำหรับ canvas หรือ SVG ของ donut (จะอยู่ด้านหลัง overlay ตรงกลาง)
+%>
+<%
+  center_value = local_assigns[:center_value]
+  center_subtitle = local_assigns[:center_subtitle]
+  legend_items = local_assigns[:legend_items] || []
+%>
+<div class="donut-flowbite">
+  <div class="donut-flowbite__chart-wrap">
+    <div class="donut-flowbite__chart">
+      <%= yield %>
+    </div>
+    <% if center_value.present? %>
+      <div class="donut-flowbite__center" aria-hidden="true">
+        <span class="donut-flowbite__center-value"><%= center_value %></span>
+        <% if center_subtitle.present? %>
+          <span class="donut-flowbite__center-subtitle"><%= center_subtitle %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <% if legend_items.any? %>
+    <div class="donut-flowbite__separator" aria-hidden="true"></div>
+    <div class="donut-flowbite__legend" role="list">
+      <% legend_items.each do |item| %>
+        <div class="donut-flowbite__legend-item" role="listitem">
+          <span class="donut-flowbite__legend-dot" style="background-color: <%= item[:color] || '#13139c' %>"></span>
+          <span class="donut-flowbite__legend-label"><%= item[:label] %></span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

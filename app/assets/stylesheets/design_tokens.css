@@ -33,7 +33,9 @@
   --color-primary: #13139c;
   --color-accent: #ffc700;
   --color-accent-2: #f5bf00;
-  --color-surface: #f9f9fe;
+  --color-surface: #E4ECFD;
+  /* 3-color gradient: white → warm off-white → cool blue-grey */
+  --color-surface-gradient: linear-gradient(180deg, #FFFFFF 0%, #F7F9F0 50%, #E4ECFD 100%);
   /* Semantic – use for success/warning/danger across app */
   --color-success: #059669;
   --color-warning: #f59e0b;
@@ -68,4 +70,8 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
+
+  /* Page content – single source for header/content top and left spacing */
+  --page-main-padding-top: 24px;
+  --page-main-padding-left: 32px;
 }

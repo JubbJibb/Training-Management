@@ -1,0 +1,81 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  expenses_list = local_assigns[:expenses_list] || @expenses_list || []
+  status_filter = local_assigns[:expenses_filter] || @expenses_filter || "all"
+  category_filter = local_assigns[:expenses_category] || @expenses_category
+  path_base = admin_class_workspace_finance_path(training_class)
+  path_exp_all = admin_class_workspace_finance_path(training_class, receivables_tab: params[:receivables_tab])
+  path_exp_paid = admin_class_workspace_finance_path(training_class, receivables_tab: params[:receivables_tab], expenses_status: "paid")
+  path_exp_unpaid = admin_class_workspace_finance_path(training_class, receivables_tab: params[:receivables_tab], expenses_status: "unpaid")
+  categories = ClassExpense::CATEGORIES
+  payment_status_label = { "paid" => "Paid", "deposit" => "Deposit", "unpaid" => "Unpaid" }
+%>
+<%= turbo_frame_tag "expenses_table" do %>
+  <div class="finance-dash-card finance-dash-card--full">
+    <div class="finance-dash-card__accent"></div>
+    <div class="finance-dash-card__header">
+      <span class="finance-dash-card__title"><i class="bi bi-currency-dollar" aria-hidden="true"></i> Expenses</span>
+      <%= link_to "Add expense", new_admin_training_class_class_expense_path(training_class), class: "finance-dash-card__action odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "_top" } %>
+    </div>
+    <div class="finance-dash-card__body">
+      <div class="finance-dash-filters">
+        <div class="finance-dash-pills">
+          <%= link_to "All", path_exp_all, class: "finance-dash-pill #{'finance-dash-pill--active' if status_filter == 'all'}", data: { turbo_frame: "expenses_table" } %>
+          <%= link_to "Paid", path_exp_paid, class: "finance-dash-pill #{'finance-dash-pill--active' if status_filter == 'paid'}", data: { turbo_frame: "expenses_table" } %>
+          <%= link_to "Unpaid", path_exp_unpaid, class: "finance-dash-pill #{'finance-dash-pill--active' if status_filter == 'unpaid'}", data: { turbo_frame: "expenses_table" } %>
+        </div>
+        <div class="finance-dash-category-select">
+          <%= form_with url: admin_class_workspace_finance_path(training_class), method: :get, data: { turbo_frame: "expenses_table" }, local: true, class: "finance-dash-category-form" do |f| %>
+            <%= hidden_field_tag :receivables_tab, params[:receivables_tab] if params[:receivables_tab].present? %>
+            <%= hidden_field_tag :expenses_status, params[:expenses_status] if params[:expenses_status].present? %>
+            <%= select_tag :expenses_category, options_for_select([["All categories", ""]] + categories.map { |c| [c, c] }, category_filter), class: "finance-dash-select", data: { turbo_frame: "expenses_table", action: "change->form#submit" }, onchange: "this.form.requestSubmit()" %>
+          <% end %>
+        </div>
+      </div>
+      <% if expenses_list.any? %>
+        <div class="finance-dash-costs-table-wrap">
+          <table class="finance-dash-costs-table" role="table">
+            <thead>
+              <tr>
+                <th class="finance-dash-costs-table__th">Description</th>
+                <th class="finance-dash-costs-table__th finance-dash-costs-table__th--num">Amount</th>
+                <th class="finance-dash-costs-table__th">Category</th>
+                <th class="finance-dash-costs-table__th">Status</th>
+                <th class="finance-dash-costs-table__th">Date</th>
+                <th class="finance-dash-costs-table__th finance-dash-costs-table__th--actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% expenses_list.each do |exp| %>
+                <tr class="finance-dash-costs-table__row">
+                  <td class="finance-dash-costs-table__td">
+                    <span class="finance-dash-costs-table__desc"><%= exp.respond_to?(:description) ? exp.description.to_s.truncate(50) : exp[:description].to_s.truncate(50) %></span>
+                    <% cat = exp.respond_to?(:category) ? exp.category : exp[:category] %>
+                    <% if exp.respond_to?(:is_estimated) && exp.is_estimated? %>
+                      <span class="finance-dash-costs-table__badge finance-dash-costs-table__badge--est">Est.</span>
+                    <% end %>
+                  </td>
+                  <td class="finance-dash-costs-table__td finance-dash-costs-table__td--num"><%= number_to_thb(exp.respond_to?(:amount) ? exp.amount.to_f : exp[:amount].to_f) %></td>
+                  <td class="finance-dash-costs-table__td finance-dash-costs-table__td--cat"><%= cat.presence || "—" %></td>
+                  <td class="finance-dash-costs-table__td">
+                    <% ps = exp.respond_to?(:payment_status) ? exp.payment_status : exp[:payment_status] %>
+                    <span class="finance-dash-costs-table__status finance-dash-costs-table__status--<%= ps.presence || 'unpaid' %>"><%= payment_status_label[ps.presence || "unpaid"] %></span>
+                  </td>
+                  <td class="finance-dash-costs-table__td finance-dash-costs-table__td--date">
+                    <% d = exp.respond_to?(:expense_date) ? exp.expense_date : exp[:expense_date] %>
+                    <%= d.present? ? (d.respond_to?(:strftime) ? d.strftime("%d/%m/%y") : d.to_s) : "—" %>
+                  </td>
+                  <td class="finance-dash-costs-table__td finance-dash-costs-table__td--actions">
+                    <%= link_to edit_admin_training_class_class_expense_path(training_class, exp.respond_to?(:id) ? exp : exp[:id]), class: "finance-dash-costs-table__action", title: "Edit", data: { turbo_frame: "_top" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="finance-dash-empty-inline"><i class="bi bi-info-circle"></i> No expenses <%= status_filter != "all" || category_filter.present? ? "match filters." : "yet. " %><%= link_to "Add expense", new_admin_training_class_class_expense_path(training_class), class: "finance-dash-hint__link", data: { turbo_frame: "_top" } if status_filter == "all" && category_filter.blank? %></p>
+      <% end %>
+    </div>
+  </div>
+<% end %>

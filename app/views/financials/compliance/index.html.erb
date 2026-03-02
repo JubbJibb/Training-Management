@@ -1,0 +1,97 @@
+<% content_for :title, "Compliance" %>
+<div class="financials-page financials-compliance">
+  <%= render "components/odt/page_header", title: "Compliance", subtitle: "Tax readiness · Audit bundle", icon: "shield-check" do %>
+  <% end %>
+
+  <%= turbo_frame_tag "financials_compliance", data: { turbo_action: "advance" } do %>
+    <div class="financials-filters-row">
+      <details class="financials-filters-card" open>
+        <summary class="financials-filters-card__summary">Filters</summary>
+        <div class="financials-filters-card__body">
+          <%= form_with url: financials_compliance_path, method: :get, data: { turbo_frame: "financials_compliance" }, class: "financials-filters-form" do %>
+            <div class="financials-filters-form__field">
+              <label for="financials_period">Period</label>
+              <select name="period" id="financials_period"><option value="mtd" <%= "selected" if params[:period] == "mtd" %>>MTD</option><option value="qtd" <%= "selected" if params[:period] == "qtd" %>>QTD</option><option value="ytd" <%= "selected" if params[:period] == "ytd" %>>YTD</option><option value="custom" <%= "selected" if params[:period] == "custom" %>>Custom</option></select>
+            </div>
+            <div class="financials-filters-form__field">
+              <label for="financials_date_from">From</label>
+              <input type="date" name="date_from" id="financials_date_from" value="<%= params[:date_from] %>">
+            </div>
+            <div class="financials-filters-form__field">
+              <label for="financials_date_to">To</label>
+              <input type="date" name="date_to" id="financials_date_to" value="<%= params[:date_to] %>">
+            </div>
+            <div class="financials-filters-form__field">
+              <label for="financials_client_type">Client type</label>
+              <select name="client_type" id="financials_client_type"><option value="">All</option><option value="Indi" <%= "selected" if params[:client_type] == "Indi" %>>Individual</option><option value="Corp" <%= "selected" if params[:client_type] == "Corp" %>>Corporate</option></select>
+            </div>
+            <div class="financials-filters-form__field">
+              <label for="financials_status">Status</label>
+              <select name="status" id="financials_status"><option value="">All</option><option value="Pending" <%= "selected" if params[:status] == "Pending" %>>Pending</option><option value="Paid" <%= "selected" if params[:status] == "Paid" %>>Paid</option></select>
+            </div>
+            <div class="financials-filters-form__field financials-filters-form__field--checkbox">
+              <label><input type="checkbox" name="missing_only" value="1" <%= "checked" if params[:missing_only] == "1" %>> Missing only</label>
+            </div>
+            <div class="financials-filters-form__field financials-filters-form__field--checkbox">
+              <label><input type="checkbox" name="overdue_only" value="1" <%= "checked" if params[:overdue_only] == "1" %>> Overdue only</label>
+            </div>
+            <div class="financials-filters-form__field financials-filters-form__field--checkbox">
+              <label><input type="checkbox" name="corporate_only" value="1" <%= "checked" if params[:corporate_only] == "1" %>> Corporate only</label>
+            </div>
+            <div class="financials-filters-form__actions">
+              <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+              <%= link_to "Clear", financials_compliance_path, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_frame: "financials_compliance" } %>
+            </div>
+          <% end %>
+        </div>
+      </details>
+    </div>
+
+    <% sc = @severity_counts || {} %>
+    <%= render "financials/shared/summary_strip", summary_items: [
+      { label: "High", value: (sc["high"] || 0).to_s, variant: "warning" },
+      { label: "Medium", value: (sc["medium"] || 0).to_s },
+      { label: "Total issues", value: (@issues&.size || 0).to_s }
+    ] %>
+
+    <section class="fin-section" aria-labelledby="fin-checklist-title">
+      <h2 id="fin-checklist-title" class="fin-section__title">Tax readiness checklist</h2>
+      <p class="fin-compliance-desc">Resolve issues below; then export audit bundle for the period.</p>
+      <%= link_to "Export audit bundle", financials_export_history_path, class: "odt-btn odt-btn--primary odt-btn--sm fin-section__cta" %>
+    </section>
+
+    <section class="fin-section" aria-labelledby="fin-issues-title">
+      <h2 id="fin-issues-title" class="fin-section__title">Issues (quick-fix links)</h2>
+      <div class="fin-table-wrap">
+        <table class="table-financials">
+          <thead>
+            <tr>
+              <th>Issue</th>
+              <th>Entity</th>
+              <th>Severity</th>
+              <th>Due</th>
+              <th class="col-actions">Quick-fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (@issues || []).each do |row| %>
+              <tr>
+                <td class="odt-table-cell--highlight"><span class="odt-table-cell__text"><%= row[:issue] %></span></td>
+                <td><%= link_to row[:entity_label].to_s.truncate(40), row[:entity_link], class: "financials-action-link" %></td>
+                <td><%= render "financials/shared/status_badge", status: row[:severity], variant: (row[:severity] == 'high' ? 'danger' : 'warning') %></td>
+                <td class="col-date"><%= row[:due]&.strftime("%Y-%m-%d") || "—" %></td>
+                <td class="col-actions"><%= link_to "Fix", row[:quick_fix_link], class: "odt-btn odt-btn--ghost odt-btn--sm" %></td>
+              </tr>
+            <% end %>
+            <% if (@issues || []).empty? %>
+              <tr><td colspan="5"><%= render "financials/shared/empty_state", message: "No compliance issues", icon: "shield-check" %></td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+</div>
+<style>
+  .fin-compliance-desc { margin: 0 0 0.75rem; font-size: 0.875rem; color: #6b7280; }
+</style>

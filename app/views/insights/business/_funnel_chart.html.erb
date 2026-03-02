@@ -1,0 +1,36 @@
+<%
+  funnel = local_assigns[:funnel_data] || []
+  max_val = funnel.map { |h| h[:value].to_i }.max.to_f
+  max_val = 1 if max_val.zero?
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Funnel</h3>
+      <p class="insight-card__subtitle">ลงทะเบียน → ชำระเงิน → เข้าเรียน</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if funnel.any? %>
+      <div class="funnel-chart">
+        <% funnel.each_with_index do |item, i| %>
+          <% pct = (item[:value].to_f / max_val * 100).round(0) %>
+          <div class="funnel-chart__row" title="<%= item[:label] %>: <%= item[:value] %>">
+            <span class="funnel-chart__label"><%= item[:label] %></span>
+            <span class="funnel-chart__bar-wrap">
+              <span class="funnel-chart__bar" style="width: <%= [pct, 8].max %>%;" data-value="<%= item[:value] %>"></span>
+              <span class="funnel-chart__value mono-number"><%= item[:value] %></span>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render "insights/shared/empty_chart", message: "ไม่มีข้อมูล funnel ในช่วงที่เลือก" %>
+    <% end %>
+    <% attended_val = funnel.find { |h| h[:label].to_s == "เข้าเรียน" }&.dig(:value).to_i %>
+    <% if attended_val.zero? && funnel.any? %>
+      <p class="bi-funnel-hint text-muted small mt-2 mb-0"><i class="bi bi-info-circle" aria-hidden="true"></i> ยังไม่มีข้อมูลการเข้าเรียน (Attendance tracking ไม่ได้ถูกบันทึก) — แนะนำให้บันทึกสถานะเข้าเรียนในรายชื่อผู้เข้าร่วม</p>
+    <% end %>
+  </div>
+</div>

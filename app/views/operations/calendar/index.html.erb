@@ -55,7 +55,7 @@
     </div>
   </div>
 
-  <div class="cal-body">
+  <div class="cal-body cal-body--full">
     <div class="cal-main">
       <% if @events.empty? %>
         <div class="cal-empty">
@@ -73,16 +73,5 @@
         <% end %>
       <% end %>
     </div>
-    <aside class="cal-aside">
-      <div class="cal-panel-wrap">
-        <%= turbo_frame_tag "calendar_side_panel", src: nil, loading: :lazy do %>
-          <div class="cal-panel-empty">
-            <span class="cal-panel-empty__icon">📅</span>
-            <p class="cal-panel-empty__title">Select a training class</p>
-            <p class="cal-panel-empty__sub">to view details and manage it.</p>
-          </div>
-        <% end %>
-      </div>
-    </aside>
   </div>
 </div>

@@ -1,0 +1,25 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  public_url = training_class.public_url_with_fallback
+%>
+<div id="workspace-public-block" class="public-link-block">
+  <% if training_class.public_enabled? && training_class.public_slug.present? %>
+    <div class="public-link-block__row">
+      <label class="public-link-block__label">Public link</label>
+      <div class="public-link-block__input-wrap">
+        <input type="text" class="public-link-block__input form-control form-control-sm" readonly value="<%= public_url %>" data-copy-target>
+        <div class="public-link-block__btns">
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-copy-btn data-copy-value="<%= public_url %>" title="Copy">Copy</button>
+          <%= link_to "Open", public_url, class: "odt-btn odt-btn--secondary odt-btn--sm", target: "_blank", rel: "noopener", title: "Open in new tab" %>
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-toast="QR (coming soon)" title="QR code">QR</button>
+          <%= button_to "Disable", admin_class_workspace_public_path(training_class), method: :patch, params: { public_enabled: false }, form: { class: "d-inline" }, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="public-link-block__row">
+      <span class="public-link-block__disabled">Public page disabled</span>
+      <%= button_to "Enable", admin_class_workspace_public_path(training_class), method: :patch, params: { public_enabled: true }, form: { class: "d-inline" }, class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+    </div>
+  <% end %>
+</div>

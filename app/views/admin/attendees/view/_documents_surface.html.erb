@@ -1,0 +1,49 @@
+<% attendee = local_assigns[:attendee] %>
+<%
+  payment_status = attendee.payment_status.presence || "Pending"
+  payment_variant = payment_status == "Paid" ? :success : :warning
+  doc_status = attendee.document_status.presence || "—"
+  doc_variant = doc_status == "Receipt" ? :success : (doc_status.present? ? :info : :neutral)
+  slip_count = attendee.payment_slips.attached? ? attendee.payment_slips.size : 0
+%>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+    <span>Documents & Payment</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <div class="attendee-view-grid attendee-view-grid--chips">
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Payment status</span>
+        <span class="attendee-view-value"><%= odt_badge(payment_status, variant: payment_variant, size: :sm) %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Document status</span>
+        <span class="attendee-view-value"><%= odt_badge(doc_status, variant: doc_variant, size: :sm) %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Due date</span>
+        <span class="attendee-view-value"><%= attendee.due_date&.strftime("%d/%m/%Y") || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Paid date</span>
+        <span class="attendee-view-value"><%= attendee.display_payment_date&.strftime("%d/%m/%Y") || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Slip</span>
+        <span class="attendee-view-value">
+          <% if slip_count.positive? %>
+            Yes
+            <%= link_to "View slip", rails_blob_path(attendee.payment_slips.first), target: "_blank", rel: "noopener", class: "attendee-view-link ms-1" %>
+          <% else %>
+            No
+          <% end %>
+        </span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Amount</span>
+        <span class="attendee-view-value attendee-view-value--primary"><%= number_to_thb(attendee.total_final_price) %> incl. VAT</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -13,31 +13,58 @@ Rails.application.routes.draw do
     get "actions", to: "actions#index", as: :actions
   end
 
-  # ========== Executive IA: Financials ==========
-  get "finance", to: "finance_dashboards#index", as: :financial_overview
-  get "finance/ar", to: "admin/finance#index", as: :finance_ar
-  get "finance/payments", to: "admin/finance#index", as: :finance_payments
-
+  # ========== Financials module: /financials/* ==========
   scope "financials", module: "financials", as: "financials" do
-    get "payment_tracking", to: "payment_tracking#index", as: :payment_tracking
-    resources :payments, only: [:show], controller: "payments" do
+    get "overview", to: "overview#index", as: :overview
+    get "overview/kpi_detail", to: "overview#kpi_detail", as: :overview_kpi_detail
+    get "accounts_receivable", to: "accounts_receivable#index", as: :accounts_receivable
+    resources :payments, only: [:index, :show], controller: "payments" do
       member do
+        get :summary
         get :download_pdf
         post :send_summary
+        get :panel
+        patch :verify_slip
+        patch :reject_slip
+        patch :issue_receipt
+      end
+      collection do
+        post :bulk_verify
+        post :bulk_send_summary
+        post :bulk_send_receipt
+        get :bulk_export
       end
     end
+    get "expenses", to: "expenses#index", as: :expenses
+    get "compliance", to: "compliance#index", as: :compliance
+    get "export_history", to: "export_history#index", as: :export_history
   end
-  get "finance/expenses", to: "admin/expenses#index", as: :finance_expenses
-  get "finance/compliance", to: "admin/compliance#index", as: :finance_compliance
-  get "finance/export_jobs", to: "admin/exports#index", as: :finance_export_jobs
-  # Backward compatibility: old CFO dashboard URL
-  get "finance_dashboard", to: redirect("/finance"), as: :finance_dashboard
+
+  # Backward compatibility: /finance -> financials overview
+  get "finance", to: redirect("/financials/overview"), as: :financial_overview
+  get "finance/ar", to: redirect("/financials/accounts_receivable"), as: :finance_ar
+  get "finance/payments", to: redirect("/financials/payments"), as: :finance_payments
+  get "finance/expenses", to: redirect("/financials/expenses"), as: :finance_expenses
+  get "finance/compliance", to: redirect("/financials/compliance"), as: :finance_compliance
+  get "finance/export_jobs", to: redirect("/financials/export_history"), as: :finance_export_jobs
+  get "finance_dashboard", to: redirect("/financials/overview"), as: :finance_dashboard
 
   # ========== Executive IA: Operations / Clients / Strategy (pretty URLs) ==========
   get "training_classes", to: redirect("/admin/training_classes")
   scope "operations", module: "operations", as: "operations" do
-    get "calendar", to: "calendar#index", as: :calendar
+    get "calendar", to: redirect("/operations/training_calendar"), as: :calendar
     get "calendar/event/:id", to: "calendar#event", as: :calendar_event
+    # Ops-focused training calendar: drawer, quick add, filters
+    get "training_calendar", to: "training_calendar#index", as: :training_calendar
+    get "training_calendar/drawer", to: "training_calendar#drawer", as: :training_calendar_drawer
+    get "training_calendar/drawer/:id", to: "training_calendar#drawer", as: :training_calendar_drawer_class, constraints: { id: /\d+/ }
+    get "training_calendar/day_popover", to: "training_calendar#day_popover", as: :training_calendar_day_popover
+    get "training_calendar/quick_add_form", to: "training_calendar#quick_add_form", as: :training_calendar_quick_add_form
+    post "training_calendar/classes", to: "training_calendar#create_class", as: :training_calendar_create_class
+    patch "training_calendar/classes/:id", to: "training_calendar#update_class", as: :training_calendar_update_class
+    get "training_classes", to: redirect("/admin/training_classes"), as: :training_classes
+    get "courses", to: redirect("/admin/courses"), as: :courses
+    get "instructors", to: redirect("/instructors"), as: :instructors
   end
   get "courses", to: redirect("/admin/courses")
   get "instructors", to: "admin/instructors#index", as: :instructors
@@ -52,6 +79,9 @@ Rails.application.routes.draw do
     get "corporate_accounts/:id", to: "corporate_accounts#show", as: :corporate_account
     get "analysis", to: "analysis#show", as: :analysis
   end
+
+  # ========== Public class landing page ==========
+  get "classes/:public_slug", to: "public/classes#show", as: :public_class, constraints: { public_slug: /[a-z0-9\-]+/ }
 
   # ========== Admin namespace ==========
   namespace :admin do
@@ -94,8 +124,29 @@ Rails.application.routes.draw do
         get :register_for_class
       end
     end
+    # Classes: list + single entry for "view class" (workspace). Edit/delete stay under training_classes.
+    get "classes", to: "training_classes#index", as: :classes
+    get "classes/:id", to: "class_workspace#show", as: :class_workspace
+    get "classes/:id/overview", to: "class_workspace#overview", as: :class_workspace_overview
+    get "classes/:id/attendees", to: "class_workspace#attendees", as: :class_workspace_attendees
+    get "classes/:id/leads", to: "class_workspace#leads", as: :class_workspace_leads
+    get "classes/:id/documents", to: "class_workspace#documents", as: :class_workspace_documents
+    get "classes/:id/finance", to: "class_workspace#finance", as: :class_workspace_finance
+    get "classes/:id/edit", to: "class_workspace#edit", as: :class_workspace_edit
+    patch "classes/:id/checklist", to: "class_workspace#update_checklist", as: :class_workspace_checklist
+    patch "classes/:id/public", to: "class_workspace#update_public", as: :class_workspace_public
+    patch "classes/:id/notes", to: "class_workspace#update_notes", as: :class_workspace_notes
+
     resources :training_classes do
       get :finance, on: :member, action: :finance, as: :finance
+      get :copy, on: :member, action: :copy, as: :copy
+      member do
+        patch :toggle_public
+        patch :update_related_links
+        patch :update_checklist
+        post :add_note
+        delete :delete_note
+      end
       resources :attendees do
         collection do
           get :export

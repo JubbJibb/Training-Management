@@ -1,0 +1,58 @@
+<%
+  tc = local_assigns[:tc]
+  sort_column = local_assigns[:sort_column].presence || "date"
+  sort_direction = local_assigns[:sort_direction].presence == "desc" ? "desc" : "asc"
+  sort_params = local_assigns[:sort_params] || {}
+  index_path = local_assigns[:index_path] || admin_training_classes_path
+%>
+<tr id="<%= dom_id(tc, :row) %>" class="tc-saas-tr">
+  <td class="tc-saas-td tc-saas-td--class">
+    <div class="tc-saas-class-cell">
+      <%= link_to tc.title, admin_class_workspace_overview_path(tc), class: "tc-saas-class-link", data: { turbo_frame: "_top" } %>
+      <span class="tc-saas-class-meta"><%= tc.duration %></span>
+    </div>
+  </td>
+  <td class="tc-saas-td tc-saas-td--date">
+    <span class="tc-saas-date"><%= tc.date.strftime("%b %d, %Y") %></span>
+  </td>
+  <td class="tc-saas-td tc-saas-td--status">
+    <div class="dropdown d-inline-block tc-saas-status-dropdown">
+      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm dropdown-toggle tc-saas-status-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="เปลี่ยนสถานะ Public/Private" title="คลิกเลือก Public หรือ Private">
+        <%= tc.public_enabled? ? odt_badge("Public", variant: :info, size: :sm) : odt_badge("Private", variant: :neutral, size: :sm) %>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><%= link_to "Public", toggle_public_admin_training_class_path(tc, public_enabled: "true"), class: "dropdown-item #{'active' if tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+        <li><%= link_to "Private", toggle_public_admin_training_class_path(tc, public_enabled: "false"), class: "dropdown-item #{'active' unless tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+      </ul>
+    </div>
+  </td>
+  <td class="tc-saas-td tc-saas-td--fill">
+    <%= render "admin/training_classes/fill_rate_cell", tc: tc %>
+  </td>
+  <td class="tc-saas-td tc-saas-td--revenue">
+    <span class="tc-saas-revenue">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></span>
+  </td>
+  <td class="tc-saas-td tc-saas-td--instructor">
+    <span class="tc-saas-instructor"><%= tc.instructor.presence || "—" %></span>
+  </td>
+  <td class="tc-saas-td tc-saas-td--actions">
+    <div class="tc-saas-actions">
+      <%= odt_split_button(
+        primary: {
+          url: new_admin_training_class_attendee_path(tc),
+          icon: "person-plus",
+          title: "Add Attendee",
+          label: "Add Attendee"
+        },
+        dropdown_items: [
+          { label: "Copy Class", icon: "copy", url: copy_admin_training_class_path(tc) },
+          { label: "Edit", icon: "pencil", url: edit_admin_training_class_path(tc) },
+          { label: "Delete", icon: "trash", url: admin_training_class_path(tc), method: :delete, confirm: "Delete this training class?" }
+        ],
+        button_class: "tc-saas-actions-btn",
+        split_class: "tc-saas-split-btn",
+        more_label: "More actions"
+      ) %>
+    </div>
+  </td>
+</tr>

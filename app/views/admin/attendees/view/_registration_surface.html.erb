@@ -1,0 +1,31 @@
+<% attendee = local_assigns[:attendee] %>
+<%
+  status_label = attendee.status == "attendee" ? "Confirmed" : "Potential"
+  status_variant = attendee.status == "attendee" ? :success : :warning
+%>
+<div class="attendee-edit-surface">
+  <div class="attendee-edit-surface__header">
+    <i class="bi bi-calendar-check" aria-hidden="true"></i>
+    <span>Registration</span>
+  </div>
+  <div class="attendee-edit-surface__body">
+    <div class="attendee-view-grid">
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Status</span>
+        <span class="attendee-view-value"><%= odt_badge(status_label, variant: status_variant, size: :sm) %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Channel</span>
+        <span class="attendee-view-value"><%= attendee.source_channel.presence || "—" %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Seats</span>
+        <span class="attendee-view-value"><%= attendee.seats || 1 %></span>
+      </div>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Classes attended</span>
+        <span class="attendee-view-value"><%= attendee.total_classes.to_i %></span>
+      </div>
+    </div>
+  </div>
+</div>

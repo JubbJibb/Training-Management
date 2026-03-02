@@ -36,7 +36,7 @@
             <td class="cell--num"><%= number_to_thb(amt) %></td>
             <td class="cell--num"><%= pct %>%</td>
             <td class="cell--center">
-              <span class="badge badge--<%= status %>"><%= status_label %></span>
+              <%= odt_badge(status_label, variant: status.to_sym, size: :sm) %>
             </td>
           </tr>
         <% end %>

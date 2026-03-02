@@ -1,0 +1,273 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  attendees = local_assigns[:attendees] || @attendees || []
+  sort_column = @sort_column.presence || "name"
+  sort_direction = @sort_direction.presence == "desc" ? "desc" : "asc"
+  docs_path = admin_class_workspace_documents_path(training_class)
+%>
+<div class="workspace-section workspace-section--documents exec-dashboard">
+  <div class="workspace-documents-table-block">
+    <div class="workspace-documents-toolbar">
+      <h3 class="workspace-documents-table-title">เอกสารและข้อมูลผู้ลงทะเบียน</h3>
+      <div class="workspace-documents-export">
+        <span class="workspace-documents-export__label">Download CSV:</span>
+        <label class="workspace-documents-export__check"><input type="checkbox" class="doc-export-field-group" name="field_groups[]" value="attendee_info" checked> ข้อมูลผู้สมัคร</label>
+        <label class="workspace-documents-export__check"><input type="checkbox" class="doc-export-field-group" name="field_groups[]" value="registration_details" checked> รายละเอียดการลงทะเบียน</label>
+        <label class="workspace-documents-export__check"><input type="checkbox" class="doc-export-field-group" name="field_groups[]" value="price_discount" checked> ราคา ส่วนลด</label>
+        <a href="#" id="doc-download-csv-btn" class="odt-btn odt-btn--secondary odt-btn--sm" data-export-url="<%= export_documents_admin_training_class_attendees_path(training_class, format: :csv) %>" aria-label="Download selected as CSV"><i class="bi bi-download" aria-hidden="true"></i> Download CSV</a>
+      </div>
+    </div>
+    <% if attendees.any? %>
+      <div class="attendees-ledger__table-wrap">
+        <table class="attendees-ledger__table workspace-documents-table" role="table" aria-label="Documents by attendee">
+          <thead>
+            <tr>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--no">#No</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--check">
+                <input type="checkbox" id="doc-select-all" class="form-check-input" aria-label="Select all">
+              </th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">
+                <%= link_to docs_path, sort: "name", direction: (sort_column == "name" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "name" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                  Name <%= sort_column == "name" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+                <% end %>
+              </th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--doc" title="Quotation">QT#</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--doc" title="Invoice">INV#</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--doc" title="Receipt">REC#</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">
+                <%= link_to docs_path, sort: "payment_date", direction: (sort_column == "payment_date" && sort_direction == "asc" ? "desc" : "asc"), class: "attendees-ledger__sort-link #{sort_column == "payment_date" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
+                  Payment Date <%= sort_column == "payment_date" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+                <% end %>
+              </th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--tax-billing">Tax ID /<br>Address</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--slip">Pay slip</th>
+              <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% attendees.each_with_index do |a, idx| %>
+              <% status = a.respond_to?(:billing_tax_status) ? a.billing_tax_status : {} %>
+              <% tax_ok = status[:tax_id] %>
+              <% billing_ok = status[:billing_address] %>
+              <% tax_billing_ok = tax_ok && billing_ok %>
+              <% slip_attached = a.payment_slips.attached? && a.payment_slips.any? %>
+              <tr class="attendees-ledger__row" data-attendee-id="<%= a.id %>">
+                <td class="attendees-ledger__td attendees-ledger__td--no"><%= idx + 1 %></td>
+                <td class="attendees-ledger__td attendees-ledger__td--check">
+                  <input type="checkbox" class="form-check-input doc-export-checkbox" value="<%= a.id %>" aria-label="Select <%= a.name %>">
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--name">
+                  <%= link_to edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url), class: "attendees-ledger__name-link doc-name-link--view", title: "Click to view information" do %>
+                    <span class="attendees-ledger__name"><%= a.name %></span>
+                    <% if a.email.present? %>
+                      <span class="attendees-ledger__email-wrap">
+                        <span class="attendees-ledger__email"><%= a.email %></span>
+                        <span class="doc-email-copy" role="button" tabindex="0" data-email="<%= a.email %>" title="Copy email" aria-label="Copy email"><i class="bi bi-clipboard doc-email-copy__icon" aria-hidden="true"></i></span>
+                      </span>
+                    <% end %>
+                  <% end %>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--doc doc-cell-editable-wrap" data-update-url="<%= admin_training_class_attendee_path(training_class, a) %>" data-return-to="<%= request.original_url %>">
+                  <span class="doc-cell-value" data-field="quotation_no" data-value="<%= a.quotation_no.to_s.gsub('"', '&quot;') %>" title="Click to edit"><%= a.quotation_no.presence || "—" %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--doc doc-cell-editable-wrap" data-update-url="<%= admin_training_class_attendee_path(training_class, a) %>" data-return-to="<%= request.original_url %>">
+                  <span class="doc-cell-value" data-field="invoice_no" data-value="<%= a.invoice_no.to_s.gsub('"', '&quot;') %>" title="Click to edit"><%= a.invoice_no.presence || "—" %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--doc doc-cell-editable-wrap" data-update-url="<%= admin_training_class_attendee_path(training_class, a) %>" data-return-to="<%= request.original_url %>">
+                  <span class="doc-cell-value" data-field="receipt_no" data-value="<%= a.receipt_no.to_s.gsub('"', '&quot;') %>" title="Click to edit"><%= a.receipt_no.presence || "—" %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--payment-date doc-cell-editable-wrap" data-update-url="<%= admin_training_class_attendee_path(training_class, a) %>" data-return-to="<%= request.original_url %>">
+                  <% pay_date = a.respond_to?(:display_payment_date) && a.display_payment_date.present? ? a.display_payment_date.to_date : nil %>
+                  <span class="doc-cell-value doc-cell-value--date" data-field="payment_date" data-value="<%= pay_date ? pay_date.strftime('%Y-%m-%d') : '' %>" data-display="<%= pay_date ? pay_date.strftime('%b %d, %Y') : '—' %>" title="Click to edit"><%= pay_date ? pay_date.strftime("%b %d, %Y") : "—" %></span>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--tax-billing doc-cell-edit-link-wrap">
+                  <%= link_to edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url), class: "doc-cell-edit-link", title: "Click to edit Tax ID / Address" do %>
+                    <span class="doc-status doc-status--<%= tax_billing_ok ? 'ok' : 'missing' %>" aria-label="<%= tax_billing_ok ? 'ครบ' : 'ไม่ครบ' %>">
+                      <% if tax_billing_ok %><i class="bi bi-check-circle-fill doc-status-icon" aria-hidden="true"></i><% else %><i class="bi bi-x-circle-fill doc-status-icon" aria-hidden="true"></i><% end %>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--slip">
+                  <% if slip_attached %>
+                    <span class="doc-status doc-status--ok" title="มี <%= a.payment_slips.size %> ไฟล์" aria-label="มี <%= a.payment_slips.size %> ไฟล์"><i class="bi bi-file-earmark-check-fill doc-status-icon" aria-hidden="true"></i></span>
+                    <% if a.payment_slips.size == 1 %>
+                      <%= link_to rails_blob_path(a.payment_slips.first, disposition: "inline"), class: "doc-slip-link doc-slip-link--icon", title: "View payment slip", aria: { label: "View slip" }, target: "_blank", rel: "noopener" do %><i class="bi bi-eye" aria-hidden="true"></i><% end %>
+                    <% else %>
+                      <div class="dropdown d-inline">
+                        <button type="button" class="doc-slip-link doc-slip-link--icon dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="View payment slip(s)" aria-label="View slip"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          <% a.payment_slips.each do |slip| %>
+                            <li><%= link_to rails_blob_path(slip, disposition: "inline"), class: "dropdown-item", target: "_blank", rel: "noopener" do %><i class="bi bi-file-earmark-image" aria-hidden="true"></i> <%= slip.filename %><% end %></li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <span class="doc-status doc-status--missing" title="ยังไม่มีสลิป" aria-label="ไม่ครบ"><i class="bi bi-x-circle-fill doc-status-icon" aria-hidden="true"></i></span>
+                    <%= link_to edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url), class: "doc-slip-link doc-slip-link--icon", title: "Upload payment slip", aria: { label: "Upload slip" } do %><i class="bi bi-upload" aria-hidden="true"></i><% end %>
+                  <% end %>
+                </td>
+                <td class="attendees-ledger__td attendees-ledger__td--actions">
+                  <div class="attendees-ledger__actions-cell">
+                    <%= odt_split_button(
+                      primary: { url: edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url, mode: "edit"), icon: "pencil", title: "Edit registration", label: "Edit" },
+                      dropdown_items: [
+                        { label: "View payment summary", icon: "receipt", url: summary_financials_payment_path(a), data: { turbo_frame: "_top" } },
+                        { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(training_class, a, return_to: request.original_url), method: :delete, confirm: "Remove this attendee from the class?" }
+                      ]
+                    ) %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="workspace-doc-empty-hint text-muted">ยังไม่มีผู้ลงทะเบียนในคลาสนี้</p>
+    <% end %>
+  </div>
+</div>
+
+<script>
+(function() {
+  var table = document.querySelector('.workspace-documents-table');
+  if (!table) return;
+  var token = document.querySelector('meta[name="csrf-token"]');
+  var csrf = token ? token.getAttribute('content') : '';
+
+  table.querySelectorAll('.doc-cell-value').forEach(function(span) {
+    span.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var wrap = this.closest('.doc-cell-editable-wrap');
+      if (!wrap || wrap.querySelector('form.doc-cell-form')) return;
+      var field = this.getAttribute('data-field');
+      var value = (this.getAttribute('data-value') || '').replace(/&quot;/g, '"');
+      var display = this.getAttribute('data-display') || value || '—';
+      var updateUrl = wrap.getAttribute('data-update-url');
+      var returnTo = wrap.getAttribute('data-return-to') || window.location.href;
+
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = updateUrl;
+      form.className = 'doc-cell-form';
+      var isDate = field === 'payment_date';
+      var input = document.createElement('input');
+      input.name = 'attendee[' + field + ']';
+      input.type = isDate ? 'date' : 'text';
+      input.value = value;
+      input.className = 'doc-cell-input form-control form-control-sm';
+      input.setAttribute('autocomplete', 'off');
+
+      function addHidden(name, val) {
+        var h = document.createElement('input');
+        h.type = 'hidden';
+        h.name = name;
+        h.value = val;
+        form.appendChild(h);
+      }
+      addHidden('_method', 'patch');
+      if (csrf) addHidden('authenticity_token', csrf);
+      addHidden('return_to', returnTo);
+      addHidden('quick_edit', '1');
+      form.appendChild(input);
+      var btnSave = document.createElement('button');
+      btnSave.type = 'submit';
+      btnSave.className = 'odt-btn odt-btn--primary odt-btn--sm doc-cell-btn';
+      btnSave.textContent = 'Save';
+      form.appendChild(btnSave);
+      var btnCancel = document.createElement('button');
+      btnCancel.type = 'button';
+      btnCancel.className = 'odt-btn odt-btn--ghost odt-btn--sm doc-cell-btn doc-cell-cancel';
+      btnCancel.textContent = 'Cancel';
+      btnCancel.addEventListener('click', function() {
+        form.remove();
+        span.style.display = '';
+      });
+      form.appendChild(btnCancel);
+
+      span.style.display = 'none';
+      wrap.appendChild(form);
+      input.focus();
+
+      form.addEventListener('submit', function() {
+        wrap.querySelectorAll('.doc-cell-form').forEach(function(f) { f.remove(); });
+        span.style.display = '';
+      });
+    });
+  });
+})();
+
+(function() {
+  var btn = document.getElementById('doc-download-csv-btn');
+  var selectAll = document.getElementById('doc-select-all');
+  var table = document.querySelector('.workspace-documents-table');
+  if (selectAll && table) {
+    selectAll.addEventListener('change', function() {
+      table.querySelectorAll('.doc-export-checkbox').forEach(function(cb) { cb.checked = selectAll.checked; });
+    });
+  }
+  if (btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var base = btn.getAttribute('data-export-url');
+      if (!base) return;
+      var ids = [];
+      document.querySelectorAll('.doc-export-checkbox:checked').forEach(function(cb) { ids.push(cb.value); });
+      var groups = [];
+      document.querySelectorAll('.doc-export-field-group:checked').forEach(function(cb) { groups.push(cb.value); });
+      var params = [];
+      ids.forEach(function(id) { params.push('attendee_ids[]=' + encodeURIComponent(id)); });
+      groups.forEach(function(g) { params.push('field_groups[]=' + encodeURIComponent(g)); });
+      if (params.length === 0 && groups.length === 0) {
+        params.push('field_groups[]=attendee_info', 'field_groups[]=registration_details', 'field_groups[]=price_discount');
+      }
+      var url = base + (base.indexOf('?') >= 0 ? '&' : '?') + params.join('&');
+      window.location.href = url;
+    });
+  }
+})();
+</script>
+
+<script>
+(function() {
+  function initDocEmailCopy() {
+    document.querySelectorAll('.doc-email-copy').forEach(function(el) {
+      if (el.dataset.docCopyBound) return;
+      el.dataset.docCopyBound = '1';
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var email = (this.getAttribute('data-email') || this.textContent.trim()).replace(/^\s+|\s+$/g, '');
+        if (!email) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(email).then(function() {
+            var icon = el.querySelector('.doc-email-copy__icon');
+            if (icon) {
+              var origClass = icon.className.baseVal || icon.className;
+              icon.classList.remove('bi-clipboard');
+              icon.classList.add('bi-check2');
+              el.classList.add('doc-email-copy--copied');
+              setTimeout(function() {
+                icon.classList.remove('bi-check2');
+                icon.classList.add('bi-clipboard');
+                el.classList.remove('doc-email-copy--copied');
+              }, 1500);
+            }
+          });
+        }
+      });
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          el.click();
+        }
+      });
+    });
+  }
+  initDocEmailCopy();
+  document.addEventListener('turbo:load', initDocEmailCopy);
+})();
+</script>
