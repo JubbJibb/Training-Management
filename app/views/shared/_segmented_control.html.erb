@@ -1,0 +1,34 @@
+<%#
+  SegmentedControl: shared style for toggle groups. Design: h-8, rounded-xl, border neutral-200, bg white.
+  Inactive: text neutral-700 hover bg neutral-50; active: bg navy text white; focus ring.
+  Locals:
+    options (required) — array of { value:, label: }
+    active_value (required) — current selected value
+    group_name (optional) — for aria-label
+    data_controller (optional) — e.g. "insight-dashboard"
+    data_action (optional) — e.g. "click->insight-dashboard#changeSort"
+    value_param (optional) — data attribute name for value, default "value"
+-%>
+<%
+  options = local_assigns[:options] || []
+  active_value = local_assigns[:active_value].to_s
+  group_name = local_assigns[:group_name] || "ตัวเลือก"
+  data_controller = local_assigns[:data_controller]
+  data_action = local_assigns[:data_action]
+  value_param = local_assigns[:value_param] || "value"
+%>
+<div class="segmented-control" role="group" aria-label="<%= group_name %>">
+  <% options.each do |opt| %>
+    <% val = opt[:value].to_s %>
+    <% label = opt[:label] || val %>
+    <button type="button"
+            class="segmented-control__btn <%= 'segmented-control__btn--active' if val == active_value %>"
+            data-<%= value_param %>="<%= val %>"
+            <% if data_controller.present? && opt[:target].present? %>data-<%= data_controller %>-target="<%= opt[:target] %>"<% end %>
+            <% if data_action.present? %>data-action="<%= data_action %>"<% end %>
+            aria-pressed="<%= val == active_value ? 'true' : 'false' %>"
+            aria-label="<%= label %>">
+      <%= label %>
+    </button>
+  <% end %>
+</div>

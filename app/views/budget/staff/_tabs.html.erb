@@ -1,0 +1,17 @@
+<%
+  tab = local_assigns[:tab] || @staff_section || "forecast"
+  base_params = request.query_parameters.except(:tab).to_h
+%>
+<nav class="customer-tabs tc-index-tabs" aria-label="Staff sections">
+  <div class="customer-tabs__inner">
+    <%= link_to budget_staff_directory_path(base_params), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'directory'}" do %>
+      <i class="bi bi-people" aria-hidden="true"></i> Staff Directory
+    <% end %>
+    <%= link_to budget_staff_forecast_path(base_params), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'forecast'}" do %>
+      <i class="bi bi-calendar-month" aria-hidden="true"></i> Monthly Forecast
+    <% end %>
+    <%= link_to budget_staff_worklogs_path(base_params), class: "customer-tabs__tab #{'customer-tabs__tab--active' if tab == 'worklogs'}" do %>
+      <i class="bi bi-journal-check" aria-hidden="true"></i> Actual Worklogs
+    <% end %>
+  </div>
+</nav>

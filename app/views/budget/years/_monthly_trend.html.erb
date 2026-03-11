@@ -1,0 +1,40 @@
+<%
+  monthly_trend = local_assigns[:monthly_trend] || []
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h2 class="insight-card__title">Monthly trend</h2>
+      <p class="insight-card__subtitle">Paid + committed + planned by month</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if monthly_trend.any? %>
+      <div class="budget-monthly-bars">
+        <% monthly_trend.each do |m| %>
+          <div class="budget-monthly-bar">
+            <span class="budget-monthly-bar__label"><%= m[:label] %></span>
+            <div class="budget-monthly-bar__track">
+              <% total = m[:total].to_f
+                 max_val = monthly_trend.map { |x| x[:total].to_f }.max.to_f
+                 pct = max_val.positive? ? (total / max_val * 100) : 0 %>
+              <div class="budget-monthly-bar__fill" style="width: <%= pct %>%;"></div>
+            </div>
+            <span class="budget-monthly-bar__value"><%= number_to_thb(total) %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">No expense data yet.</p>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .budget-monthly-bars { display: flex; flex-direction: column; gap: 8px; }
+  .budget-monthly-bar { display: grid; grid-template-columns: 50px 1fr 100px; align-items: center; gap: 12px; font-size: 0.875rem; }
+  .budget-monthly-bar__track { height: 20px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+  .budget-monthly-bar__fill { height: 100%; background: var(--odt-blue); border-radius: 4px; }
+  .budget-monthly-bar__value { text-align: right; }
+</style>

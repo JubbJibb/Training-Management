@@ -1,0 +1,45 @@
+<%#
+  Shared InsightCard for Business Insights. Design: white bg, 16px radius, gold accent.
+  Header: accent bar + title + subtitle; right slot for controls.
+  Locals: title, subtitle (optional), title_tooltip (optional symbol for bi_tooltip_content),
+          kpi_badge (optional hash { label:, value: }). Yields: body content.
+  For header controls use the block when rendering: render "shared/insight_card", ... do ... end
+  and inside the block put the segmented control or link. If you need both kpi_badge and controls,
+  pass header_actions as a local with HTML string, or use a single block for the right side.
+-%>
+<%
+  title_tooltip = local_assigns[:title_tooltip]
+  kpi_badge = local_assigns[:kpi_badge]
+  header_actions = local_assigns[:header_actions]
+%>
+<div class="insight-card insight-card-bi">
+  <div class="insight-card__header">
+    <div class="insight-card__accent" aria-hidden="true"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">
+        <% if title_tooltip %>
+          <span class="bi-info-tooltip-trigger-wrap"><%= title %><%= render "shared/bi_info_tooltip", **bi_tooltip_content(title_tooltip), placement: "top" %></span>
+        <% else %>
+          <%= title %>
+        <% end %>
+      </h3>
+      <% if local_assigns[:subtitle].present? %>
+        <p class="insight-card__subtitle"><%= subtitle %></p>
+      <% end %>
+    </div>
+    <% if kpi_badge.is_a?(Hash) && kpi_badge[:value].present? %>
+      <div class="insight-card__header-actions">
+        <span class="insight-card__kpi-badge">
+          <% if kpi_badge[:label].present? %><span class="insight-card__kpi-badge-label"><%= kpi_badge[:label] %></span><% end %>
+          <span class="insight-card__kpi-badge-value"><%= kpi_badge[:value] %></span>
+        </span>
+      </div>
+    <% end %>
+    <% if header_actions.present? %>
+      <div class="insight-card__header-actions"><%= header_actions.is_a?(String) ? header_actions.html_safe : header_actions %></div>
+    <% end %>
+  </div>
+  <div class="insight-card__body">
+    <%= yield %>
+  </div>
+</div>

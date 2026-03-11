@@ -91,3 +91,57 @@ if TrainingClass.count == 0
 
   puts "Created #{TrainingClass.count} training classes with #{Attendee.count} total attendees"
 end
+
+# Budget: default categories
+puts "Creating budget categories..."
+[
+  { name: "Trainer", code: "TRAIN", sort_order: 1, cost_type: "variable" },
+  { name: "Staff (Manday)", code: "STAFF", sort_order: 2, cost_type: "variable" },
+  { name: "Marketing Campaign", code: "MKT", sort_order: 3, cost_type: "variable" },
+  { name: "Equipment", code: "EQUIP", sort_order: 4, cost_type: "fixed" },
+  { name: "Event Sponsorship", code: "SPONSOR", sort_order: 5, cost_type: "variable" }
+].each do |attrs|
+  Budget::Category.find_or_create_by!(code: attrs[:code]) do |c|
+    c.name = attrs[:name]
+    c.sort_order = attrs[:sort_order]
+    c.cost_type = attrs[:cost_type]
+  end
+end
+puts "Budget categories created!"
+
+# Sample budget year (current year) if none
+if Budget::Year.where(year: Date.current.year).none?
+  by = Budget::Year.create!(year: Date.current.year, status: "active", total_budget: 0, owner_name: "System")
+  Budget::Category.ordered.each do |cat|
+    Budget::Allocation.find_or_create_by!(budget_year_id: by.id, budget_category_id: cat.id) do |a|
+      a.allocated_amount = 0
+    end
+  end
+  puts "Created budget year #{by.year} with allocations."
+end
+
+# ODT Staff (Budget Staff profiles)
+puts "Creating ODT staff profiles..."
+odt_staff = [
+  { name_eng: "Raktiboon", lastname_eng: "Prasertsomphob", nickname_eng: "Ploy", email: "Raktiboon@odds.team", phone: "0875088959", team: "Internal/External" },
+  { name_eng: "Prakit", lastname_eng: "Aroonkitcharoen", nickname_eng: "Tor", email: "tortaywe@gmail.com", phone: "0625373842", team: "External engagement" },
+  { name_eng: "Nattapat", lastname_eng: "Pinrat", nickname_eng: "Frost", email: "frosty2544@gmail.com", phone: "0957034020", team: "External engagement" },
+  { name_eng: "Thitirat", lastname_eng: "Touythong", nickname_eng: "Mo", email: "tthitirath@gmail.com", phone: "0955211953", team: "External engagement" },
+  { name_eng: "Teeratorn", lastname_eng: "Raksamuang", nickname_eng: "Un", email: "teeratorn.r@odds.team", phone: "0637705685", team: "Internal Engagement" },
+  { name_eng: "Suphachai", lastname_eng: "Yarasai", nickname_eng: "Ohm", email: "ohmarsy@odds.team", phone: "0987493528", team: "Internal Engagement" },
+  { name_eng: "Naphas", lastname_eng: "Seenakasa", nickname_eng: "Nampu", email: "napat.sinakasa@gmail.com", phone: "0951803484", team: "External engagement" },
+  { name_eng: "Nisit", lastname_eng: "Nunuan", nickname_eng: "Nack", email: "nisit@gmail.com", phone: "0628869733", team: "Internal engagement" },
+  { name_eng: "Chanon", lastname_eng: "Wiriyathanachit", nickname_eng: "Non", email: "non@odds.team", phone: "0921454487", team: "Internal engagement" }
+]
+odt_staff.each do |row|
+  name = "#{row[:name_eng]} #{row[:lastname_eng]}".strip
+  p = Budget::StaffProfile.find_or_initialize_by(name: name)
+  p.nickname = row[:nickname_eng]
+  p.email = row[:email]
+  p.phone = row[:phone]
+  p.department = row[:team]
+  p.status = "active"
+  p.internal_day_rate = 0 if p.new_record?
+  p.save!
+end
+puts "ODT staff profiles: #{Budget::StaffProfile.count} records."

@@ -5,10 +5,14 @@
   week_end = local_assigns[:week_end] || range.end
   filters = local_assigns[:filters] || {}
   week_days = (week_start..week_end).to_a
-  # TODO: time-slot grid for drag/drop/resize; for now day columns, empty cell = quick add with that date
+  hour_start = 8
+  hour_end = 18
+  hours = (hour_start...hour_end).to_a
+  max_bars_per_slot = 2
 %>
 <div class="tc-grid tc-grid--week" role="grid" aria-label="Calendar week view">
   <div class="tc-grid__row tc-grid__row--head">
+    <div class="tc-grid__head-cell tc-grid__head-cell--time" aria-label="Time"></div>
     <% week_days.each do |day| %>
       <div class="tc-grid__head-cell" data-date="<%= day.iso8601 %>">
         <span class="tc-grid__day-name"><%= day.strftime("%a") %></span>
@@ -17,15 +21,30 @@
       </div>
     <% end %>
   </div>
-  <div class="tc-grid__row tc-grid__row--body">
-    <% week_days.each do |day| %>
-      <div class="tc-grid__cell tc-slot" data-date="<%= day.iso8601 %>" data-tc-calendar-target="slot" data-action="click->tc-calendar#onSlotClick" role="gridcell" tabindex="-1">
-        <div class="tc-grid__events">
-          <% (events_by_date[day] || []).each do |ev| %>
-            <%= render "operations/training_calendar/event_card", event: ev %>
-          <% end %>
+  <% hours.each do |hour| %>
+    <div class="tc-grid__row tc-grid__row--slot" data-hour="<%= hour %>">
+      <div class="tc-grid__time-cell" aria-label="<%= hour %>:00"><%= "#{hour}:00" %></div>
+      <% week_days.each do |day| %>
+        <%
+          day_evs = events_by_date[day] || []
+          slot_evs = tc_events_for_slot(day_evs, day, hour)
+          slot_evs = tc_sort_events(slot_evs)
+          visible = slot_evs.first(max_bars_per_slot)
+          more_count = [slot_evs.size - max_bars_per_slot, 0].max
+        %>
+        <div class="tc-grid__cell tc-slot" data-date="<%= day.iso8601 %>" data-time="<%= hour %>" data-tc-calendar-target="slot" data-action="click->tc-calendar#onSlotClick" role="gridcell" tabindex="-1">
+          <div class="tc-slot__bars">
+            <% visible.each do |ev| %>
+              <%= render "operations/training_calendar/event_detailed_bar", event: ev, size: "week" %>
+            <% end %>
+            <% if more_count.positive? %>
+              <%= link_to operations_training_calendar_day_modal_path(date: day.iso8601), class: "tc-more-link tc-slot__more", data: { turbo_frame: "tc_day_modal" } do %>
+                +<%= more_count %> more
+              <% end %>
+            <% end %>
+          </div>
         </div>
-      </div>
-    <% end %>
-  </div>
+      <% end %>
+    </div>
+  <% end %>
 </div>

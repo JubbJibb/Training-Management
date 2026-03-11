@@ -93,7 +93,8 @@ module ApplicationHelper
     when "operations" then path.start_with?("/admin/training_classes") || path.start_with?("/admin/courses") || path.start_with?("/instructors") || path.start_with?("/training_classes") || path.start_with?("/courses")
     when "clients" then path.start_with?("/admin/customers") || path.start_with?("/customers") || path.start_with?("/clients") || (path.start_with?("/admin/customers") && params[:segment].present?)
     when "financials" then path.start_with?("/financials") || path.start_with?("/finance") || path.start_with?("/finance_dashboard") || controller.controller_path.start_with?("financials/") || controller.controller_path == "admin/finance" || controller.controller_path == "admin/exports" || controller.controller_path == "admin/expenses" || controller.controller_path == "admin/compliance" || controller.controller_path == "finance_dashboards"
-    when "strategy" then controller.controller_path == "admin/settings" || path.start_with?("/promotions")
+    when "budget" then path.start_with?("/budget") || controller.controller_path.start_with?("budget/")
+    when "strategy" then controller.controller_path == "admin/settings" || path.start_with?("/promotions") || path.start_with?("/insights/strategy")
     when "settings" then controller.controller_path == "admin/settings"
     when "admin" then controller.controller_path == "admin/dashboard"
     when "cfo" then controller.controller_path == "finance_dashboards"
@@ -103,6 +104,12 @@ module ApplicationHelper
     when "exports" then controller.controller_path == "admin/exports"
     else false
     end ? "active" : ""
+  end
+
+  # Returns "active" or "" for Insights dropdown items. Use with dropdown-item class.
+  # path: route helper or string (e.g. insights_business_path, insights_actions_path).
+  def insights_nav_item_active?(path)
+    request.path == path.to_s ? "active" : ""
   end
 
   # Format number as Thai Baht (e.g. ฿1,234.56)

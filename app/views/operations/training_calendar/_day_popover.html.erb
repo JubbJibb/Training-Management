@@ -1,13 +1,24 @@
 <%
   events = local_assigns[:events] || instance_variable_defined?(:@events) ? @events : []
   date = local_assigns[:date] || (instance_variable_defined?(:@date) ? @date : Date.current)
+  events = tc_sort_events(events) if events.respond_to?(:sort_by)
 %>
 <%= turbo_frame_tag "tc_day_popover" do %>
   <div class="tc-day-popover" role="dialog" aria-label="Classes on <%= date.strftime('%B %d') %>">
     <h3 class="tc-day-popover__title"><%= date.strftime("%A, %b %d") %></h3>
     <ul class="tc-day-popover__list">
       <% events.each do |ev| %>
-        <li><%= link_to ev.title, admin_class_workspace_path(ev), class: "tc-day-popover__link", data: { turbo_frame: "_top" } %></li>
+        <%
+          time_str = ev.start_time.present? && ev.end_time.present? ? "#{ev.start_time.strftime('%H:%M')}–#{ev.end_time.strftime('%H:%M')}" : "All day"
+          seats_str = ev.max_attendees.to_i.positive? ? "#{ev.total_registered_seats}/#{ev.max_attendees}" : nil
+          pub = tc_class_status_label(ev)
+        %>
+        <li class="tc-day-popover__item">
+          <%= link_to operations_training_calendar_event_modal_path(ev), class: "tc-day-popover__link", data: { turbo_frame: "tc_event_modal" } do %>
+            <span class="tc-day-popover__link-title"><%= ev.title %></span>
+            <span class="tc-day-popover__link-meta"><%= time_str %><% if seats_str %> · <%= seats_str %><% end %> · <%= pub %></span>
+          <% end %>
+        </li>
       <% end %>
     </ul>
   </div>

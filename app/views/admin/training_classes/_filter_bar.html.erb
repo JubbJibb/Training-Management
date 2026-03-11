@@ -4,7 +4,7 @@
     <div class="tc-index-filter-bar__row">
       <div class="tc-index-filter-bar__field">
         <label for="tc_filter_class_type" class="tc-index-filter-bar__label">Class type</label>
-        <%= select_tag :class_type, options_for_select([["All", ""], ["Public", "public"], ["Private", "private"]], params[:class_type]), id: "tc_filter_class_type", class: "tc-index-filter-bar__input" %>
+        <%= select_tag :class_type, options_for_select([["All", ""], ["Public", "public"], ["Private", "private"], ["Tentative", "tentative"]], params[:class_type]), id: "tc_filter_class_type", class: "tc-index-filter-bar__input" %>
       </div>
       <div class="tc-index-filter-bar__field">
         <label for="tc_filter_instructor" class="tc-index-filter-bar__label">Instructor</label>

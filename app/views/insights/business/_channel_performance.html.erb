@@ -2,83 +2,83 @@
   perf = local_assigns[:channel_performance] || @data&.dig(:channel_performance) || {}
   rows = perf[:rows] || []
   sort_by = perf[:sort_by].to_s.presence || "revenue"
+  total_rev = rows.sum { |r| (r[:revenue] || 0).to_f }
+  cvr_varied = rows.any? && rows.map { |r| (r[:cvr] || 0).to_f }.uniq.size > 1
+  sort_options = [
+    { value: "revenue", label: "รายได้", target: "sortBtn" },
+    { value: "paid", label: "จำนวนชำระ", target: "sortBtn" }
+  ]
+  header_actions = render("shared/segmented_control",
+    options: sort_options,
+    active_value: sort_by,
+    group_name: "เรียงตาม",
+    value_param: "sort",
+    data_controller: "insight-dashboard",
+    data_action: "click->insight-dashboard#changeSort"
+  )
 %>
-<div class="insight-card">
-  <div class="insight-card__header">
-    <div class="insight-card__accent"></div>
-    <div class="insight-card__head-text">
-      <h3 class="insight-card__title">ประสิทธิภาพช่องทาง</h3>
-      <p class="insight-card__subtitle">เรียงตามรายได้ / จำนวนชำระ</p>
-    </div>
-    <div class="insight-card__header-actions">
-      <div class="bi-sort-toggle" role="group" aria-label="เรียงตาม">
-        <span class="bi-sort-toggle__label">เรียงตาม:</span>
-        <button type="button" class="bi-sort-btn <%= 'bi-sort-btn--active' if sort_by == 'revenue' %>" data-sort="revenue">รายได้</button>
-        <button type="button" class="bi-sort-btn <%= 'bi-sort-btn--active' if sort_by == 'paid' %>" data-sort="paid">จำนวนชำระ</button>
-      </div>
-    </div>
-  </div>
-  <div class="insight-card__body">
-    <% if rows.any? %>
-      <div class="bi-table-wrap">
-        <table class="bi-table bi-channel-perf-table" role="table">
-          <thead>
-            <tr>
-              <th scope="col">ช่องทาง</th>
-              <th scope="col" class="text-end">
-                <span class="bi-info-tooltip-trigger-wrap">Leads<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:leads), placement: "top" %></span>
-              </th>
-              <th scope="col" class="text-end">ชำระ</th>
-              <th scope="col" class="text-end">
-                <span class="bi-info-tooltip-trigger-wrap">รายได้<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:revenue_header), placement: "top" %></span>
-              </th>
-              <th scope="col" class="text-end">
-                <span class="bi-info-tooltip-trigger-wrap">เฉลี่ย ฿/คน<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:avg_head_header), placement: "top" %></span>
-              </th>
-              <th scope="col" class="text-end">
+<%= render "shared/insight_card",
+  title: "ประสิทธิภาพช่องทาง",
+  subtitle: "เรียงตามรายได้ / จำนวนชำระ",
+  header_actions: header_actions do %>
+  <% if rows.any? %>
+    <%= turbo_frame_tag "channel_performance", class: "insight-data-table-wrap" do %>
+      <%= render "shared/insight_data_table" do %>
+        <thead>
+          <tr>
+            <th scope="col">ช่องทาง</th>
+            <th scope="col" class="insight-data-table__th-num">
+              <span class="bi-info-tooltip-trigger-wrap">Leads<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:leads), placement: "top" %></span>
+            </th>
+            <th scope="col" class="insight-data-table__th-num">ชำระ</th>
+            <th scope="col" class="insight-data-table__th-num">
+              <span class="bi-info-tooltip-trigger-wrap">รายได้<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:revenue_header), placement: "top" %></span>
+            </th>
+            <th scope="col" class="insight-data-table__th-num">
+              <span class="bi-info-tooltip-trigger-wrap">เฉลี่ย ฿/คน<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:avg_head_header), placement: "top" %></span>
+            </th>
+            <% if cvr_varied %>
+              <th scope="col" class="insight-data-table__th-num">
                 <span class="bi-info-tooltip-trigger-wrap">CVR<%= render "shared/bi_info_tooltip", **bi_tooltip_content(:cvr_header), placement: "top" %></span>
               </th>
-            </tr>
-          </thead>
-          <tbody>
-            <% rows.sort_by { |h| sort_by == "paid" ? -h[:paid] : -h[:revenue] }.each do |r| %>
-              <tr data-revenue="<%= r[:revenue] %>" data-paid="<%= r[:paid] %>">
-                <td><%= r[:channel].to_s.truncate(24) %></td>
-                <td class="text-end"><%= r[:leads] %></td>
-                <td class="text-end"><%= r[:paid] %></td>
-                <td class="text-end"><%= number_to_thb(r[:revenue]) %></td>
-                <td class="text-end"><%= number_to_thb(r[:avg_price_head]) %></td>
-                <td class="text-end"><%= r[:cvr] %>%</td>
-              </tr>
             <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <%= render "shared/empty_state", title: "ไม่มีข้อมูลช่องทาง", icon: "broadcast", extra_class: "bi-empty" %>
+            <th scope="col" class="insight-data-table__th-num">สัดส่วนรายได้</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.sort_by { |h| sort_by == "paid" ? -h[:paid].to_i : -h[:revenue].to_f }.each do |r| %>
+            <%
+              ch = (r[:channel].to_s.presence || "อื่นๆ")
+              rev = (r[:revenue] || 0).to_f
+              share_pct = total_rev.positive? ? (rev / total_rev * 100) : 0
+            %>
+            <tr data-channel-id="<%= ch.to_s.gsub('"', '&quot;') %>"
+                data-insight-dashboard-target="perfRow"
+                data-revenue="<%= rev %>"
+                data-paid="<%= r[:paid].to_i %>"
+                data-action="click->insight-dashboard#selectChannel keydown.enter->insight-dashboard#selectChannel"
+                role="button"
+                tabindex="0"
+                aria-label="ดูช่องทาง <%= ch %>"
+                class="insight-data-table__row">
+              <td><%= ch.to_s.truncate(24) %></td>
+              <td class="insight-data-table__num"><%= r[:leads] %></td>
+              <td class="insight-data-table__num"><%= r[:paid] %></td>
+              <td class="insight-data-table__num">
+                <span class="insight-data-table__revenue-main"><%= number_to_thb(rev) %></span>
+                <span class="insight-data-table__revenue-sub"><%= number_to_percentage(share_pct, precision: 1) %></span>
+              </td>
+              <td class="insight-data-table__num"><%= number_to_thb(r[:avg_price_head]) %></td>
+              <% if cvr_varied %>
+                <td class="insight-data-table__num"><%= r[:cvr] %>%</td>
+              <% end %>
+              <td class="insight-data-table__num"><%= number_to_percentage(share_pct, precision: 1) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      <% end %>
     <% end %>
-  </div>
-</div>
-<script>
-(function() {
-  var card = document.querySelector('.bi-channel-perf-table');
-  if (!card) return;
-  var tbody = card.querySelector('tbody');
-  var btns = card.closest('.insight-card').querySelectorAll('.bi-sort-btn');
-  if (!tbody || !btns.length) return;
-  btns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var sort = this.getAttribute('data-sort');
-      btns.forEach(function(b) { b.classList.remove('bi-sort-btn--active'); });
-      this.classList.add('bi-sort-btn--active');
-      var rows = Array.from(tbody.querySelectorAll('tr'));
-      rows.sort(function(a, b) {
-        var va = parseFloat(a.getAttribute('data-' + sort)) || 0;
-        var vb = parseFloat(b.getAttribute('data-' + sort)) || 0;
-        return vb - va;
-      });
-      rows.forEach(function(r) { tbody.appendChild(r); });
-    });
-  });
-})();
-</script>
+  <% else %>
+    <%= render "shared/empty_state", title: "ไม่มีข้อมูลช่องทาง", icon: "broadcast", extra_class: "insight-card__empty" %>
+  <% end %>
+<% end %>

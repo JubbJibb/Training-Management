@@ -1,0 +1,51 @@
+<% content_for :title, "Allocations · Budget #{@budget_year.year}" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Allocations · #{@budget_year.year}", subtitle: "Budget by category", icon: "wallet2" do %>
+    <%= link_to "Back to overview", budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  <% end %>
+
+  <div class="insight-card">
+    <div class="insight-card__body">
+      <%= turbo_frame_tag "allocations_table" do %>
+        <div class="odt-table-wrap">
+          <table class="odt-table insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col">Code</th>
+                <th scope="col" class="text-end">Allocated amount</th>
+                <th scope="col" class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @budget_categories.each do |cat| %>
+                <%
+                  alloc = @allocations.find { |a| a.budget_category_id == cat.id }
+                %>
+                <tr>
+                  <td><%= cat.name %></td>
+                  <td><%= cat.code %></td>
+                  <td class="text-end">
+                    <% if alloc %>
+                      <%= form_with model: alloc, url: budget_year_allocation_path(@budget_year, alloc), method: :patch, local: true, html: { class: "d-inline-flex align-items-center gap-2" } do |f| %>
+                        <%= f.number_field :allocated_amount, step: 0.01, min: 0, class: "form-control form-control-sm", style: "width: 120px;" %>
+                        <%= f.submit "Update", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+                      <% end %>
+                    <% else %>
+                      <%= form_with model: Budget::Allocation.new, url: budget_year_allocations_path(@budget_year), method: :post, local: true, html: { class: "d-inline-flex align-items-center gap-2" } do |f| %>
+                        <%= f.hidden_field :budget_category_id, value: cat.id %>
+                        <%= f.number_field :allocated_amount, step: 0.01, min: 0, value: 0, class: "form-control form-control-sm", style: "width: 120px;" %>
+                        <%= f.submit "Add", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+                      <% end %>
+                    <% end %>
+                  </td>
+                  <td></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

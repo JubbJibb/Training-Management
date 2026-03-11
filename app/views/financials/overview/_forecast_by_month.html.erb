@@ -1,0 +1,45 @@
+<%
+  forecast_rows = local_assigns[:forecast_by_month] || @forecast_by_month || []
+  total_forecast = forecast_rows.sum { |r| (r[:forecast_revenue] || 0).to_f }
+%>
+<%= turbo_frame_tag "financials_overview_forecast_by_month" do %>
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Revenue forecast by month</h3>
+        <p class="insight-card__subtitle">Capacity × Price/seat ต่อคลาส รวมต่อเดือน</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if forecast_rows.any? %>
+        <div class="insight-odt-table__scroll">
+          <table class="insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Month</th>
+                <th scope="col" class="text-end">Forecast revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% forecast_rows.each do |row| %>
+                <tr>
+                  <td><%= row[:label] %></td>
+                  <td class="text-end"><%= number_to_thb(row[:forecast_revenue]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+            <tfoot>
+              <tr class="insight-odt-table__footer-row">
+                <td><strong>Total</strong></td>
+                <td class="text-end"><strong><%= number_to_thb(total_forecast) %></strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      <% else %>
+        <p class="insight-odt-table__empty text-muted p-4 mb-0">No forecast data for selected period</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>

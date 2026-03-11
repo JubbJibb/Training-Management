@@ -3,12 +3,16 @@
 module Financials
   class OverviewController < Financials::BaseController
     def index
+      resolver = Financials::DateRangeResolver.new(filter_params)
+      @filter_date_from = resolver.start_date
+      @filter_date_to = resolver.end_date
       @kpis = Financials::OverviewKpisQuery.call(filter_params)
       @action_items = Financials::OverviewActionItemsQuery.call(filter_params)
       @chart_data = Financials::OverviewChartsQuery.call(filter_params)
       @ar_aging_buckets = overview_ar_aging_buckets
       @cost_composition = Financials::OverviewCostCompositionQuery.call(filter_params)
       @trend_rows = Financials::OverviewTrendQuery.call(filter_params.merge(basis: basis))
+      @forecast_by_month = Financials::OverviewForecastByMonthQuery.call(filter_params)
       @alerts_summary = alerts_summary
       @top_overdue = Financials::OverviewTopOverdueQuery.call(filter_params)
     end

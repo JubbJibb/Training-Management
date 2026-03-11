@@ -1,0 +1,66 @@
+<% content_for :title, "Budget Years" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Budget Management", subtitle: "Years · Allocations · Expenses", icon: "wallet2" do %>
+    <%= link_to "New budget year", new_budget_year_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
+  <% end %>
+
+  <div class="insight-card" style="margin-bottom: var(--odt-spacing);">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h2 class="insight-card__title">Budget years</h2>
+        <p class="insight-card__subtitle">Select a year to view overview, allocations, and expenses</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if @budget_years.any? %>
+        <div class="odt-table-wrap">
+          <table class="odt-table insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Year</th>
+                <th scope="col" class="text-end">Total budget</th>
+                <th scope="col">Status</th>
+                <th scope="col">Owner</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @budget_years.each do |by| %>
+                <tr>
+                  <td><strong><%= by.year %></strong></td>
+                  <td class="text-end"><%= number_to_thb(by.total_budget) %></td>
+                  <td><%= render "budget/shared/budget_badge", status: by.status %></td>
+                  <td><%= by.owner_name.presence || "—" %></td>
+                  <td class="text-end">
+                    <%= link_to "Overview", budget_year_path(by), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                    <%= link_to "Allocations", allocations_budget_year_path(by), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                    <%= link_to "Expenses", expenses_budget_year_path(by), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                    <%= link_to "Monthly", monthly_budget_year_path(by), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-muted mb-0">No budget years yet. <%= link_to "Create one", new_budget_year_path %>.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <%= link_to "Events & sponsorship", budget_events_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  </div>
+</div>
+
+<style>
+  .budget-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
+  .budget-badge--draft { background: #f3f4f6; color: #4b5563; }
+  .budget-badge--active { background: rgba(19, 19, 156, 0.1); color: var(--odt-blue); }
+  .budget-badge--closed { background: #e5e7eb; color: #6b7280; }
+  .budget-badge--planned { background: #f3f4f6; color: #4b5563; }
+  .budget-badge--committed { background: #fef3c7; color: #b45309; }
+  .budget-badge--paid { background: #d1fae5; color: #047857; }
+  .budget-badge--over { background: #fee2e2; color: #b91c1c; }
+</style>

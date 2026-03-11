@@ -1,0 +1,44 @@
+<%
+  budget_year = local_assigns[:budget_year]
+  filter_params = request.query_parameters.slice("status", "category_id", "vendor", "date_from", "date_to", "sponsorship_deal_id").compact
+%>
+<div class="budget-filter-bar odt-filters-row" style="margin-bottom: var(--odt-spacing);">
+  <%= form_with url: expenses_budget_year_path(budget_year), method: :get, data: { turbo_frame: "budget_expenses_table" }, class: "odt-filters-row__form" do |f| %>
+    <div class="odt-filters-row__row">
+      <div class="odt-filters-row__field">
+        <label for="budget_exp_status" class="odt-filters-row__label">Status</label>
+        <select name="status" id="budget_exp_status" class="odt-filters-row__input" data-controller="budget-filter" data-action="change->budget-filter#submit">
+          <option value="">All</option>
+          <% Budget::Expense::PAYMENT_STATUSES.each do |s| %>
+            <option value="<%= s %>" <%= "selected" if params[:status] == s %>><%= s.titleize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="budget_exp_category" class="odt-filters-row__label">Category</label>
+        <select name="category_id" id="budget_exp_category" class="odt-filters-row__input" data-controller="budget-filter" data-action="change->budget-filter#submit">
+          <option value="">All</option>
+          <% Budget::Category.ordered.each do |c| %>
+            <option value="<%= c.id %>" <%= "selected" if params[:category_id].to_s == c.id.to_s %>><%= c.name %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="budget_exp_vendor" class="odt-filters-row__label">Vendor</label>
+        <input type="text" name="vendor" id="budget_exp_vendor" class="odt-filters-row__input" value="<%= params[:vendor] %>" placeholder="Search..." data-controller="budget-filter" data-budget-filter-debounce-value="300" data-action="input->budget-filter#submitDebounced">
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="budget_exp_date_from" class="odt-filters-row__label">From</label>
+        <input type="date" name="date_from" id="budget_exp_date_from" class="odt-filters-row__input" value="<%= params[:date_from] %>" data-controller="budget-filter" data-action="change->budget-filter#submit">
+      </div>
+      <div class="odt-filters-row__field">
+        <label for="budget_exp_date_to" class="odt-filters-row__label">To</label>
+        <input type="date" name="date_to" id="budget_exp_date_to" class="odt-filters-row__input" value="<%= params[:date_to] %>" data-controller="budget-filter" data-action="change->budget-filter#submit">
+      </div>
+      <div class="odt-filters-row__actions">
+        <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
+        <%= link_to "Clear", expenses_budget_year_path(budget_year), class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: "budget_expenses_table" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

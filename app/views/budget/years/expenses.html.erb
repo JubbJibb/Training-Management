@@ -1,0 +1,13 @@
+<% content_for :title, "Expenses · Budget #{@budget_year.year}" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Expense register · #{@budget_year.year}", subtitle: "Filter and manage expenses", icon: "wallet2" do %>
+    <%= link_to "Add expense", new_budget_expense_path(year_id: @budget_year.id), class: "odt-btn odt-btn--primary odt-btn--sm" %>
+    <%= link_to "Back to overview", budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  <% end %>
+
+  <%= render "budget/expenses/filter_bar", budget_year: @budget_year %>
+
+  <%= turbo_frame_tag "budget_expenses_table" do %>
+    <%= render "budget/expenses/table", expenses: @expenses, budget_year: @budget_year %>
+  <% end %>
+</div>

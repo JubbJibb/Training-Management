@@ -1,0 +1,43 @@
+<%
+  expenses_month = local_assigns[:expenses_month] || []
+  budget_year = local_assigns[:budget_year]
+%>
+<div class="insight-card">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h3 class="insight-card__title">Expense list (drilldown)</h3>
+      <p class="insight-card__subtitle">Sortable by date / amount</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if expenses_month.any? %>
+      <div class="odt-table-wrap">
+        <table class="odt-table insight-odt-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Category</th>
+              <th scope="col">Vendor</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses_month.each do |exp| %>
+              <tr>
+                <td><%= exp.expense_date.strftime("%d %b %Y") %></td>
+                <td><%= exp.budget_category&.name || "—" %></td>
+                <td><%= exp.vendor.presence || "—" %></td>
+                <td><%= render "budget/shared/budget_badge", status: exp.payment_status %></td>
+                <td class="text-end"><%= number_to_thb(exp.amount) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">No expenses in this month.</p>
+    <% end %>
+  </div>
+</div>

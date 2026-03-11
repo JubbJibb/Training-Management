@@ -1,0 +1,78 @@
+<%
+  staff_profile = local_assigns[:staff_profile]
+  rate_per_day = local_assigns[:rate_per_day] || 0
+  default_working_days = local_assigns[:default_working_days] || 20
+  current_month = local_assigns[:current_month] || Date.current.month
+  current_year = local_assigns[:current_year] || Date.current.year
+  months = (1..12).map { |m| [Date::MONTHNAMES[m], m] }
+%>
+<div class="staff-edit-card" data-controller="staff-cost-preview" data-staff-cost-preview-rate-value="<%= rate_per_day %>" data-staff-cost-preview-working-days-value="<%= default_working_days %>">
+  <div class="staff-edit-card__header">
+    <h3 class="staff-edit-card__title">Cost preview</h3>
+    <span class="badge <%= staff_profile.status == 'active' ? 'bg-success' : 'bg-secondary' %>" style="font-size: 0.6875rem; font-weight: 600;"><%= staff_profile.status.capitalize %></span>
+  </div>
+  <div class="staff-edit-card__field">
+    <label for="cost_preview_month" class="staff-edit-card__label">Month</label>
+    <select id="cost_preview_month" class="staff-edit-card__input" data-staff-cost-preview-target="month" data-action="change->staff-cost-preview#update">
+      <% months.each do |name, m| %>
+        <option value="<%= m %>" <%= "selected" if m == current_month %>><%= name %></option>
+      <% end %>
+    </select>
+  </div>
+  <div class="staff-edit-card__field">
+    <label for="cost_preview_working_days" class="staff-edit-card__label">Working days</label>
+    <input type="number" id="cost_preview_working_days" class="staff-edit-card__input" min="0" max="31" step="0.5" value="<%= default_working_days %>" data-staff-cost-preview-target="workingDays" data-action="input->staff-cost-preview#update">
+  </div>
+  <div class="staff-edit-card__field">
+    <label for="cost_preview_allocation" class="staff-edit-card__label">Allocation %</label>
+    <input type="number" id="cost_preview_allocation" class="staff-edit-card__input" min="0" max="100" step="1" value="100" data-staff-cost-preview-target="allocation" data-action="input->staff-cost-preview#update">
+  </div>
+  <div class="staff-edit-toggle">
+    <label for="cost_preview_include_vat" class="staff-edit-card__label mb-0">Include VAT (7%)</label>
+    <input type="checkbox" id="cost_preview_include_vat" role="switch" data-staff-cost-preview-target="includeVat" data-action="change->staff-cost-preview#update">
+  </div>
+  <div>
+    <p class="staff-edit-card__total mb-1" data-staff-cost-preview-target="totalDisplay">— ฿/month</p>
+    <ul class="staff-edit-card__breakdown" aria-label="Cost breakdown">
+      <li><span data-staff-cost-preview-target="rateLabel">Rate:</span> <span data-staff-cost-preview-target="rateValue">—</span></li>
+      <li><span>Working days:</span> <span data-staff-cost-preview-target="daysValue">—</span> days</li>
+      <li><span>Allocation:</span> <span data-staff-cost-preview-target="allocationValue">—</span>%</li>
+      <li><span>Subtotal:</span> <span data-staff-cost-preview-target="subtotalValue">—</span></li>
+      <li data-staff-cost-preview-target="vatRow" style="display: none;"><span>VAT 7%:</span> <span data-staff-cost-preview-target="vatValue">—</span></li>
+    </ul>
+  </div>
+  <div class="staff-edit-card__actions">
+    <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-action="click->staff-cost-preview#copySummary">Copy summary</button>
+    <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-action="click->staff-cost-preview#applyAsDefault">Apply as default for worklog</button>
+  </div>
+</div>
+
+<div class="staff-edit-card">
+  <div class="staff-edit-card__header">
+    <h3 class="staff-edit-card__title">Notes & documents</h3>
+  </div>
+  <div class="staff-edit-card__field" data-controller="staff-notes-tags">
+    <label for="staff_internal_notes" class="staff-edit-card__label">Internal notes</label>
+    <textarea id="staff_internal_notes" class="staff-edit-card__input" rows="3" placeholder="Add notes…" style="resize: vertical; min-height: 80px;" data-staff-notes-tags-target="notes"></textarea>
+    <p class="staff-edit-card__hint mt-1">Quick tags:</p>
+    <div class="d-flex flex-wrap gap-1 mt-1">
+      <button type="button" class="staff-edit-tag" data-notes-tag="Onboarding pending" data-action="click->staff-notes-tags#append">Onboarding pending</button>
+      <button type="button" class="staff-edit-tag" data-notes-tag="Part-time" data-action="click->staff-notes-tags#append">Part-time</button>
+      <button type="button" class="staff-edit-tag" data-notes-tag="Trainer" data-action="click->staff-notes-tags#append">Trainer</button>
+      <button type="button" class="staff-edit-tag" data-notes-tag="Requires NDA" data-action="click->staff-notes-tags#append">Requires NDA</button>
+      <button type="button" class="staff-edit-tag" data-notes-tag="Probation" data-action="click->staff-notes-tags#append">Probation</button>
+    </div>
+    <p class="staff-edit-card__hint mt-2 mb-0">Last updated —</p>
+  </div>
+  <div class="staff-edit-card__field">
+    <label class="staff-edit-card__label">Documents</label>
+    <label for="staff_doc_upload" class="staff-edit-dropzone d-block mb-0" tabindex="0" aria-label="Upload document">
+      <input type="file" id="staff_doc_upload" class="d-none" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" multiple aria-label="File input">
+      <span>Drop files or click to upload</span>
+      <p class="staff-edit-card__hint mt-1 mb-0">PDF, DOC, DOCX, PNG, JPG</p>
+    </label>
+    <ul class="staff-edit-file-list mt-3" aria-label="Uploaded files">
+      <li class="staff-edit-file-list__empty text-muted" style="font-size: 0.8125rem;">No documents yet</li>
+    </ul>
+  </div>
+</div>

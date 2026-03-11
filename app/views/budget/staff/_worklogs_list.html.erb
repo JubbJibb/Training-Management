@@ -1,0 +1,41 @@
+<%
+  worklogs = local_assigns[:worklogs] || []
+%>
+<div class="customers-ledger attendees-ledger">
+  <% if worklogs.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Worklogs list">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Date</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Staff</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Mandays</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--company">Linked to</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--type">Notes</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% worklogs.each do |w| %>
+            <tr class="attendees-ledger__row">
+              <td class="attendees-ledger__td attendees-ledger__td--payment-date"><%= w.work_date.strftime("%d %b %Y") %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--name">
+                <span class="attendees-ledger__name"><%= w.staff_profile.name %></span>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--amount"><%= w.mandays %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--company"><%= w.linked_type.presence ? "#{w.linked_type} ##{w.linked_id}" : "—" %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--type"><%= w.notes.presence || "—" %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--actions">
+                <div class="attendees-ledger__actions-cell">
+                  <%= button_to budget_staff_worklog_path(w), method: :delete, form: { class: "attendees-ledger__action-form" }, class: "attendees-ledger__action attendees-ledger__action--danger", title: "Remove", aria: { label: "Remove" }, data: { turbo_confirm: "Remove this worklog?" } do %><i class="bi bi-trash" aria-hidden="true"></i><% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-muted mb-0">No worklogs for this month.</p>
+  <% end %>
+</div>

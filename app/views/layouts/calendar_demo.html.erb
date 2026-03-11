@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= content_for(:title) || "Calendar Demo" %> | Training Management</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%# Tailwind CSS (base for FlyonUI) %>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <%# FlyonUI component library %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flyonui@2/dist/flyonui.css">
+    <%# FullCalendar styles %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.css">
+    <%# Iconify for icons (FlyonUI uses icon-[tabler--x] etc.) %>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js" defer></script>
+  </head>
+  <body class="min-h-screen bg-gray-50 p-4 md:p-6">
+    <%= yield %>
+
+    <%# Preline (HSOverlay for modal) %>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2/dist/preline.min.js"></script>
+    <%# FullCalendar %>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+    <%= yield :footer_scripts if content_for?(:footer_scripts) %>
+  </body>
+</html>

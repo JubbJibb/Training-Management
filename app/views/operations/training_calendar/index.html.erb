@@ -1,6 +1,7 @@
 <% content_for :title, "Training Calendar" %>
 <div class="tc-page" data-controller="training-calendar drawer" data-drawer-mobile-modal-value="true">
   <%= render "components/odt/page_header", title: "Training Calendar", subtitle: "View and manage classes by month, week or agenda", icon: "calendar-event" do %>
+    <%= link_to "Calendar Demo (FlyonUI)", operations_calendar_demo_path, class: "odt-btn odt-btn--secondary odt-btn--md" %>
     <%= link_to new_admin_training_class_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
       <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
       <span class="odt-btn__label">New Training Class</span>
@@ -15,7 +16,7 @@
     <%= render "operations/training_calendar/filter_chips", filters: @filters %>
   </div>
 
-  <div class="tc-body tc-body--with-upcoming">
+  <div class="tc-body tc-body--fullwidth">
     <div class="tc-upcoming-col">
       <%= render "operations/training_calendar/upcoming_events", events: @events %>
     </div>
@@ -34,3 +35,7 @@
 
 <turbo-frame id="tc_day_popover" class="tc-day-popover-frame"></turbo-frame>
 <div id="quick_add_anchor" class="tc-quick-add-anchor" data-training-calendar-target="quickAddAnchor" hidden></div>
+
+<%# Modals: event details + day events list (portal target, full-width calendar) %>
+<turbo-frame id="tc_event_modal" class="tc-modal-frame"></turbo-frame>
+<turbo-frame id="tc_day_modal" class="tc-modal-frame"></turbo-frame>

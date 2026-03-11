@@ -1,42 +1,52 @@
 <%
   rows = local_assigns[:channel_mix_data] || []
+  channel_perf = local_assigns[:channel_performance] || {}
+  perf_rows = channel_perf[:rows] || []
   channel_colors = ["#13139c", "#2563eb", "#059669", "#ffc700", "#6b7280", "#dc2626"]
-  # Aggregate totals per channel (sum across all weeks)
   keys = rows.flat_map { |r| r.keys - [:label] }.uniq
   totals_by_channel = keys.map do |key|
     total = rows.sum { |r| (r[key] || 0).to_i }
-    { channel: key, total: total }
+    rev_row = perf_rows.find { |pr| (pr[:channel].to_s.presence || "อื่นๆ") == key.to_s }
+    revenue = rev_row ? (rev_row[:revenue] || 0).to_f : 0
+    { channel: key.to_s, total: total, revenue: revenue }
   end
   total_count = totals_by_channel.sum { |h| h[:total] }
-  legend_items = totals_by_channel.each_with_index.map do |h, i|
-    { label: h[:channel].to_s, color: channel_colors[i % channel_colors.size] }
-  end
+  sorted_for_display = totals_by_channel.sort_by { |h| -h[:total] }
+  top_channel_key = sorted_for_display.first&.dig(:channel)
   datasets_for_donut = totals_by_channel.each_with_index.map do |h, i|
-    { label: h[:channel].to_s, data: [h[:total]], color: channel_colors[i % channel_colors.size] }
+    { label: h[:channel], data: [h[:total]], color: channel_colors[i % channel_colors.size] }
   end
+  sort_options = [{ value: "revenue", label: "รายได้" }, { value: "paid", label: "จำนวนชำระ" }]
+  header_actions = button_tag("ล้างตัวกรอง", type: "button", class: "insight-card__clear", "data-insight-dashboard-target": "clearFilterBtn", "data-action": "click->insight-dashboard#clearChannel", "aria-label": "ล้างตัวกรองช่องทาง", hidden: true)
 %>
-<div class="insight-card insight-card--channel-mix">
-  <div class="insight-card__header">
-    <div class="insight-card__accent"></div>
-    <div class="insight-card__head-text">
-      <h3 class="insight-card__title">Channel mix</h3>
-      <p class="insight-card__subtitle">สัดส่วนช่องทางในช่วงที่เลือก</p>
+<%= render "shared/insight_card",
+  title: "Channel mix",
+  subtitle: "สัดส่วนช่องทางในช่วงที่เลือก",
+  header_actions: header_actions do %>
+  <% if totals_by_channel.any? && total_count.positive? %>
+    <p class="insight-card__stat-line"><%= number_with_delimiter(total_count) %> รายการทั้งหมด</p>
+    <div class="insight-channel-mix__content">
+      <ul class="insight-channel-mix__list" role="list">
+        <% sorted_for_display.each_with_index do |h, i| %>
+          <li class="insight-channel-mix__row <%= 'insight-channel-mix__row--top' if h[:channel] == top_channel_key %>"
+              data-channel-id="<%= h[:channel].to_s.gsub('"', '&quot;') %>"
+              data-insight-dashboard-target="breakdownRow"
+              data-action="click->insight-dashboard#selectChannel keydown.enter->insight-dashboard#selectChannel"
+              role="button"
+              tabindex="0"
+              aria-label="เลือกช่องทาง <%= h[:channel] %>">
+            <span class="insight-channel-mix__dot" style="background-color: <%= channel_colors[totals_by_channel.index { |x| x[:channel] == h[:channel] } % channel_colors.size] %>"></span>
+            <span class="insight-channel-mix__name"><%= h[:channel] %></span>
+            <span class="insight-channel-mix__share"><%= total_count.positive? ? number_to_percentage((h[:total].to_f / total_count * 100), precision: 1) : "—" %></span>
+            <span class="insight-channel-mix__count" style="font-variant-numeric: tabular-nums;"><%= number_with_delimiter(h[:total]) %></span>
+            <% if h[:revenue].to_f.positive? %>
+              <span class="insight-channel-mix__revenue"><%= number_to_currency(h[:revenue], unit: "฿", precision: 0) %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
     </div>
-  </div>
-  <div class="insight-card__body">
-    <% if totals_by_channel.any? && total_count.positive? %>
-      <%= render "shared/donut_chart_flowbite",
-        center_value: number_with_delimiter(total_count),
-        center_subtitle: "รายการทั้งหมด",
-        legend_items: legend_items do %>
-        <div class="channel-mix-donut-wrap">
-          <div id="business_channel_mix" class="apex-chart-mount" data-apex-chart data-apex-type="donut"
-            data-labels="[]"
-            data-datasets='<%= datasets_for_donut.to_json.gsub("'", "&#39;") %>'></div>
-        </div>
-      <% end %>
-    <% else %>
-      <%= render "shared/empty_state", title: "ไม่มีข้อมูล channel mix", icon: "pie-chart", extra_class: "insight-odt-table__empty" %>
-    <% end %>
-  </div>
-</div>
+  <% else %>
+    <%= render "shared/empty_state", title: "ไม่มีข้อมูล channel mix", icon: "pie-chart", extra_class: "insight-card__empty" %>
+  <% end %>
+<% end %>

@@ -78,19 +78,21 @@
 
   <%= render "insights/business/pricing_insights", pricing_insights: data[:pricing_insights] %>
 
-  <div class="insight-two-col insight-two-col--balance">
-    <%= render "insights/business/channel_mix_chart", channel_mix_data: data[:channel_mix_data] %>
-    <%= render "insights/business/channel_performance", channel_performance: data[:channel_performance] %>
-  </div>
+  <div data-controller="insight-dashboard">
+    <div class="insight-two-col insight-two-col--balance">
+      <%= render "insights/business/channel_mix_chart", channel_mix_data: data[:channel_mix_data], channel_performance: data[:channel_performance] %>
+      <%= render "insights/business/channel_performance", channel_performance: data[:channel_performance] %>
+    </div>
 
-  <div class="insight-two-col insight-two-col--balance">
-    <%= render "insights/business/repeat_cohort", cohort_heatmap_data: data[:cohort_heatmap_data], returning_revenue_pct: data[:returning_revenue_pct] %>
-    <%= render "insights/business/top_lists",
-      top_channels: data[:top_channels],
-      top_courses: data[:top_courses],
-      top_spenders: data[:top_spenders],
-      repeat_learners: data[:repeat_learners],
-      active_tab: "channels" %>
+    <div class="insight-two-col insight-two-col--balance">
+      <%= render "insights/business/repeat_cohort", cohort_heatmap_data: data[:cohort_heatmap_data], returning_revenue_pct: data[:returning_revenue_pct] %>
+      <%= render "insights/business/top_lists",
+        top_channels: data[:top_channels],
+        top_courses: data[:top_courses],
+        top_spenders: data[:top_spenders],
+        repeat_learners: data[:repeat_learners],
+        active_tab: "channels" %>
+    </div>
   </div>
 </div>
 

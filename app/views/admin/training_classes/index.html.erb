@@ -12,13 +12,15 @@
     <%= render "admin/training_classes/kpi_strip" %>
   </section>
 
-  <%= render "admin/training_classes/tabs" %>
+  <%= turbo_frame_tag "tc_index_with_tabs" do %>
+    <%= render "admin/training_classes/tabs" %>
 
-  <div class="tc-index-filter-wrap">
-    <%= render "admin/training_classes/filter_bar" %>
-  </div>
+    <div class="tc-index-filter-wrap">
+      <%= render "admin/training_classes/filter_bar" %>
+    </div>
 
-  <div class="tc-index-content">
-    <%= render "admin/training_classes/table" %>
-  </div>
+    <div class="tc-index-content">
+      <%= render "admin/training_classes/table" %>
+    </div>
+  <% end %>
 </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_23_060000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_09_033140) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -92,6 +92,125 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_060000) do
     t.index ["due_date", "payment_status"], name: "index_attendees_on_due_date_and_payment_status"
     t.index ["email", "training_class_id"], name: "index_attendees_on_email_and_training_class_id", unique: true
     t.index ["training_class_id"], name: "index_attendees_on_training_class_id"
+  end
+
+  create_table "budget_allocations", force: :cascade do |t|
+    t.decimal "allocated_amount", precision: 14, scale: 2, default: "0.0", null: false
+    t.integer "budget_category_id", null: false
+    t.integer "budget_year_id", null: false
+    t.datetime "created_at", null: false
+    t.json "monthly_plan"
+    t.datetime "updated_at", null: false
+    t.index ["budget_category_id"], name: "index_budget_allocations_on_budget_category_id"
+    t.index ["budget_year_id", "budget_category_id"], name: "index_budget_allocations_on_year_and_category", unique: true
+    t.index ["budget_year_id"], name: "index_budget_allocations_on_budget_year_id"
+  end
+
+  create_table "budget_categories", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "cost_type", default: "variable", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "sort_order", default: 0
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_budget_categories_on_code", unique: true
+    t.index ["sort_order"], name: "index_budget_categories_on_sort_order"
+  end
+
+  create_table "budget_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "end_date"
+    t.string "location"
+    t.string "name", null: false
+    t.text "notes"
+    t.text "objective"
+    t.string "organizer"
+    t.string "owner_name"
+    t.date "start_date"
+    t.datetime "updated_at", null: false
+    t.index ["start_date"], name: "index_budget_events_on_start_date"
+  end
+
+  create_table "budget_expenses", force: :cascade do |t|
+    t.decimal "amount", precision: 14, scale: 2, null: false
+    t.integer "budget_category_id", null: false
+    t.integer "budget_year_id", null: false
+    t.bigint "campaign_id"
+    t.bigint "class_id"
+    t.datetime "created_at", null: false
+    t.date "expense_date", null: false
+    t.text "notes"
+    t.string "payment_method"
+    t.string "payment_status", default: "planned", null: false
+    t.string "reference_no"
+    t.integer "sponsorship_deal_id"
+    t.datetime "updated_at", null: false
+    t.string "vendor"
+    t.index ["budget_category_id"], name: "index_budget_expenses_on_budget_category_id"
+    t.index ["budget_year_id", "budget_category_id"], name: "index_budget_expenses_on_budget_year_id_and_budget_category_id"
+    t.index ["budget_year_id", "expense_date"], name: "index_budget_expenses_on_budget_year_id_and_expense_date"
+    t.index ["budget_year_id", "payment_status"], name: "index_budget_expenses_on_budget_year_id_and_payment_status"
+    t.index ["budget_year_id"], name: "index_budget_expenses_on_budget_year_id"
+    t.index ["expense_date"], name: "index_budget_expenses_on_expense_date"
+    t.index ["sponsorship_deal_id"], name: "index_budget_expenses_on_sponsorship_deal_id"
+  end
+
+  create_table "budget_staff_monthly_plans", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "month", null: false
+    t.text "notes"
+    t.decimal "planned_days", precision: 6, scale: 2
+    t.integer "staff_profile_id", null: false
+    t.string "status", default: "planned", null: false
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["staff_profile_id", "year", "month"], name: "index_staff_monthly_plans_on_profile_year_month", unique: true
+    t.index ["staff_profile_id"], name: "index_budget_staff_monthly_plans_on_staff_profile_id"
+    t.index ["year", "month"], name: "index_budget_staff_monthly_plans_on_year_and_month"
+  end
+
+  create_table "budget_staff_profiles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "department"
+    t.date "effective_from"
+    t.string "email"
+    t.date "end_date"
+    t.decimal "internal_day_rate", precision: 14, scale: 2, default: "0.0", null: false
+    t.string "name", null: false
+    t.string "nickname"
+    t.string "phone"
+    t.string "role"
+    t.string "status", default: "active", null: false
+    t.datetime "updated_at", null: false
+    t.index ["department", "status"], name: "index_budget_staff_profiles_on_department_and_status"
+    t.index ["status"], name: "index_budget_staff_profiles_on_status"
+  end
+
+  create_table "budget_staff_worklogs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "linked_id"
+    t.string "linked_type"
+    t.decimal "mandays", precision: 4, scale: 2, default: "1.0", null: false
+    t.text "notes"
+    t.integer "staff_profile_id", null: false
+    t.datetime "updated_at", null: false
+    t.date "work_date", null: false
+    t.index ["linked_type", "linked_id"], name: "index_budget_staff_worklogs_on_linked_type_and_linked_id"
+    t.index ["staff_profile_id", "work_date"], name: "index_budget_staff_worklogs_on_staff_profile_id_and_work_date"
+    t.index ["staff_profile_id"], name: "index_budget_staff_worklogs_on_staff_profile_id"
+    t.index ["work_date"], name: "index_budget_staff_worklogs_on_work_date"
+  end
+
+  create_table "budget_years", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "notes"
+    t.string "owner_name"
+    t.string "status", default: "draft", null: false
+    t.decimal "total_budget", precision: 14, scale: 2, default: "0.0"
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false
+    t.index ["status"], name: "index_budget_years_on_status"
+    t.index ["year"], name: "index_budget_years_on_year", unique: true
   end
 
   create_table "class_expenses", force: :cascade do |t|
@@ -207,8 +326,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_060000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "sponsorship_deals", force: :cascade do |t|
+    t.decimal "amount", precision: 14, scale: 2, default: "0.0"
+    t.text "benefits"
+    t.datetime "created_at", null: false
+    t.date "deliverables_due_date"
+    t.integer "event_id", null: false
+    t.text "notes"
+    t.string "status", default: "planned", null: false
+    t.string "tier"
+    t.datetime "updated_at", null: false
+    t.index ["event_id", "status"], name: "index_sponsorship_deals_on_event_id_and_status"
+    t.index ["event_id"], name: "index_sponsorship_deals_on_event_id"
+    t.index ["status"], name: "index_sponsorship_deals_on_status"
+  end
+
   create_table "training_classes", force: :cascade do |t|
     t.text "checklist_items", default: "[]"
+    t.string "class_status", default: "private", null: false
     t.decimal "cost", precision: 10, scale: 2, default: "0.0"
     t.datetime "created_at", null: false
     t.date "date", null: false
@@ -239,8 +374,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_23_060000) do
   add_foreign_key "attendee_promotions", "promotions"
   add_foreign_key "attendees", "customers"
   add_foreign_key "attendees", "training_classes"
+  add_foreign_key "budget_allocations", "budget_categories"
+  add_foreign_key "budget_allocations", "budget_years"
+  add_foreign_key "budget_expenses", "budget_categories"
+  add_foreign_key "budget_expenses", "budget_years"
+  add_foreign_key "budget_expenses", "sponsorship_deals"
+  add_foreign_key "budget_staff_monthly_plans", "budget_staff_profiles", column: "staff_profile_id"
+  add_foreign_key "budget_staff_worklogs", "budget_staff_profiles", column: "staff_profile_id"
   add_foreign_key "class_expenses", "training_classes"
   add_foreign_key "custom_field_values", "custom_fields"
   add_foreign_key "export_jobs", "admin_users", column: "requested_by_id"
+  add_foreign_key "sponsorship_deals", "budget_events", column: "event_id"
   add_foreign_key "training_classes", "admin_users", column: "internal_notes_updated_by_id", on_delete: :nullify
 end

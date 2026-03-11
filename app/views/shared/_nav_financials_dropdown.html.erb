@@ -1,5 +1,5 @@
 <%
-  # Financials submenu — โครงสร้างเดียวกับ Operations, Insights, Clients
+  # Financials submenu — System of Record: AR, payments, expenses, compliance. No budgets (see Budget tab).
   current_path = request.path
   def fin_active?(path, paths)
     paths.any? { |p| path == p || (p.is_a?(String) && path.start_with?(p)) }
@@ -11,16 +11,17 @@
     id="navFinancials"
     data-nav-dropdown
     aria-expanded="false"
+    aria-controls="navFinancialsMenu"
     title="Revenue, receivables, expenses, compliance">
     <%= flowbite_icon("dollar-outline") %> Financials
   </button>
-  <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" aria-labelledby="navFinancials">
-    <li><%= link_to financials_overview_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_overview_path])}", title: "Revenue, costs, profit, cash and AR snapshot" do %><%= flowbite_icon("chart-pie-outline", class: "dropdown-item-icon") %> Financial Overview<% end %></li>
-    <li><%= link_to financials_accounts_receivable_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_accounts_receivable_path])}", title: "Aging buckets and batch actions" do %><%= flowbite_icon("receipt-outline", class: "dropdown-item-icon") %> Accounts Receivable<% end %></li>
-    <li><%= link_to financials_payments_path, class: "dropdown-item #{'active' if fin_active?(current_path, ['/financials/payments'])}", title: "Payment ledger, upload slip, reconciliation" do %><%= flowbite_icon("credit-card-outline", class: "dropdown-item-icon") %> Payment Tracking<% end %></li>
-    <li><%= link_to financials_expenses_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_expenses_path])}", title: "Expense list, categories, receipts" do %><%= flowbite_icon("wallet-outline", class: "dropdown-item-icon") %> Expense Control<% end %></li>
-    <li><%= link_to financials_compliance_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_compliance_path])}", title: "Tax readiness and audit bundle" do %><%= flowbite_icon("shield-check-outline", class: "dropdown-item-icon") %> Compliance<% end %></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><%= link_to financials_export_history_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_export_history_path])}", title: "Log of exports" do %><%= flowbite_icon("download-outline", class: "dropdown-item-icon") %> Export History<% end %></li>
+  <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" id="navFinancialsMenu" aria-labelledby="navFinancials" role="menu">
+    <li role="none"><%= link_to financials_overview_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_overview_path])}", title: "Revenue, costs, profit, cash and AR snapshot", role: "menuitem" do %><%= flowbite_icon("chart-pie-outline", class: "dropdown-item-icon") %> Financial Overview<% end %></li>
+    <li role="none"><%= link_to financials_accounts_receivable_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_accounts_receivable_path])}", title: "Aging buckets and batch actions", role: "menuitem" do %><%= flowbite_icon("receipt-outline", class: "dropdown-item-icon") %> Accounts Receivable<% end %></li>
+    <li role="none"><%= link_to financials_payments_path, class: "dropdown-item #{'active' if fin_active?(current_path, ['/financials/payments'])}", title: "Payment ledger, upload slip, reconciliation", role: "menuitem" do %><%= flowbite_icon("credit-card-outline", class: "dropdown-item-icon") %> Payments<% end %></li>
+    <li role="none"><%= link_to financials_expenses_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_expenses_path])}", title: "Expense list, categories, receipts", role: "menuitem" do %><%= flowbite_icon("wallet-outline", class: "dropdown-item-icon") %> Expenses<% end %></li>
+    <li role="none"><%= link_to financials_compliance_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_compliance_path])}", title: "Tax readiness and audit bundle", role: "menuitem" do %><%= flowbite_icon("shield-check-outline", class: "dropdown-item-icon") %> Compliance<% end %></li>
+    <li role="none"><hr class="dropdown-divider" aria-hidden="true"></li>
+    <li role="none"><%= link_to financials_export_history_path, class: "dropdown-item #{'active' if fin_active?(current_path, [financials_export_history_path])}", title: "Log of exports", role: "menuitem" do %><%= flowbite_icon("download-outline", class: "dropdown-item-icon") %> Export History<% end %></li>
   </ul>
 </div>

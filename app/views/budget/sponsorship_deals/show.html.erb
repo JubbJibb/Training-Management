@@ -1,0 +1,78 @@
+<% content_for :title, "Sponsorship deal" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Sponsorship deal", subtitle: @event.name, icon: "wallet2" do %>
+    <%= link_to "Event", budget_event_path(@event), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  <% end %>
+
+  <div class="insight-card" style="margin-bottom: var(--odt-spacing);">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Deal details</h3>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <dl class="budget-dl">
+        <dt>Event</dt><dd><%= link_to @event.name, budget_event_path(@event) %></dd>
+        <dt>Tier</dt><dd><%= @sponsorship_deal.tier.presence || "—" %></dd>
+        <dt>Amount</dt><dd><%= number_to_thb(@sponsorship_deal.amount) %></dd>
+        <dt>Status</dt><dd><%= render "budget/shared/budget_badge", status: @sponsorship_deal.status %></dd>
+        <dt>Deliverables due</dt><dd><%= @sponsorship_deal.deliverables_due_date&.strftime("%d %b %Y") || "—" %></dd>
+        <% if @sponsorship_deal.benefits.present? %>
+          <dt>Benefits</dt><dd><%= simple_format(@sponsorship_deal.benefits) %></dd>
+        <% end %>
+        <% if @sponsorship_deal.notes.present? %>
+          <dt>Notes</dt><dd><%= simple_format(@sponsorship_deal.notes) %></dd>
+        <% end %>
+      </dl>
+      <p class="mt-3">
+        <%= link_to "Add expense", new_budget_expense_path(year_id: Budget::Year.current&.id, sponsorship_deal_id: @sponsorship_deal.id), class: "odt-btn odt-btn--primary odt-btn--sm" %>
+        <span class="text-muted small">(Link expense to this deal via expense form)</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Linked expenses</h3>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if @expenses.any? %>
+        <div class="odt-table-wrap">
+          <table class="odt-table insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Category</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @expenses.each do |exp| %>
+                <tr>
+                  <td><%= exp.expense_date.strftime("%d %b %Y") %></td>
+                  <td><%= exp.budget_category&.name || "—" %></td>
+                  <td><%= exp.vendor.presence || "—" %></td>
+                  <td><%= render "budget/shared/budget_badge", status: exp.payment_status %></td>
+                  <td class="text-end"><%= number_to_thb(exp.amount) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-muted mb-0">No expenses linked to this deal.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .budget-dl dt { font-weight: 600; color: var(--text-secondary); font-size: 0.8125rem; margin-top: 0.5rem; }
+  .budget-dl dd { margin-left: 0; margin-bottom: 0; }
+</style>

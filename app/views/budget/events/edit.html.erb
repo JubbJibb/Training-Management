@@ -1,0 +1,51 @@
+<% content_for :title, "Edit #{@event.name}" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Edit event", subtitle: @event.name, icon: "calendar-event" do %>
+    <%= link_to "Back", budget_event_path(@event), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  <% end %>
+
+  <div class="insight-card" style="max-width: 560px;">
+    <div class="insight-card__body">
+      <%= form_with model: @event, url: budget_event_path(@event), method: :patch, local: true do |f| %>
+        <div class="mb-3">
+          <%= f.label :name, "Name", class: "form-label" %>
+          <%= f.text_field :name, class: "form-control", required: true %>
+        </div>
+        <div class="mb-3">
+          <%= f.label :organizer, "Organizer", class: "form-label" %>
+          <%= f.text_field :organizer, class: "form-control" %>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <%= f.label :start_date, "Start date", class: "form-label" %>
+            <%= f.date_field :start_date, class: "form-control" %>
+          </div>
+          <div class="col-md-6 mb-3">
+            <%= f.label :end_date, "End date", class: "form-label" %>
+            <%= f.date_field :end_date, class: "form-control" %>
+          </div>
+        </div>
+        <div class="mb-3">
+          <%= f.label :location, "Location", class: "form-label" %>
+          <%= f.text_field :location, class: "form-control" %>
+        </div>
+        <div class="mb-3">
+          <%= f.label :objective, "Objective", class: "form-label" %>
+          <%= f.text_area :objective, class: "form-control", rows: 2 %>
+        </div>
+        <div class="mb-3">
+          <%= f.label :owner_name, "Owner", class: "form-label" %>
+          <%= f.text_field :owner_name, class: "form-control" %>
+        </div>
+        <div class="mb-3">
+          <%= f.label :notes, "Notes", class: "form-label" %>
+          <%= f.text_area :notes, class: "form-control", rows: 2 %>
+        </div>
+        <div class="d-flex gap-2">
+          <%= f.submit "Update", class: "odt-btn odt-btn--primary" %>
+          <%= link_to "Cancel", budget_event_path(@event), class: "odt-btn odt-btn--ghost" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

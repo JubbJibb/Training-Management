@@ -1,0 +1,78 @@
+<% content_for :title, @event.name %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: @event.name, subtitle: "Event details & sponsorship deals", icon: "calendar-event" do %>
+    <%= link_to "Edit", edit_budget_event_path(@event), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+    <%= link_to "Events list", budget_events_path, class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+  <% end %>
+
+  <div class="insight-two-col" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--odt-spacing); margin-bottom: var(--odt-spacing);">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Details</h3>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <dl class="budget-dl">
+          <dt>Organizer</dt><dd><%= @event.organizer.presence || "—" %></dd>
+          <dt>Dates</dt><dd><%= @event.start_date&.strftime("%d %b %Y") %> – <%= @event.end_date&.strftime("%d %b %Y") %></dd>
+          <dt>Location</dt><dd><%= @event.location.presence || "—" %></dd>
+          <dt>Owner</dt><dd><%= @event.owner_name.presence || "—" %></dd>
+          <dt>Objective</dt><dd><%= @event.objective.presence || "—" %></dd>
+          <% if @event.notes.present? %>
+            <dt>Notes</dt><dd><%= simple_format(@event.notes) %></dd>
+          <% end %>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-card">
+    <div class="insight-card__header">
+      <div class="insight-card__accent"></div>
+      <div class="insight-card__head-text">
+        <h3 class="insight-card__title">Sponsorship deals</h3>
+        <p class="insight-card__subtitle">Tier, amount, status, deliverables</p>
+      </div>
+    </div>
+    <div class="insight-card__body">
+      <% if @sponsorship_deals.any? %>
+        <div class="odt-table-wrap">
+          <table class="odt-table insight-odt-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Tier</th>
+                <th scope="col" class="text-end">Amount</th>
+                <th scope="col">Status</th>
+                <th scope="col">Deliverables due</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @sponsorship_deals.each do |deal| %>
+                <tr>
+                  <td><%= deal.tier.presence || "—" %></td>
+                  <td class="text-end"><%= number_to_thb(deal.amount) %></td>
+                  <td><%= render "budget/shared/budget_badge", status: deal.status %></td>
+                  <td><%= deal.deliverables_due_date&.strftime("%d %b %Y") || "—" %></td>
+                  <td class="text-end">
+                    <%= link_to "View deal", budget_sponsorship_deal_path(deal), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-muted mb-0">No sponsorship deals for this event.</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .budget-dl { margin: 0; }
+  .budget-dl dt { font-weight: 600; color: var(--text-secondary); font-size: 0.8125rem; margin-top: 0.5rem; }
+  .budget-dl dd { margin-left: 0; margin-bottom: 0; }
+</style>

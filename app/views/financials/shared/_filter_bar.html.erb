@@ -1,11 +1,19 @@
 <%
   form_url = local_assigns[:form_url] || financials_overview_path
   turbo_frame = local_assigns[:turbo_frame] || "financials_overview"
+  use_full_page = local_assigns.fetch(:use_full_page_submit, true)
+  # Full-page submit: disable Turbo so Apply does a normal GET and URL + data update correctly
+  form_turbo_frame = use_full_page ? "_top" : turbo_frame
+  form_data = use_full_page ? { turbo: false } : { turbo_frame: form_turbo_frame }
   show_status = local_assigns.fetch(:show_status_filter, true)
   include_basis = local_assigns.fetch(:include_basis_hidden, false)
+  filter_date_from = local_assigns[:filter_date_from]
+  filter_date_to = local_assigns[:filter_date_to]
+  date_from_value = params[:date_from].presence || (filter_date_from.strftime("%Y-%m-%d") if filter_date_from.respond_to?(:strftime))
+  date_to_value = params[:date_to].presence || (filter_date_to.strftime("%Y-%m-%d") if filter_date_to.respond_to?(:strftime))
 %>
 <div class="insights-filter-bar-wrap">
-  <%= odt_filters_row form_url: form_url, form_method: :get, form_options: { data: { turbo_frame: turbo_frame } }, extra_class: "insights-filter-bar" do %>
+  <%= odt_filters_row form_url: form_url, form_method: :get, form_options: { data: form_data }, extra_class: "insights-filter-bar" do %>
     <%= hidden_field_tag :basis, params[:basis].presence || "accrual" if include_basis %>
     <div class="odt-filters-row__field">
       <label for="financials_period" class="odt-filters-row__label">Period</label>
@@ -18,11 +26,11 @@
     </div>
     <div class="odt-filters-row__field">
       <label for="financials_date_from" class="odt-filters-row__label">Start</label>
-      <input type="date" name="date_from" id="financials_date_from" class="odt-filters-row__input" value="<%= params[:date_from] %>">
+      <input type="date" name="date_from" id="financials_date_from" class="odt-filters-row__input" value="<%= date_from_value %>">
     </div>
     <div class="odt-filters-row__field">
       <label for="financials_date_to" class="odt-filters-row__label">End</label>
-      <input type="date" name="date_to" id="financials_date_to" class="odt-filters-row__input" value="<%= params[:date_to] %>">
+      <input type="date" name="date_to" id="financials_date_to" class="odt-filters-row__input" value="<%= date_to_value %>">
     </div>
     <div class="odt-filters-row__field">
       <label for="financials_client_type" class="odt-filters-row__label">Client type</label>
@@ -44,7 +52,7 @@
     <% end %>
     <div class="odt-filters-row__actions">
       <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Apply</button>
-      <%= link_to "Clear", form_url, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: { turbo_frame: turbo_frame } %>
+      <%= link_to "Clear", form_url, class: "odt-filters-row__btn odt-filters-row__btn--secondary", data: (use_full_page ? { turbo: false } : { turbo_frame: form_turbo_frame }) %>
     </div>
   <% end %>
 </div>

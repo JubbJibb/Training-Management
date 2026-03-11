@@ -8,9 +8,11 @@ Internal Training Management System for managing public and corporate training c
 
 - [Current project status](#current-project-status)
 - [Business Features](#business-features)
+- [Requirement Spec](#requirement-spec)
+- [Non-Functional Requirements](#non-functional-requirements)
+- [Test Case](#test-case)
 - [Technical Design](#technical-design)
-- [Design Principles](#design-principles)
-- [Design System](#design-system)
+- [Visual Design](#visual-design)
 - [Project Structure](#project-structure)
 - [Knowledge & Documentation](#knowledge--documentation)
 - [Setup & Development](#setup--development)
@@ -107,6 +109,125 @@ Unit and integration tests cover controllers (insights, financials, clients, adm
 
 ---
 
+## Requirement Spec
+
+Functional requirements by module. These define *what* the system shall do.
+
+### Operations
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| OPS-1 | Create, edit, delete training classes (title, date, end_date, start_time, end_time, location, instructor, max_attendees, price, cost, description, status) | Must |
+| OPS-2 | List training classes with filters and KPI strip | Must |
+| OPS-3 | Training Calendar: month/week view with event cards, filters (instructor, location, status, type, nearly full), KPIs (total classes, seats sold, revenue forecast) | Must |
+| OPS-4 | Calendar side panel/drawer: class details, quick actions (View, Edit, Duplicate, Cancel), quick add class | Must |
+| OPS-5 | Course catalog; sync from external source; link to classes | Should |
+| OPS-6 | Instructors index derived from training classes | Must |
+| OPS-7 | Per-class attendees: add/edit/remove; status Attendee/Potential; move between statuses | Must |
+| OPS-8 | Export per-class CSV/documents; send email (per attendee or whole class); sync tax from customer | Must |
+| OPS-9 | Class workspace: overview, attendees, leads, documents, finance, edit | Must |
+
+### Clients
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| CLT-1 | Customer directory: index, show, new, create, edit, update; search | Must |
+| CLT-2 | Customer 360°: billing/tax, snapshot, class history, documents/payments, activity timeline | Must |
+| CLT-3 | Export customer info, billing for accounting, template | Must |
+| CLT-4 | Corporate accounts view; company-level aggregation | Should |
+| CLT-5 | Client analysis: revenue by channel, segment donuts, top spenders, conversion, risk | Should |
+| CLT-6 | Sync duplicates, merge, register for class | Should |
+
+### Financials
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FIN-1 | Financial overview: KPIs, cash flow, AR aging, corporate ledger, documents compliance, revenue composition, expense summary; Turbo filters | Must |
+| FIN-2 | Accounts receivable list and actions | Must |
+| FIN-3 | Payment tracking: list, show, PDF download, send summary, verify/reject slip, issue receipt, bulk actions | Must |
+| FIN-4 | Class expenses index (category, amount per class) | Must |
+| FIN-5 | Compliance placeholder | Should |
+| FIN-6 | Export history: audit of export jobs (requested_by, state, download when succeeded) | Must |
+| FIN-7 | VAT & pricing: pre-VAT price, VAT 7%, total; price per head for corporate | Must |
+
+### Insights
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| INS-1 | Business Insights dashboard (performance, decision support) | Must |
+| INS-2 | Financial Insights (link to Financial Overview) | Must |
+| INS-3 | Strategy Insights (link to Promotions/settings) | Must |
+| INS-4 | Action Center (dashboard action-required, opportunities) | Must |
+
+### Strategy
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| STR-1 | Promotions CRUD: percentage, fixed amount, buy-x-get-y; multiple promotions per attendee | Must |
+| STR-2 | Promotion performance: KPIs, revenue share (donut), leaderboard, drilldown, export | Must |
+
+### Exports & Admin
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| EXP-1 | Export via ExportJob + background job only (no synchronous heavy PDF/Excel in request) | Must |
+| EXP-2 | PDF: Financial Report, Class Report, Customer Summary; Excel: Financial, Class Attendees, Customer Master, etc. | Must |
+| EXP-3 | Export audit: requested_by_id, state, download when succeeded | Must |
+| ADM-1 | Admin dashboard; data (financial report, customer info, attendee list, upload); settings; design system components | Must |
+| ADM-2 | Public class landing at `/classes/:public_slug` | Must |
+
+### Auth & Authorization
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| AUTH-1 | Admin authentication (Devise) | Must |
+| AUTH-2 | Authorization (Pundit) for resources e.g. ExportJob | Must |
+
+---
+
+## Non-Functional Requirements
+
+| Category | Requirement | Notes |
+|----------|-------------|--------|
+| **Performance** | Heavy exports (PDF/Excel) run as background jobs | Active Job + Solid Queue; no long-running work in request cycle |
+| **Performance** | UI partial updates without full page reload where appropriate | Turbo Frames/Streams for modals, side panels, filters |
+| **Security** | Admin area protected by authentication | Devise; session-based |
+| **Security** | Resource-level authorization | Pundit policies (e.g. ExportJobPolicy) |
+| **Security** | No sensitive data in logs or export filenames beyond audit fields | requested_by_id stored for export history |
+| **Scalability** | Background job processing decoupled from web requests | Solid Queue (or equivalent) worker required for exports and payment summary emails |
+| **Usability** | Consistent UI across all admin pages | ODT design system; shared components (page header, KPI strip, tables, filters) |
+| **Usability** | Responsive layout for main content and tables | Scroll containers for wide tables; grid/flex from design system |
+| **Accessibility** | Focus states and semantic HTML | Design system guidelines; ARIA where needed |
+| **Maintainability** | Design tokens for colors, spacing, typography, radii, shadows | No one-off hex/magic numbers in component CSS; see `design_tokens.css`, `application.css` :root |
+| **Compatibility** | Modern browsers; no Bootstrap/Tailwind | Plain CSS + Propshaft; Turbo, Stimulus, Importmap |
+| **Deployability** | Container-ready deployment | Kamal, Docker; Thruster optional |
+
+---
+
+## Test Case
+
+Tests are in `test/` and run with `rails test`. Coverage includes controllers, services, models, and mailers.
+
+### Test structure
+
+| Layer | Location | Examples |
+|-------|----------|----------|
+| **Controllers** | `test/controllers/` | `admin/exports_controller_test`, `financials/overview_controller_test`, `financials/payments_controller_test`, `clients/corporate_accounts_controller_test`, `clients/analysis_controller_test`, `insights/*_controller_test`, `admin/customers_controller_test`, `admin/settings_controller_test`, `admin/class_expenses_controller_test` |
+| **Services** | `test/services/` | `exports/financial_report_pdf_test`, `exports/customer_master_xlsx_test`, `insights/business_insights_test`, `insights/financial_insights_test`, `insights/strategy_insights_test`, `insights/action_center_test`, `clients/corporate_accounts_insights_test`, `clients/client_analysis_test` |
+| **Models** | `test/models/` | `customer_test`, `promotion_test`, `class_expense_test` |
+| **Mailers** | `test/mailers/` | `attendee_mailer_test`, `payment_mailer_test` |
+| **Finance** | `test/finance/` | `class_finance_dashboard_query_test` |
+
+### Sample test scenarios
+
+- **Exports:** Unauthenticated request to export index redirects or shows empty; authenticated index returns success; create enqueues `GenerateExportJob` and redirects to export history.
+- **Financial overview:** GET overview returns 200; response includes financials table and KPI strip with at least one KPI card.
+- **Export service:** `FinancialReportPdf#build_io` returns StringIO with PDF header; `suggested_filename` includes date pattern.
+- **Mailers:** Attendee mailer (send_class_info, send_reminder, send_custom) and payment mailer produce expected subject, to/from, and body content.
+
+### Running tests
+
+```bash
+rails test
+```
+
+Optional: run a subset, e.g. `rails test test/controllers/admin/exports_controller_test.rb`.
+
+---
+
 ## Technical Design
 
 ### High-level architecture
@@ -148,7 +269,11 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 
 ---
 
-## Design Principles
+## Visual Design
+
+The ODT (brand) theme targets a **consulting-premium, enterprise SaaS** look. No Tailwind; no Bootstrap. All UI is built from design tokens and shared components.
+
+### Design principles
 
 1. **Token-first** — Colors, spacing, typography, radii, and shadows come from design tokens (`design_tokens.css`, `application.css` :root). Avoid new hex/rgba in component CSS.
 2. **Component reuse** — Use shared ODT components (page header, section header, cards, KPI strip, filters, tables, buttons). See `docs/ui-checklist.md`.
@@ -157,7 +282,7 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 5. **Minimal layout** — Prefer existing layout classes (e.g. dashboard grid, finance two-col) over one-off wrappers.
 6. **Accessibility** — Focus states, ARIA where needed, semantic HTML.
 
-### Design approach
+### Theme and layout
 
 - **Theme:** Consulting-premium, enterprise SaaS. Primary dark text, navy primary, yellow accent, light gradient background.
 - **Layout:** Single font family (Inter); typography scale from 11px (xs) to 28px (4xl); fixed card radius (e.g. 12–16px), consistent section spacing (48–56px).
@@ -165,11 +290,7 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 
 ---
 
-## Design System
-
-**ODT** (brand) theme: consulting-premium, enterprise SaaS look. No Tailwind; no Bootstrap. All UI via `design_tokens.css`, `design_system.css`, and `application.css`.
-
-### Tokens (`design_tokens.css` + `application.css` :root)
+### Design tokens (`design_tokens.css` + `application.css` :root)
 
 - **Font** — `--font-family`: Inter + system fallbacks.
 - **Typography** — `--font-size-xs` (11px) through `--font-size-4xl` (28px); see design_tokens.css for full scale.
@@ -178,7 +299,7 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 - **Shadows** — `--shadow-sm`, `--shadow-md`; `--odt-shadow`, `--odt-shadow-hover`.
 - **Borders** — `--border-light`, `--border-muted`; table: `--table-header-border-left` (accent), `--table-header-border-bottom`.
 
-### สี (Colors)
+### Colors (ODT palette)
 
 | Token | Hex | Usage |
 |-------|-----|--------|
@@ -212,7 +333,7 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 
 ### Where to add styles
 - **New tokens** — Add in `:root` in `design_tokens.css` or the style-audit block in `application.css`; do not introduce one-off hex in component rules.
-- **New components** — Add a named block (e.g. “ODT [ComponentName]”) and use tokens only. See `docs/ui-checklist.md`.
+- **New components** — Add a named block (e.g. “ODT [ComponentName]”) and use tokens only. See `docs/ui-checklist.md`, `docs/ui-consistency.md`.
 
 ---
 

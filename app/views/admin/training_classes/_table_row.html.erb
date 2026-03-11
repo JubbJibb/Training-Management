@@ -17,12 +17,18 @@
   </td>
   <td class="tc-saas-td tc-saas-td--status">
     <div class="dropdown d-inline-block tc-saas-status-dropdown">
-      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm dropdown-toggle tc-saas-status-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="เปลี่ยนสถานะ Public/Private" title="คลิกเลือก Public หรือ Private">
-        <%= tc.public_enabled? ? odt_badge("Public", variant: :info, size: :sm) : odt_badge("Private", variant: :neutral, size: :sm) %>
+      <%
+        status = tc.class_status.presence || "private"
+        badge_variant = { "public" => :info, "private" => :warning, "tentative" => :danger }.fetch(status, :neutral)
+        status_label = status.capitalize
+      %>
+      <button type="button" class="odt-btn odt-btn--ghost odt-btn--sm dropdown-toggle tc-saas-status-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="เปลี่ยนสถานะ Class" title="คลิกเลือก Public, Private หรือ Tentative">
+        <%= odt_badge(status_label, variant: badge_variant, size: :sm) %>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><%= link_to "Public", toggle_public_admin_training_class_path(tc, public_enabled: "true"), class: "dropdown-item #{'active' if tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
-        <li><%= link_to "Private", toggle_public_admin_training_class_path(tc, public_enabled: "false"), class: "dropdown-item #{'active' unless tc.public_enabled?}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+        <li><%= link_to "Public", toggle_public_admin_training_class_path(tc, class_status: "public"), class: "dropdown-item #{'active' if status == 'public'}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+        <li><%= link_to "Private", toggle_public_admin_training_class_path(tc, class_status: "private"), class: "dropdown-item #{'active' if status == 'private'}", data: { turbo_method: :patch, turbo_stream: true } %></li>
+        <li><%= link_to "Tentative", toggle_public_admin_training_class_path(tc, class_status: "tentative"), class: "dropdown-item #{'active' if status == 'tentative'}", data: { turbo_method: :patch, turbo_stream: true } %></li>
       </ul>
     </div>
   </td>
@@ -31,6 +37,9 @@
   </td>
   <td class="tc-saas-td tc-saas-td--revenue">
     <span class="tc-saas-revenue">฿<%= number_with_delimiter(tc.net_revenue.round(0), delimiter: ",") %></span>
+  </td>
+  <td class="tc-saas-td tc-saas-td--forecast-revenue">
+    <span class="tc-saas-revenue">฿<%= number_with_delimiter(((tc.max_attendees.presence || 0).to_i * tc.price.to_f).round(0), delimiter: ",") %></span>
   </td>
   <td class="tc-saas-td tc-saas-td--instructor">
     <span class="tc-saas-instructor"><%= tc.instructor.presence || "—" %></span>

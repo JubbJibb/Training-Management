@@ -1,0 +1,36 @@
+<%
+  alerts = local_assigns[:alerts] || {}
+  budget_year = local_assigns[:budget_year]
+  over_threshold = alerts[:over_threshold] || []
+  over_budget = alerts[:over_budget] || []
+%>
+<div class="insight-card border-rose-200 bg-rose-50/50 mb-3">
+  <div class="insight-card__header">
+    <div class="insight-card__accent" style="background: #f43f5e;"></div>
+    <div class="insight-card__head-text">
+      <h2 class="insight-card__title text-lg font-semibold text-stone-800">Alerts</h2>
+      <p class="insight-card__subtitle">Categories over 80% or over budget</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if over_budget.any? %>
+      <p class="mb-2"><strong class="text-rose-600">Over budget:</strong></p>
+      <ul class="list-unstyled mb-3">
+        <% over_budget.each do |row| %>
+          <li>
+            <%= row[:category].name %> — <%= number_to_thb(row[:total]) %> / <%= number_to_thb(row[:allocated]) %>
+            <%= link_to "View expenses", expenses_budget_year_path(budget_year, category_id: row[:category].id), class: "odt-btn odt-btn--ghost odt-btn--sm ms-2" %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+    <% if over_threshold.any? %>
+      <p class="mb-2"><strong class="text-amber-600">Over 80% used:</strong></p>
+      <ul class="list-unstyled mb-0">
+        <% over_threshold.each do |row| %>
+          <li><%= row[:category].name %> — <%= row[:usage_pct] %>% used</li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

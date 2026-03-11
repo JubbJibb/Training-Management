@@ -1,0 +1,40 @@
+<%
+  by_staff = local_assigns[:by_staff] || []
+  total_mandays = local_assigns[:total_mandays] || 0
+  total_cost = local_assigns[:total_cost] || 0
+%>
+<div class="customers-ledger attendees-ledger">
+  <% if by_staff.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Monthly cost by staff">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Staff</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Mandays</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% by_staff.each do |row| %>
+            <tr class="attendees-ledger__row">
+              <td class="attendees-ledger__td attendees-ledger__td--name">
+                <span class="attendees-ledger__name"><%= row[:staff_profile].name %></span>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--payment-date"><%= row[:mandays] %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(row[:cost]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="attendees-ledger__row">
+            <th scope="row" class="attendees-ledger__td attendees-ledger__td--name" style="font-weight: 700; border-top: 2px solid #e5e7eb;">Total</th>
+            <td class="attendees-ledger__td attendees-ledger__td--payment-date" style="font-weight: 700; border-top: 2px solid #e5e7eb;"><%= total_mandays %></td>
+            <td class="attendees-ledger__td attendees-ledger__td--amount" style="font-weight: 700; border-top: 2px solid #e5e7eb;"><%= number_to_thb(total_cost) %></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-muted small mb-0">No worklogs this month.</p>
+  <% end %>
+</div>

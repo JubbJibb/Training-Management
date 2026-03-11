@@ -1,0 +1,31 @@
+<%
+  distribution = local_assigns[:distribution] || []
+%>
+<div class="customers-ledger attendees-ledger">
+  <% if distribution.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Cost by linked item">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Linked to</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Mandays</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% distribution.each do |row| %>
+            <tr class="attendees-ledger__row">
+              <td class="attendees-ledger__td attendees-ledger__td--name">
+                <span class="attendees-ledger__name"><%= row[:label] %></span>
+              </td>
+              <td class="attendees-ledger__td attendees-ledger__td--payment-date"><%= row[:mandays] %></td>
+              <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(row[:cost]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-muted small mb-0">No linked worklogs this month.</p>
+  <% end %>
+</div>

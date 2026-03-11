@@ -80,9 +80,14 @@ module Admin
     end
 
     def update_public
-      enabled = ActiveModel::Type::Boolean.new.cast(params[:public_enabled])
-      @training_class.update!(public_enabled: enabled)
-      if enabled && @training_class.public_slug.blank?
+      new_status = params[:class_status].presence
+      new_status = nil unless new_status.in?(TrainingClass::CLASS_STATUSES)
+      if new_status.nil? && params.key?(:public_enabled)
+        new_status = ActiveModel::Type::Boolean.new.cast(params[:public_enabled]) ? "public" : "private"
+      end
+      new_status ||= (@training_class.class_status == "public" ? "private" : "public")
+      @training_class.update!(class_status: new_status)
+      if @training_class.class_status == "public" && @training_class.public_slug.blank?
         @training_class.ensure_public_slug!
       end
       respond_to do |format|
@@ -93,7 +98,7 @@ module Admin
             turbo_stream.replace("workspace-overview-public-status", partial: "admin/class_workspace/sections/overview/public_status_row", locals: { training_class: @training_class })
           ], status: :ok
         end
-        format.html { redirect_to admin_class_workspace_overview_path(@training_class), notice: enabled ? "Public page enabled." : "Public page disabled." }
+        format.html { redirect_to admin_class_workspace_overview_path(@training_class), notice: "Status updated to #{new_status}." }
       end
     end
 

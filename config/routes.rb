@@ -56,6 +56,10 @@ Rails.application.routes.draw do
     get "calendar/event/:id", to: "calendar#event", as: :calendar_event
     # Ops-focused training calendar: drawer, quick add, filters
     get "training_calendar", to: "training_calendar#index", as: :training_calendar
+    get "calendar_demo", to: "calendar_demo#index", as: :calendar_demo
+    get "training_calendar/event_modal/:id", to: "training_calendar#event_modal", as: :training_calendar_event_modal, constraints: { id: /\d+/ }
+    get "training_calendar/day_modal", to: "training_calendar#day_modal", as: :training_calendar_day_modal
+    get "training_calendar/modal/close", to: "training_calendar#modal_close", as: :training_calendar_modal_close
     get "training_calendar/drawer", to: "training_calendar#drawer", as: :training_calendar_drawer
     get "training_calendar/drawer/:id", to: "training_calendar#drawer", as: :training_calendar_drawer_class, constraints: { id: /\d+/ }
     get "training_calendar/day_popover", to: "training_calendar#day_popover", as: :training_calendar_day_popover
@@ -170,4 +174,34 @@ Rails.application.routes.draw do
 
   # Root / landing page: Training Classes
   root to: redirect("/admin/training_classes")
+
+  # ========== Budget Management ==========
+  get "budget", to: "budget/years#redirect_to_current", as: :budget_root
+  scope "budget", module: "budget", as: "budget" do
+    get "overview", to: "overview#index", as: :overview
+    get "overview/:year_id", to: "overview#index", as: :overview_year, constraints: { year_id: /\d+/ }
+    get "staff", to: redirect("/budget/staff/forecast"), as: :staff
+    get "staff/directory", to: "staff#index", as: :staff_directory
+    get "staff/forecast", to: "staff#forecast", as: :staff_forecast
+    get "staff/worklogs", to: "staff#worklogs", as: :staff_worklogs
+    post "staff/forecast/copy_previous_month", to: "staff#copy_previous_month", as: :staff_forecast_copy_previous
+    post "staff/forecast/set_default_days", to: "staff#set_default_days", as: :staff_forecast_set_default_days
+    patch "staff/forecast/lock_month", to: "staff#lock_month", as: :staff_forecast_lock_month
+    resources :staff_monthly_plans, only: [:create, :update], path: "staff/monthly_plans", controller: "staff_monthly_plans"
+    get "setup", to: "setup#index", as: :setup
+    resources :staff_profiles, only: [:new, :create, :edit, :update], path: "staff/profiles", controller: "staff_profiles"
+    resources :staff_worklogs, only: [:create, :destroy], path: "staff/worklogs", controller: "staff_worklogs"
+    resources :years, only: [:index, :show, :new, :create], path: "years" do
+      get :allocations, on: :member
+      get :expenses_list, on: :member
+      get :expenses, on: :member
+      get :monthly, on: :member
+      resources :allocations, only: [:create, :update], controller: "allocations"
+    end
+    resources :expenses, only: [:new, :create, :edit, :update], path: "expenses", controller: "expenses" do
+      patch :mark_paid, on: :member
+    end
+    resources :events, only: [:index, :show, :new, :create, :edit, :update], path: "events", controller: "events"
+    resources :sponsorship_deals, only: [:show], path: "sponsorship_deals", controller: "sponsorship_deals"
+  end
 end

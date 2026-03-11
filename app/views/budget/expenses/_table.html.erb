@@ -1,0 +1,54 @@
+<%
+  expenses = local_assigns[:expenses] || []
+  budget_year = local_assigns[:budget_year]
+%>
+<div class="insight-card">
+  <div class="insight-card__body">
+    <% if expenses.any? %>
+      <div class="odt-table-wrap">
+        <table class="odt-table insight-odt-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Category</th>
+              <th scope="col">Vendor / Payee</th>
+              <th scope="col">Reference</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end">Amount</th>
+              <th scope="col">Links</th>
+              <% if budget_year %><th scope="col" class="text-end">Actions</th><% end %>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses.each do |exp| %>
+              <tr>
+                <td><%= exp.expense_date.strftime("%d %b %Y") %></td>
+                <td><%= exp.budget_category&.name || "—" %></td>
+                <td><%= exp.vendor.presence || "—" %></td>
+                <td><%= exp.reference_no.presence || "—" %></td>
+                <td><%= render "budget/shared/budget_badge", status: exp.payment_status %></td>
+                <td class="text-end"><%= number_to_thb(exp.amount) %></td>
+                <td>
+                  <% if exp.sponsorship_deal_id.present? %>
+                    <%= link_to "Event", budget_sponsorship_deal_path(exp.sponsorship_deal), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                  <% end %>
+                  <%= "—" if exp.class_id.blank? && exp.campaign_id.blank? && exp.sponsorship_deal_id.blank? %>
+                </td>
+                <% if budget_year %>
+                  <td class="text-end">
+                    <%= link_to "Edit", edit_budget_expense_path(exp), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+                    <% unless exp.payment_status == "paid" %>
+                      <%= button_to "Mark paid", mark_paid_budget_expense_path(exp), method: :patch, class: "odt-btn odt-btn--primary odt-btn--sm", data: { turbo_confirm: "Mark as paid?" } %>
+                    <% end %>
+                  </td>
+                <% end %>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">No expenses match the filters.<% if budget_year %> <%= link_to "Add expense", new_budget_expense_path(year_id: budget_year.id) %>.<% end %></p>
+    <% end %>
+  </div>
+</div>

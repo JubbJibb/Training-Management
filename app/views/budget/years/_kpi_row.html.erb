@@ -1,0 +1,39 @@
+<%
+  summary = local_assigns[:summary] || {}
+  budget_year = local_assigns[:budget_year]
+  total_budget = summary[:total_budget].to_f
+  paid = summary[:paid].to_f
+  committed = summary[:committed].to_f
+  planned = summary[:planned].to_f
+  total_spend = summary[:total_spend].to_f
+  remaining = summary[:remaining].to_f
+  forecast_eoy = total_spend # placeholder: could extrapolate
+%>
+<div class="budget-kpi-row odt-kpi-strip" style="margin-bottom: var(--odt-spacing);">
+  <div class="odt-kpi-strip__inner">
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Total budget</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(total_budget) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Paid</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(paid) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Committed</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(committed) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Planned</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(planned) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Remaining</span>
+      <span class="odt-kpi-strip__value <%= remaining < 0 ? 'odt-kpi-strip__value--danger' : '' %>"><%= number_to_thb(remaining) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Forecast EOY</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(forecast_eoy) %></span>
+    </div>
+  </div>
+</div>

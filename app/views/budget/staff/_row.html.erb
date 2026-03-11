@@ -1,0 +1,29 @@
+<%
+  profile = local_assigns[:profile]
+%>
+<tr id="<%= dom_id(profile, :row) %>" class="attendees-ledger__row">
+  <td class="attendees-ledger__td attendees-ledger__td--name">
+    <%= link_to edit_budget_staff_profile_path(profile), class: "attendees-ledger__name-link", data: { turbo_frame: "_top" } do %>
+      <span class="attendees-ledger__name"><%= profile.name %></span>
+      <% if profile.nickname.present? %><span class="attendees-ledger__email"><%= profile.nickname %></span><% end %>
+    <% end %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--type">
+    <%= profile.role.presence || "—" %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--company">
+    <%= profile.department.presence || "—" %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--payment-date">
+    <%= profile.email.presence || "—" %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(profile.internal_day_rate) %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--payment">
+    <%= odt_badge(profile.status == "active" ? "Active" : "Inactive", variant: profile.status == "active" ? :success : :neutral, size: :sm) %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--actions">
+    <div class="attendees-ledger__actions-cell">
+      <%= link_to edit_budget_staff_profile_path(profile), class: "attendees-ledger__action", title: "Edit", aria: { label: "Edit" }, data: { turbo_frame: "_top" } do %><i class="bi bi-pencil" aria-hidden="true"></i><% end %>
+    </div>
+  </td>
+</tr>

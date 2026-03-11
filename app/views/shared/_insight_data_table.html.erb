@@ -1,0 +1,11 @@
+<%#
+  Shared DataTable wrapper for Business Insights. Use with table class "insight-data-table".
+  Header: bg neutral-50, text-xs font-medium text-neutral-600. Rows: h-12, border-b neutral-100.
+  Hover: bg-neutral-50. Active row: left border 4px Gold. Numeric: text-right tabular-nums.
+  Optional: pass table_class for extra classes. Yields: thead + tbody.
+-%>
+<div class="insight-data-table-wrap">
+  <table class="insight-data-table <%= local_assigns[:table_class] %>" role="table">
+    <%= yield %>
+  </table>
+</div>

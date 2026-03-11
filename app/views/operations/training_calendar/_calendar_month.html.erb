@@ -3,60 +3,71 @@
   events_by_date = local_assigns[:events_by_date] || {}
   month_start = local_assigns[:month_start] || range.begin.beginning_of_month
   month_end = local_assigns[:month_end] || range.begin.end_of_month
-  filters = local_assigns[:filters] || {}
   grid_start = month_start.beginning_of_week(:monday)
   grid_end = month_end.end_of_week(:monday)
   grid_days = (grid_start..grid_end).to_a
+  week_rows = tc_week_rows(grid_days)
   weekdays = %w[Mon Tue Wed Thu Fri Sat Sun]
-  max_visible = 6
   today = Date.current
+  max_visible = Operations::TrainingCalendarHelper::MAX_VISIBLE_EVENTS_PER_DAY
+  multi_day = tc_multi_day_events(events_by_date)
 %>
 <div class="tc-grid tc-grid--month" role="grid" aria-label="Calendar month view">
-  <div class="tc-grid__head" role="row">
+  <header class="tc-month__head" role="row">
     <% weekdays.each do |day| %>
-      <div class="tc-grid__head-cell" role="columnheader"><%= day %></div>
+      <div class="tc-month__head-cell" role="columnheader"><%= day %></div>
     <% end %>
-  </div>
-  <div class="tc-grid__body">
-    <% grid_days.each_slice(7) do |week| %>
-      <div class="tc-grid__row" role="row">
-        <% week.each_with_index do |day, idx| %>
-          <%
-            # Skip this cell if it's the "continuation" of a multi-day event (event started on a previous day in this row)
-            is_continuation = idx.positive? && week[0...idx].any? { |d| (events_by_date[d] || []).any? { |e| (e.end_date || e.date) >= day && e.date < day } }
-            next if is_continuation
-            other_month = day.month != month_start.month
-            is_today = day == today
-            # Only show events that *start* on this day (multi-day = one card spanning columns)
-            start_evs = (events_by_date[day] || []).select { |e| e.date == day }
-            visible_events = start_evs.first(max_visible)
-            more_count = start_evs.size - max_visible
-            # Span: if first event is multi-day, span to cover its days (capped by end of row)
-            multi = start_evs.find { |e| (e.end_date || e.date) > e.date }
-            span = 1
-            if multi
-              end_d = multi.end_date || multi.date
-              span = [(end_d - day + 1).to_i, (week.last - day + 1).to_i].min
-            end
-            span_style = span > 1 ? "grid-column: span #{span};" : ""
-          %>
-          <div class="tc-grid__cell tc-day <%= 'tc-grid__cell--span' if span > 1 %> <%= 'tc-grid__cell--other' if other_month %> <%= 'tc-grid__cell--today' if is_today %>" style="<%= span_style %>" data-date="<%= day.iso8601 %>" data-tc-calendar-target="cell" data-action="click->tc-calendar#onCellClick" role="gridcell" tabindex="-1">
-            <div class="tc-grid__day-num"><%= day.day %></div>
-            <div class="tc-grid__events">
-              <% visible_events.each do |ev| %>
-                <% chip = %w[chip-purple chip-emerald chip-sky][ev.id % 3] %>
-                <% single_day = ev.end_date.blank? || ev.end_date == ev.date %>
-                <%= render "operations/training_calendar/event_card", event: ev, chip_variant: chip, single_day: single_day, cell_span: span %>
+  </header>
+  <div class="tc-month__body">
+    <% week_rows.each_with_index do |week, row_index| %>
+      <%
+        week_start = week.first
+        week_end = week.last
+        row = row_index + 1
+        segments_in_week = multi_day.filter_map { |ev| seg = tc_week_segment(ev, week_start, week_end); seg ? seg.merge(event: ev) : nil }
+        segments_with_slots, max_span_slot = tc_span_segments_with_slots(segments_in_week)
+        span_slot_height = Operations::TrainingCalendarHelper::TC_SPAN_SLOT_HEIGHT
+        top_offset = Operations::TrainingCalendarHelper::TC_CELL_TOP_OFFSET
+        under_span_margin = top_offset + (max_span_slot + 1) * span_slot_height
+      %>
+      <%# Multi-day bars (same row, span columns); earlier-starting on top, later below %>
+      <% segments_with_slots.each do |seg| %>
+        <div class="tc-month__span-wrap" style="grid-column: <%= seg[:start_col] %> / span <%= seg[:span_cols] %>; grid-row: <%= row %>; margin-top: <%= top_offset + seg[:slot] * span_slot_height %>px;">
+          <%= render "operations/training_calendar/month_span_bar", event: seg[:event] %>
+        </div>
+      <% end %>
+      <%# Day cells %>
+      <% week.each_with_index do |day, col_index| %>
+        <%
+          other_month = day.month != month_start.month
+          is_today = day == today
+          day_evs = events_by_date[day] || []
+          single = tc_single_day_events_for_day(day_evs)
+          single = tc_sort_events(single)
+          visible = single.first(max_visible)
+          more_count = [single.size - max_visible, 0].max
+          col = col_index + 1
+          under_span = segments_with_slots.any? { |s| col >= s[:start_col] && col < s[:start_col] + s[:span_cols] }
+        %>
+        <div class="tc-month__cell <%= 'tc-month__cell--other' if other_month %> <%= 'tc-month__cell--today' if is_today %> <%= 'tc-month__cell--last-col' if col == 7 %> <%= 'tc-month__cell--has-span' if segments_in_week.any? %> <%= 'tc-month__cell--under-span' if under_span %>"
+             style="grid-column: <%= col %>; grid-row: <%= row %>;<%= under_span ? " --tc-under-span-margin: #{under_span_margin}px;" : '' %>"
+             data-date="<%= day.iso8601 %>"
+             data-tc-calendar-target="cell"
+             data-action="click->tc-calendar#onCellClick"
+             role="gridcell" tabindex="-1">
+          <div class="tc-month__day-num"><%= day.day %></div>
+          <div class="tc-month__events">
+            <% visible.each do |ev| %>
+              <%= render "operations/training_calendar/month_event_card", event: ev %>
+            <% end %>
+            <% if more_count.positive? %>
+              <%= link_to operations_training_calendar_day_modal_path(date: day.iso8601), class: "tc-month__more", data: { turbo_frame: "tc_day_modal" } do %>
+                +<%= more_count %> more
               <% end %>
-              <% if more_count.positive? %>
-                <%= link_to operations_training_calendar_day_popover_path(date: day.iso8601), class: "tc-more-link", data: { turbo_frame: "tc_day_popover" } do %>
-                  +<%= more_count %> more
-                <% end %>
-              <% end %>
-            </div>
+            <% end %>
           </div>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>

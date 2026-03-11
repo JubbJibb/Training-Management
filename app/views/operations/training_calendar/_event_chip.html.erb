@@ -1,0 +1,20 @@
+<%
+  event = local_assigns[:event]
+  chip_variant = local_assigns[:chip_variant] || "chip-purple"
+  tooltip = tc_event_tooltip(event)
+  time_range = tc_event_time_range(event)
+  cancelled = event.status_label == "Cancelled"
+  card_class = "tc-event-chip"
+  card_class += " tc-event-chip--#{chip_variant}"
+  card_class += " tc-event-chip--#{tc_class_status_modifier(event)}"
+  card_class += " tc-event-chip--cancelled" if cancelled
+  drawer_url = operations_training_calendar_event_modal_path(event)
+%>
+<%= link_to drawer_url, class: card_class, title: tooltip, data: { turbo_frame: "tc_event_modal" } do %>
+  <span class="tc-event-chip__strip" aria-hidden="true"></span>
+  <span class="tc-event-chip__content">
+    <span class="tc-event-chip__title" title="<%= event.title %>"><%= truncate(event.title, length: 24) %></span>
+    <span class="tc-event-chip__time"><%= time_range %></span>
+  </span>
+  <% if cancelled %><span class="tc-event-chip__badge tc-event-chip__badge--cancelled">Cancelled</span><% end %>
+<% end %>

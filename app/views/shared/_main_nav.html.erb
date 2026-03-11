@@ -17,16 +17,18 @@
     </ul>
   </div>
 
-  <%# Insights %>
+  <%# Insights — System of Insight: read-only dashboards + cross-module priorities %>
   <div class="nav-dropdown <%= nav_active?("insights") %>">
-    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navInsights" data-nav-dropdown aria-expanded="false" title="Consolidated performance & decision support">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navInsights" data-nav-dropdown aria-expanded="false" aria-controls="navInsightsMenu" title="Executive overview and cross-module priorities">
       <%= flowbite_icon("chart-outline") %> Insights
     </button>
-    <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" aria-labelledby="navInsights">
-      <li><%= link_to insights_business_path, class: "dropdown-item #{'active' if request.path == insights_business_path}" do %><%= flowbite_icon("chart-outline", class: "dropdown-item-icon") %> Business Insights<% end %></li>
-      <li><%= link_to insights_financial_path, class: "dropdown-item #{'active' if request.path == insights_financial_path}" do %><%= flowbite_icon("dollar-outline", class: "dropdown-item-icon") %> Financial Insights<% end %></li>
-      <li><%= link_to insights_strategy_path, class: "dropdown-item #{'active' if request.path == insights_strategy_path}" do %><%= flowbite_icon("chart-pie-outline", class: "dropdown-item-icon") %> Strategy Insights<% end %></li>
-      <li><%= link_to insights_actions_path, class: "dropdown-item #{'active' if request.path == insights_actions_path}" do %><%= flowbite_icon("chart-mixed-outline", class: "dropdown-item-icon") %> Action Center<% end %></li>
+    <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" id="navInsightsMenu" aria-labelledby="navInsights" role="menu">
+      <li role="none">
+        <%= link_to insights_business_path, class: "dropdown-item #{insights_nav_item_active?(insights_business_path)}", role: "menuitem" do %><%= flowbite_icon("chart-line-outline", class: "dropdown-item-icon") %> Business Insights<% end %>
+      </li>
+      <li role="none">
+        <%= link_to insights_actions_path, class: "dropdown-item #{insights_nav_item_active?(insights_actions_path)}", role: "menuitem" do %><%= flowbite_icon("clipboard-document-list-outline", class: "dropdown-item-icon") %> Action Center<% end %>
+      </li>
     </ul>
   </div>
 
@@ -44,6 +46,18 @@
 
   <%= render "shared/nav_financials_dropdown" %>
 
+  <%# Budget — Overview, Staff, Set up only %>
+  <div class="nav-dropdown <%= nav_active?("budget") %>">
+    <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navBudget" data-nav-dropdown aria-expanded="false" aria-controls="navBudgetMenu" title="Budget overview, staff, setup">
+      <%= flowbite_icon("wallet-outline") %> Budget
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" id="navBudgetMenu" aria-labelledby="navBudget" role="menu">
+      <li role="none"><%= link_to budget_overview_path, class: "dropdown-item #{'active' if request.path.start_with?('/budget/overview')}", role: "menuitem" do %><%= flowbite_icon("chart-pie-outline", class: "dropdown-item-icon") %> Budget Overview<% end %></li>
+      <li role="none"><%= link_to budget_staff_path, class: "dropdown-item #{'active' if request.path == budget_staff_path || request.path.start_with?('/budget/staff/')}", role: "menuitem" do %><%= flowbite_icon("users-outline", class: "dropdown-item-icon") %> Staff Management<% end %></li>
+      <li role="none"><%= link_to budget_setup_path, class: "dropdown-item #{'active' if request.path == budget_setup_path}", role: "menuitem" do %><%= flowbite_icon("cog-outline", class: "dropdown-item-icon") %> Budget Set up<% end %></li>
+    </ul>
+  </div>
+
   <%# Strategy %>
   <div class="nav-dropdown <%= nav_active?("strategy") %>">
     <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navStrategy" data-nav-dropdown aria-expanded="false" title="Campaigns, promotions and growth optimization">
@@ -51,7 +65,8 @@
     </button>
     <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" aria-labelledby="navStrategy">
       <li><%= link_to admin_settings_path, class: "dropdown-item" do %><%= flowbite_icon("tag-outline", class: "dropdown-item-icon") %> Promotions<% end %></li>
-      <li><%= link_to admin_settings_path, class: "dropdown-item" do %>      <%= flowbite_icon("chart-outline", class: "dropdown-item-icon") %> Promotion Performance<% end %></li>
+      <li><%= link_to admin_settings_path, class: "dropdown-item" do %><%= flowbite_icon("chart-outline", class: "dropdown-item-icon") %> Promotion Performance<% end %></li>
+      <li><%= link_to insights_strategy_path, class: "dropdown-item #{'active' if request.path == insights_strategy_path}" do %><%= flowbite_icon("chart-pie-outline", class: "dropdown-item-icon") %> Strategy Insights<% end %></li>
       <li><%= link_to admin_dashboard_index_path, class: "dropdown-item" do %><%= flowbite_icon("lightbulb-outline", class: "dropdown-item-icon") %> Opportunities<% end %></li>
     </ul>
   </div>

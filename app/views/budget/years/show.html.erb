@@ -1,0 +1,16 @@
+<% content_for :title, "Budget #{@budget_year.year} Overview" %>
+<div class="admin-layout-main budget-page">
+  <%= render "components/odt/page_header", title: "Budget #{@budget_year.year}", subtitle: "Overview · Allocations · Spend by category", icon: "wallet2" do %>
+    <div class="d-flex gap-2 flex-wrap">
+      <%= link_to "Allocations", allocations_budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+      <%= link_to "Expenses", expenses_budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+      <%= link_to "Monthly", monthly_budget_year_path(@budget_year), class: "odt-btn odt-btn--primary odt-btn--sm" %>
+    </div>
+  <% end %>
+
+  <%= turbo_frame_tag "budget_year_overview" do %>
+    <%= render "budget/years/kpi_row", summary: @summary, budget_year: @budget_year %>
+    <%= render "budget/years/spend_by_category", by_category: @by_category, budget_year: @budget_year %>
+    <%= render "budget/years/monthly_trend", monthly_trend: @monthly_trend %>
+  <% end %>
+</div>

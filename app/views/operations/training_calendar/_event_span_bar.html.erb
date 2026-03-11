@@ -1,0 +1,17 @@
+<%
+  event = local_assigns[:event]
+  tooltip = tc_event_tooltip(event)
+  time_range = tc_event_time_range(event)
+  cancelled = event.status_label == "Cancelled"
+  bar_class = "tc-event-bar tc-event-bar--span"
+  bar_class += " tc-event-bar--#{tc_class_status_modifier(event)}"
+  bar_class += " tc-event-bar--cancelled" if cancelled
+  drawer_url = operations_training_calendar_event_modal_path(event)
+%>
+<%= link_to drawer_url, class: bar_class, title: tooltip, data: { turbo_frame: "tc_event_modal" } do %>
+  <span class="tc-event-bar__strip" aria-hidden="true"></span>
+  <span class="tc-event-bar__content">
+    <span class="tc-event-bar__title" title="<%= event.title %>"><%= event.title %></span>
+    <span class="tc-event-bar__time"><%= time_range %></span>
+  </span>
+<% end %>

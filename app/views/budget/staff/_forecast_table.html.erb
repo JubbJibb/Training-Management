@@ -1,0 +1,40 @@
+<%
+  forecast_rows = local_assigns[:forecast_rows] || []
+  totals = local_assigns[:totals] || {}
+  year = local_assigns[:year]
+  month = local_assigns[:month]
+  month_locked = local_assigns[:month_locked]
+%>
+<div class="customers-ledger attendees-ledger">
+  <% if forecast_rows.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Monthly forecast by staff">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Staff</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Rate (฿/day)</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Planned days</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Estimated cost</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--company">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% forecast_rows.each do |row_data| %>
+            <%= render "budget/staff/forecast_row", row_data: row_data, year: year, month: month, month_locked: month_locked %>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="attendees-ledger__row">
+            <th scope="row" class="attendees-ledger__td attendees-ledger__td--name" style="font-weight: 700; border-top: 2px solid #e5e7eb;">Total</th>
+            <td class="attendees-ledger__td attendees-ledger__td--amount" style="border-top: 2px solid #e5e7eb;">—</td>
+            <td class="attendees-ledger__td attendees-ledger__td--payment-date" style="font-weight: 700; border-top: 2px solid #e5e7eb;"><%= totals[:total_planned_days] %></td>
+            <td class="attendees-ledger__td attendees-ledger__td--amount" style="font-weight: 700; border-top: 2px solid #e5e7eb;"><%= number_to_thb(totals[:total_estimated_cost]) %></td>
+            <td class="attendees-ledger__td attendees-ledger__td--company" style="border-top: 2px solid #e5e7eb;"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% else %>
+    <%= render "shared/empty_state", title: "No active staff", icon: "people", cta_label: "Add staff in Directory", cta_url: budget_staff_directory_path %>
+  <% end %>
+</div>

@@ -9,12 +9,13 @@
     <div class="tc-index-saas-table-wrap">
       <table class="tc-index-saas-table odt-premium-table" role="table" aria-label="Training classes">
         <colgroup>
-          <col style="width: 24%;">
+          <col style="width: 20%;">
+          <col style="width: 9%;">
+          <col style="width: 9%;">
           <col style="width: 10%;">
-          <col style="width: 10%;">
-          <col style="width: 16%;">
-          <col style="width: 12%;">
-          <col style="width: 12%;">
+          <col style="width: 11%;">
+          <col style="width: 11%;">
+          <col style="width: 14%;">
           <col style="width: 16%;">
         </colgroup>
         <thead>
@@ -40,6 +41,7 @@
                 Revenue <%= sort_column == "revenue" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
+            <th scope="col" class="tc-saas-th tc-saas-th--forecast-revenue">Forecast Revenue</th>
             <th scope="col" class="tc-saas-th tc-saas-th--instructor">
               <%= link_to index_path, **sort_params.merge(sort: "instructor", direction: (sort_column == "instructor" && sort_direction == "asc" ? "desc" : "asc")), class: "tc-saas-th__sort-link", data: { turbo_frame: "tc_index_table" } do %>
                 Instructor <%= sort_column == "instructor" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>

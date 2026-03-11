@@ -50,6 +50,7 @@
           <option value="all" <%= "selected" if filters[:type].to_s == "all" %>>All</option>
           <option value="public" <%= "selected" if filters[:type].to_s == "public" %>>Public</option>
           <option value="private" <%= "selected" if filters[:type].to_s == "private" %>>Private</option>
+          <option value="tentative" <%= "selected" if filters[:type].to_s == "tentative" %>>Tentative</option>
         </select>
       </div>
       <div class="tc-filters-drawer__field tc-filters-drawer__field--checkbox">

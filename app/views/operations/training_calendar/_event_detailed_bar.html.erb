@@ -1,0 +1,32 @@
+<%
+  event = local_assigns[:event]
+  size = local_assigns[:size] || "month"
+  tooltip = tc_event_tooltip(event)
+  cancelled = event.status_label == "Cancelled"
+  bar_class = "tc-event-bar tc-event-bar--detailed tc-event-bar--#{size}"
+  bar_class += " tc-event-bar--#{tc_class_status_modifier(event)}"
+  bar_class += " tc-event-bar--cancelled" if cancelled
+  max_seats = event.max_attendees.to_i
+  registered = event.total_registered_seats
+  fill_pct = max_seats.positive? ? (event.fill_rate_percent || 0) : 0
+  is_full = max_seats.positive? && fill_pct >= 100
+  fill_class = max_seats.positive? ? "tc-event-bar__fill--#{fill_pct <= 25 ? 'r0-25' : (fill_pct <= 60 ? 'r25-60' : (fill_pct <= 85 ? 'r60-85' : 'r85-100'))}" : ""
+  drawer_url = operations_training_calendar_event_modal_path(event)
+%>
+<%= link_to drawer_url, class: bar_class, title: tooltip, data: { turbo_frame: "tc_event_modal" } do %>
+  <span class="tc-event-bar__strip" aria-hidden="true"></span>
+  <span class="tc-event-bar__content">
+    <span class="tc-event-bar__title" title="<%= event.title %>"><%= event.title %></span>
+    <% if event.instructor.present? %><span class="tc-event-bar__meta"><%= event.instructor %></span><% end %>
+    <% if max_seats.positive? %>
+      <span class="tc-event-bar__progress">
+        <span class="tc-event-bar__seats-inline"><%= registered %>/<%= max_seats %></span>
+        <span class="tc-event-bar__fill-track" role="presentation">
+          <span class="tc-event-bar__fill-bar <%= fill_class %>" style="width: <%= [fill_pct, 100].min %>%;"></span>
+        </span>
+        <% if is_full %><span class="tc-event-bar__badge tc-event-bar__badge--full">FULL</span><% end %>
+      </span>
+    <% end %>
+  </span>
+  <% if cancelled %><span class="tc-event-bar__badge tc-event-bar__badge--cancelled">Cancelled</span><% end %>
+<% end %>

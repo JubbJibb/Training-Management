@@ -1,0 +1,129 @@
+<% content_for :title, "Actual Worklogs · Staff" %>
+<div class="tc-index-page budget-staff-page">
+  <%= render "components/odt/page_header", title: "Staff", subtitle: "Actual worklogs and monthly cost", icon: "people" do %>
+    <%= link_to new_budget_staff_profile_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
+      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+      <span class="odt-btn__label">Create new Staff</span>
+    <% end %>
+  <% end %>
+
+  <section class="tc-index-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(
+      cells: [
+        { icon: "journal-check", label: "Total mandays", value: @monthly_cost[:total_mandays].to_s, sub: "this month" },
+        { icon: "currency-exchange", label: "Total cost", value: number_to_thb(@monthly_cost[:total_cost]), sub: "actual" }
+      ],
+      extra_class: "tc-index-kpi-strip tc-index-kpi-strip--cols-4"
+    ) %>
+  </section>
+
+  <%= render "budget/staff/tabs", tab: "worklogs" %>
+
+  <div class="tc-index-filter-wrap">
+    <%= form_with url: budget_staff_worklogs_path, method: :get, data: { turbo_frame: "_top" }, class: "tc-index-filter-bar__row", style: "display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem;" do |f| %>
+      <div class="tc-index-filter-bar__field">
+        <label for="worklogs_year" class="tc-index-filter-bar__label">Year</label>
+        <select name="year" id="worklogs_year" class="form-select form-select-sm" style="width: auto;">
+          <% ((Date.current.year - 2)..(Date.current.year + 1)).each do |y| %>
+            <option value="<%= y %>" <%= "selected" if @year == y %>><%= y %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="worklogs_month" class="tc-index-filter-bar__label">Month</label>
+        <select name="month" id="worklogs_month" class="form-select form-select-sm" style="width: auto;">
+          <% (1..12).each do |m| %>
+            <option value="<%= m %>" <%= "selected" if @month == m %>><%= Date::MONTHNAMES[m] %></option>
+          <% end %>
+        </select>
+      </div>
+      <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+    <% end %>
+  </div>
+
+  <div class="tc-index-content">
+    <div class="insight-card">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Monthly summary · <%= Date::MONTHNAMES[@month] %> <%= @year %></h3>
+          <p class="insight-card__subtitle">By staff and by linked item</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <div class="row">
+          <div class="col-md-6">
+            <h4 class="insight-card__subheading">By staff</h4>
+            <%= render "budget/staff/worklogs_summary_by_staff", by_staff: @monthly_cost[:by_staff], total_mandays: @monthly_cost[:total_mandays], total_cost: @monthly_cost[:total_cost] %>
+          </div>
+          <div class="col-md-6">
+            <h4 class="insight-card__subheading">By linked item</h4>
+            <%= render "budget/staff/worklogs_summary_by_linked", distribution: @distribution %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-card mt-4">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Add worklog</h3>
+          <p class="insight-card__subtitle">Date, staff, mandays, linked to (Class/Event), notes</p>
+        </div>
+      </div>
+      <div class="insight-card__body">
+        <%= form_with model: @worklog, url: budget_staff_worklogs_path, method: :post, class: "row g-2" do |f| %>
+          <div class="col-md-2">
+            <label for="worklog_work_date" class="form-label small">Date</label>
+            <%= f.date_field :work_date, class: "form-control form-control-sm", required: true %>
+          </div>
+          <div class="col-md-3">
+            <label for="worklog_staff_profile_id" class="form-label small">Staff</label>
+            <select name="budget_staff_worklog[staff_profile_id]" id="worklog_staff_profile_id" class="form-select form-select-sm" required>
+              <option value="">Select…</option>
+              <% @staff_profiles.each do |p| %>
+                <option value="<%= p.id %>"><%= p.name %> (<%= p.role.presence || p.department.presence || "—" %>)</option>
+              <% end %>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="worklog_mandays" class="form-label small">Mandays</label>
+            <%= f.number_field :mandays, step: 0.5, min: 0.5, max: 5, value: 1.0, class: "form-control form-control-sm", required: true %>
+          </div>
+          <div class="col-md-2">
+            <label for="worklog_linked_type" class="form-label small">Linked type</label>
+            <select name="budget_staff_worklog[linked_type]" id="worklog_linked_type" class="form-select form-select-sm">
+              <option value="">—</option>
+              <option value="TrainingClass">Class</option>
+              <option value="Budget::Event">Event</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="worklog_linked_id" class="form-label small">Linked ID</label>
+            <%= f.number_field :linked_id, class: "form-control form-control-sm", placeholder: "ID" %>
+          </div>
+          <div class="col-md-4">
+            <label for="worklog_notes" class="form-label small">Notes</label>
+            <%= f.text_field :notes, class: "form-control form-control-sm", placeholder: "Optional" %>
+          </div>
+          <div class="col-12">
+            <%= f.submit "Add worklog", class: "odt-btn odt-btn--primary odt-btn--sm" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="insight-card mt-4">
+      <div class="insight-card__header">
+        <div class="insight-card__accent"></div>
+        <div class="insight-card__head-text">
+          <h3 class="insight-card__title">Worklogs · <%= Date::MONTHNAMES[@month] %> <%= @year %></h3>
+        </div>
+      </div>
+      <div class="insight-card__body p-0">
+        <%= render "budget/staff/worklogs_list", worklogs: @worklogs %>
+      </div>
+    </div>
+  </div>
+</div>

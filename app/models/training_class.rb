@@ -1,6 +1,8 @@
 class TrainingClass < ApplicationRecord
   include TrainingClassPublicSlug
 
+  CLASS_STATUSES = %w[public private tentative].freeze
+
   has_many :attendees, dependent: :destroy
   has_many :class_expenses, dependent: :destroy
   belongs_to :internal_notes_updated_by, class_name: "AdminUser", optional: true
@@ -12,7 +14,15 @@ class TrainingClass < ApplicationRecord
   validates :title, presence: true
   validates :date, presence: true
   validates :location, presence: true
-  
+  validates :class_status, presence: true, inclusion: { in: CLASS_STATUSES }
+
+  before_save :sync_public_enabled_from_class_status
+
+  # Public page is only enabled when class status is "public"
+  def public_enabled?
+    class_status == "public"
+  end
+
   def total_expenses
     class_expenses.sum(:amount)
   end
@@ -101,5 +111,11 @@ class TrainingClass < ApplicationRecord
 
   def checklist_total_count
     checklist_items.size
+  end
+
+  private
+
+  def sync_public_enabled_from_class_status
+    self.public_enabled = (class_status == "public") if class_status.present?
   end
 end

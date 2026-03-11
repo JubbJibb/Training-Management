@@ -1,0 +1,14 @@
+<% content_for :title, "New staff profile" %>
+<div class="admin-layout-main budget-page">
+  <%= render "staff_profile_header", staff_profile: @staff_profile, form_id: "staff_profile_form" %>
+
+  <div id="staff_profile_form_wrapper">
+    <%= form_with model: @staff_profile, url: budget_staff_profiles_path, method: :post, id: "staff_profile_form", class: "customer-edit-form" do |f| %>
+      <div class="customer-edit-layout">
+        <div class="customer-edit-main">
+          <%= render "form", f: f %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

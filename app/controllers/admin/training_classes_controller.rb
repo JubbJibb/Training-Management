@@ -118,13 +118,11 @@ module Admin
 
     def toggle_public
       @training_class = TrainingClass.find(params[:id])
-      new_state = if params.key?(:public_enabled)
-        ActiveModel::Type::Boolean.new.cast(params[:public_enabled])
-      else
-        !@training_class.public_enabled?
-      end
-      @training_class.update!(public_enabled: new_state)
-      if new_state && @training_class.public_slug.blank?
+      new_status = params[:class_status].presence
+      new_status = nil unless new_status.in?(TrainingClass::CLASS_STATUSES)
+      new_status ||= (@training_class.class_status == "public" ? "private" : "public")
+      @training_class.update!(class_status: new_status)
+      if @training_class.class_status == "public" && @training_class.public_slug.blank?
         @training_class.ensure_public_slug!
       end
       respond_to do |format|
@@ -141,7 +139,7 @@ module Admin
             }
           ), status: :ok
         end
-        format.html { redirect_to admin_training_classes_path, notice: (new_state ? "Public page enabled." : "Public page disabled.") }
+        format.html { redirect_to admin_training_classes_path, notice: "Status updated to #{new_status}." }
       end
     end
     
@@ -332,8 +330,7 @@ module Admin
     end
 
     def apply_tc_filters
-      @training_classes = @training_classes.where(public_enabled: true) if params[:class_type] == "public"
-      @training_classes = @training_classes.where(public_enabled: false) if params[:class_type] == "private"
+      @training_classes = @training_classes.where(class_status: params[:class_type]) if params[:class_type].present?
       @training_classes = @training_classes.where(instructor: params[:instructor]) if params[:instructor].present?
       if params[:date_from].present?
         @training_classes = @training_classes.where("date >= ?", Date.parse(params[:date_from]))

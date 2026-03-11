@@ -1,0 +1,24 @@
+<%
+  event = local_assigns[:event]
+  seat_status = tc_seat_status(event)
+  tooltip = tc_event_tooltip(event)
+  start_str = event.start_time.present? ? event.start_time.strftime('%H:%M') : ""
+  end_str = event.end_time.present? ? event.end_time.strftime('%H:%M') : ""
+  public_label = tc_class_status_label(event)
+  cancelled = event.status_label == "Cancelled"
+  bar_class = "tc-event-bar"
+  bar_class += " tc-event-bar--#{tc_class_status_modifier(event)}"
+  bar_class += " tc-event-bar--full" if seat_status == "full"
+  bar_class += " tc-event-bar--almost" if seat_status == "almost"
+  bar_class += " tc-event-bar--cancelled" if cancelled
+  drawer_url = operations_training_calendar_event_modal_path(event)
+%>
+<%= link_to drawer_url, class: bar_class, title: tooltip, data: { turbo_frame: "tc_event_modal" } do %>
+  <% if start_str.present? %><span class="tc-event-bar__time"><%= start_str %></span><% end %>
+  <span class="tc-event-bar__title" title="<%= event.title %>"><%= truncate(event.title, length: 18) %></span>
+  <% if end_str.present? %><span class="tc-event-bar__end">ends <%= end_str %></span><% end %>
+  <span class="tc-event-bar__pill tc-event-bar__pill--<%= public_label.downcase %>"><%= public_label %></span>
+  <% if event.max_attendees.to_i.positive? %><span class="tc-event-bar__seats"><%= event.total_registered_seats %>/<%= event.max_attendees %></span><% end %>
+  <% if seat_status == "full" %><span class="tc-event-bar__badge tc-event-bar__badge--full">FULL</span><% end %>
+  <% if seat_status == "almost" %><span class="tc-event-bar__badge tc-event-bar__badge--almost">ALMOST</span><% end %>
+<% end %>

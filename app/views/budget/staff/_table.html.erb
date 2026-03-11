@@ -1,0 +1,29 @@
+<%
+  staff_profiles = local_assigns[:staff_profiles] || []
+%>
+<div class="customers-ledger attendees-ledger">
+  <% if staff_profiles.any? %>
+    <div class="attendees-ledger__table-wrap">
+      <table class="attendees-ledger__table" role="table" aria-label="Staff directory">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">Staff</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--type">Role</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--company">Department</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">Email</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">Rate (฿/day)</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment">Status</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% staff_profiles.each do |profile| %>
+            <%= render "budget/staff/row", profile: profile %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <%= render "shared/empty_state", title: "ไม่พบข้อมูล Staff", icon: "people", cta_label: "Add staff", cta_url: new_budget_staff_profile_path %>
+  <% end %>
+</div>

@@ -1,0 +1,42 @@
+<%
+  events = local_assigns[:events] || instance_variable_defined?(:@events) ? @events : []
+  date = local_assigns[:date] || (instance_variable_defined?(:@date) ? @date : Date.current)
+  events = tc_sort_events(events) if events.respond_to?(:sort_by)
+  close_url = operations_training_calendar_modal_close_path(which: "day")
+%>
+<%= turbo_frame_tag "tc_day_modal" do %>
+  <div class="tc-modal-backdrop" data-controller="tc-event-modal" data-action="click->tc-event-modal#closeBackdrop keydown@window->tc-event-modal#closeOnEscape" data-tc-event-modal-target="backdrop" role="presentation">
+    <div class="tc-modal tc-modal--day" role="dialog" aria-modal="true" aria-labelledby="tc_day_modal_title" data-tc-event-modal-target="dialog">
+      <div class="tc-modal__inner">
+        <header class="tc-modal__header">
+          <h2 id="tc_day_modal_title" class="tc-modal__title">Classes on <%= date.strftime("%A, %b %d") %></h2>
+          <%= link_to "×", close_url, class: "tc-modal__close", data: { turbo_frame: "tc_day_modal", aria: { label: "Close" } } %>
+        </header>
+        <div class="tc-modal__body">
+          <% if events.any? %>
+            <ul class="tc-modal-day__list">
+              <% events.each do |ev| %>
+                <%
+                  time_str = ev.start_time.present? && ev.end_time.present? ? "#{ev.start_time.strftime('%H:%M')}–#{ev.end_time.strftime('%H:%M')}" : "All day"
+                  seats_str = ev.max_attendees.to_i.positive? ? "#{ev.total_registered_seats}/#{ev.max_attendees}" : nil
+                  pub = tc_class_status_label(ev)
+                %>
+                <li class="tc-modal-day__item">
+                  <%= link_to operations_training_calendar_event_modal_path(ev), class: "tc-modal-day__link", data: { turbo_frame: "tc_event_modal" } do %>
+                    <span class="tc-modal-day__title"><%= ev.title %></span>
+                    <span class="tc-modal-day__meta"><%= time_str %><% if seats_str %> · <%= seats_str %><% end %> · <%= pub %></span>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="tc-modal__muted">No classes on this day.</p>
+          <% end %>
+        </div>
+        <footer class="tc-modal__footer">
+          <%= link_to "Close", close_url, class: "tc-modal__btn tc-modal__btn--ghost", data: { turbo_frame: "tc_day_modal" } %>
+        </footer>
+      </div>
+    </div>
+  </div>
+<% end %>

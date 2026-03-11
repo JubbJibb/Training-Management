@@ -1,0 +1,145 @@
+<% content_for :title, "Edit staff profile - #{@staff_profile.name}" %>
+<%
+  rate_per_day = @staff_profile.internal_day_rate.to_f
+  current_month = Date.current.month
+  current_year = Date.current.year
+  monthly_working_days = { 1=>22, 2=>20, 3=>22, 4=>21, 5=>22, 6=>21, 7=>22, 8=>22, 9=>21, 10=>23, 11=>21, 12=>22 }
+  default_working_days = monthly_working_days[current_month] || 20
+%>
+<div class="admin-layout-main budget-page staff-edit-page">
+  <%= render "staff_profile_header", staff_profile: @staff_profile, form_id: "staff_profile_form" %>
+
+  <div class="staff-edit-grid" id="staff_profile_form_wrapper">
+    <%= form_with model: @staff_profile, url: budget_staff_profile_path(@staff_profile), method: :patch, id: "staff_profile_form", class: "customer-edit-form" do |f| %>
+      <div class="staff-edit-main">
+        <div class="customer-edit-layout">
+          <div class="customer-edit-main">
+            <%= render "form", f: f %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <aside class="staff-edit-sidebar" aria-label="Cost preview and notes">
+      <%= render "budget/staff_profiles/edit_sidebar", staff_profile: @staff_profile, rate_per_day: rate_per_day, default_working_days: default_working_days, current_month: current_month, current_year: current_year %>
+    </aside>
+  </div>
+</div>
+
+<style>
+  .staff-edit-page .staff-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr minmax(320px, 380px);
+    gap: var(--space-24, 24px);
+    align-items: start;
+  }
+  @media (max-width: 991px) {
+    .staff-edit-page .staff-edit-grid { grid-template-columns: 1fr; }
+    .staff-edit-page .staff-edit-sidebar { order: 2; }
+  }
+  .staff-edit-page .staff-edit-sidebar {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .staff-edit-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .staff-edit-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .staff-edit-card__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--odt-dark, #292929);
+    margin: 0;
+  }
+  .staff-edit-card__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .staff-edit-card__label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted, #6b7280);
+  }
+  .staff-edit-card__input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .staff-edit-card__input:focus {
+    outline: 0;
+    border-color: var(--odt-blue, #13139c);
+    box-shadow: 0 0 0 3px rgba(19, 19, 156, 0.15);
+  }
+  .staff-edit-card__hint { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+  .staff-edit-card__total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--odt-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .staff-edit-card__breakdown {
+    list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--text-secondary);
+  }
+  .staff-edit-card__breakdown li { padding: 4px 0; display: flex; justify-content: space-between; gap: 12px; }
+  .staff-edit-card__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .staff-edit-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4b5563;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .staff-edit-tag:hover { background: #e5e7eb; border-color: #d1d5db; }
+  .staff-edit-tag:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--odt-blue); }
+  .staff-edit-dropzone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #f9fafb;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .staff-edit-dropzone:hover { border-color: var(--odt-blue); background: #f0f0ff; }
+  .staff-edit-dropzone:focus-visible { outline: 0; border-color: var(--odt-blue); box-shadow: 0 0 0 2px rgba(19, 19, 156, 0.3); }
+  .staff-edit-file-list { list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; }
+  .staff-edit-file-list li {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+  }
+  .staff-edit-file-list li:last-child { border-bottom: none; }
+  .staff-edit-file-list .file-actions { margin-left: auto; display: flex; gap: 6px; }
+  .staff-edit-file-list .file-actions a, .staff-edit-file-list .file-actions button {
+    padding: 4px 8px; font-size: 0.75rem; color: var(--odt-blue); background: none; border: none; cursor: pointer; text-decoration: none;
+  }
+  .staff-edit-file-list .file-actions a:hover, .staff-edit-file-list .file-actions button:hover { text-decoration: underline; }
+  .staff-edit-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .staff-edit-toggle input { width: 44px; height: 24px; accent-color: var(--odt-blue); }
+</style>

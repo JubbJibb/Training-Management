@@ -1,0 +1,82 @@
+<% content_for :title, "Budget Overview" %>
+<div class="admin-layout-main budget-page bg-stone-50 min-vh-100">
+  <%= render "components/odt/page_header", title: "Budget Overview", subtitle: "Yearly budget health and drilldown", icon: "wallet2" do %>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <% if @budget_years.present? %>
+        <%= form_with url: budget_overview_path, method: :get, data: { turbo_frame: "_top" }, class: "d-inline-flex align-items-center gap-2" do |f| %>
+          <label for="budget_overview_year_id" class="form-label mb-0 small text-muted">Year</label>
+          <select name="year_id" id="budget_overview_year_id" class="form-select form-select-sm" style="width: auto;" data-controller="budget-year-switch" data-action="change->budget-year-switch#submit">
+            <% @budget_years.each do |by| %>
+              <option value="<%= by.id %>" <%= "selected" if @budget_year&.id == by.id %>><%= by.year %></option>
+            <% end %>
+          </select>
+          <button type="submit" class="odt-btn odt-btn--ghost odt-btn--sm">Go</button>
+        <% end %>
+        <% if @budget_year %>
+          <%= link_to "Monthly view", monthly_budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm" %>
+          <%= link_to "Expenses", expenses_budget_year_path(@budget_year), class: "odt-btn odt-btn--primary odt-btn--sm" %>
+        <% end %>
+      <% else %>
+        <%= link_to "Create budget year", budget_setup_path, class: "odt-btn odt-btn--primary odt-btn--sm" %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @budget_year %>
+    <%= render "budget/years/kpi_row", summary: @summary, budget_year: @budget_year %>
+    <%= render "budget/overview/alerts_panel", alerts: @alerts, budget_year: @budget_year if @alerts&.dig(:any?) %>
+    <div class="row g-3">
+      <div class="col-12">
+        <%= render "budget/years/monthly_trend", monthly_trend: @monthly_trend %>
+      </div>
+      <div class="col-12">
+        <%= render "budget/years/spend_by_category", by_category: @by_category, budget_year: @budget_year %>
+      </div>
+      <div class="col-12">
+        <div class="insight-card">
+          <div class="insight-card__header">
+            <div class="insight-card__accent"></div>
+            <div class="insight-card__head-text">
+              <h2 class="insight-card__title text-lg font-semibold text-stone-800">Expense drilldown</h2>
+              <p class="insight-card__subtitle">Filter by month or category to see expenses below.</p>
+            </div>
+          </div>
+          <div class="insight-card__body">
+            <%= form_with url: expenses_list_budget_year_path(@budget_year), method: :get, data: { turbo_frame: "budget_drilldown_expenses" }, class: "d-flex flex-wrap gap-2 align-items-end mb-3" do |f| %>
+              <div>
+                <label for="drilldown_month" class="form-label small mb-0">Month</label>
+                <select name="month" id="drilldown_month" class="form-select form-select-sm" style="width: auto;">
+                  <option value="">All</option>
+                  <% (1..12).each do |m| %>
+                    <option value="<%= m %>"><%= Date::MONTHNAMES[m] %></option>
+                  <% end %>
+                </select>
+              </div>
+              <div>
+                <label for="drilldown_category_id" class="form-label small mb-0">Category</label>
+                <select name="category_id" id="drilldown_category_id" class="form-select form-select-sm" style="width: auto;">
+                  <option value="">All</option>
+                  <% Budget::Category.ordered.each do |c| %>
+                    <option value="<%= c.id %>"><%= c.name %></option>
+                  <% end %>
+                </select>
+              </div>
+              <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+              <%= link_to "Clear", expenses_list_budget_year_path(@budget_year), class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo_frame: "budget_drilldown_expenses" } %>
+            <% end %>
+            <%= turbo_frame_tag "budget_drilldown_expenses", src: expenses_list_budget_year_path(@budget_year), loading: :lazy do %>
+              <p class="text-muted mb-0">Loading expenses…</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="insight-card bg-white border border-stone-200 rounded-2xl shadow-sm p-6">
+      <div class="insight-card__body">
+        <p class="text-muted mb-2">No active budget year.</p>
+        <p class="mb-0"><%= link_to "Go to Budget Set up", budget_setup_path, class: "odt-btn odt-btn--primary odt-btn--sm" %> to create a year or copy from previous.</p>
+      </div>
+    </div>
+  <% end %>
+</div>

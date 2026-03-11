@@ -1,0 +1,54 @@
+<%
+  if local_assigns[:row_data]
+    row_data = local_assigns[:row_data]
+    staff_profile = row_data[:staff_profile]
+    plan = row_data[:plan]
+    planned_days = row_data[:planned_days]
+    estimated_cost = row_data[:estimated_cost]
+  else
+    plan = local_assigns[:plan]
+    staff_profile = local_assigns[:staff_profile]
+    planned_days = plan.planned_days.to_f
+    estimated_cost = plan.estimated_cost
+  end
+  year = local_assigns[:year]
+  month = local_assigns[:month]
+  month_locked = local_assigns[:month_locked]
+  missing_plan = planned_days.blank? || planned_days.to_f.zero?
+%>
+<tr id="<%= plan.persisted? ? dom_id(plan, :forecast_row) : "forecast_row_#{staff_profile.id}" %>" class="attendees-ledger__row" data-controller="staff-forecast-row" data-staff-forecast-row-target="row" data-rate="<%= staff_profile.internal_day_rate %>">
+  <td class="attendees-ledger__td attendees-ledger__td--name">
+    <%= link_to edit_budget_staff_profile_path(staff_profile), class: "attendees-ledger__name-link", data: { turbo_frame: "_top" } do %>
+      <span class="attendees-ledger__name"><%= staff_profile.name %></span>
+      <% if staff_profile.nickname.present? %><span class="attendees-ledger__email"><%= staff_profile.nickname %></span><% end %>
+    <% end %>
+    <% if missing_plan %><%= content_tag :span, "Missing plan", class: "attendees-ledger__badge attendees-ledger__badge--individual mt-1" %><% end %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--amount"><%= number_to_thb(staff_profile.internal_day_rate) %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--payment-date">
+    <% if month_locked %>
+      <%= planned_days.presence || "—" %>
+    <% else %>
+      <%= form_with model: plan, url: plan.persisted? ? budget_staff_monthly_plan_path(plan) : budget_staff_monthly_plans_path, method: plan.persisted? ? :patch : :post, data: { turbo_stream: true, action: "input->staff-forecast-row#recalc change->staff-forecast-row#submitRow" }, html: { class: "forecast-row-form" } do |f| %>
+        <%= f.hidden_field :staff_profile_id, value: staff_profile.id %>
+        <%= f.hidden_field :year, value: year %>
+        <%= f.hidden_field :month, value: month %>
+        <%= f.number_field :planned_days, value: planned_days, step: 0.5, min: 0, max: 31, class: "form-control form-control-sm w-20 text-end", placeholder: "0", data: { staff_forecast_row_target: "plannedDaysInput" } %>
+      <% end %>
+    <% end %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--amount fw-semibold" data-staff-forecast-row-target="estimatedCost"><%= number_to_thb(estimated_cost) %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--company">
+    <% if month_locked %>
+      <%= plan.notes.presence || "—" %>
+    <% else %>
+      <%= form_with model: plan, url: plan.persisted? ? budget_staff_monthly_plan_path(plan) : budget_staff_monthly_plans_path, method: plan.persisted? ? :patch : :post, data: { turbo_stream: true, action: "blur->staff-forecast-row#submitRow" }, html: { class: "d-inline-block w-100", style: "max-width: 240px;" } do |f| %>
+        <%= f.hidden_field :staff_profile_id, value: staff_profile.id %>
+        <%= f.hidden_field :year, value: year %>
+        <%= f.hidden_field :month, value: month %>
+        <%= f.hidden_field :planned_days, value: planned_days %>
+        <%= f.text_field :notes, value: plan.notes, class: "form-control form-control-sm", placeholder: "Optional", data: { action: "blur->staff-forecast-row#submitRow" } %>
+      <% end %>
+    <% end %>
+  </td>
+</tr>

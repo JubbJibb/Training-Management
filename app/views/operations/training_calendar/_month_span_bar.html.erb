@@ -1,0 +1,35 @@
+<%
+  event = local_assigns[:event]
+  tooltip = tc_event_tooltip(event)
+  cancelled = event.status_label == "Cancelled"
+  bar_class = "tc-month-span"
+  if event.respond_to?(:class_status) && event.class_status.present?
+    bar_class += " tc-month-span--#{event.class_status}"
+  else
+    bar_class += " tc-month-span--public" if event.respond_to?(:public_enabled?) && event.public_enabled?
+    bar_class += " tc-month-span--private" if event.respond_to?(:public_enabled?) && !event.public_enabled?
+  end
+  bar_class += " tc-month-span--cancelled" if cancelled
+  max_seats = event.max_attendees.to_i
+  registered = event.total_registered_seats
+  fill_pct = max_seats.positive? ? (event.fill_rate_percent || 0) : 0
+  is_full = max_seats.positive? && fill_pct >= 100
+  fill_class = max_seats.positive? ? "tc-month-span__fill--#{fill_pct <= 25 ? 'r0-25' : (fill_pct <= 60 ? 'r25-60' : (fill_pct <= 85 ? 'r60-85' : 'r85-100'))}" : ""
+  url = operations_training_calendar_event_modal_path(event)
+%>
+<%= link_to url, class: bar_class, title: tooltip, data: { turbo_frame: "tc_event_modal" } do %>
+  <span class="tc-month-span__strip" aria-hidden="true"></span>
+  <span class="tc-month-span__body">
+    <span class="tc-month-span__title" title="<%= event.title %>"><%= truncate(event.title, length: 28) %></span>
+    <% if event.instructor.present? %><span class="tc-month-span__meta"><%= truncate(event.instructor, length: 22) %></span><% end %>
+    <% if max_seats.positive? %>
+      <span class="tc-month-span__progress">
+        <span class="tc-month-span__seats"><%= registered %>/<%= max_seats %></span>
+        <span class="tc-month-span__fill-track" role="presentation">
+          <span class="tc-month-span__fill-bar <%= fill_class %>" style="width: <%= [fill_pct, 100].min %>%;"></span>
+        </span>
+        <% if is_full %><span class="tc-month-span__badge tc-month-span__badge--full">FULL</span><% end %>
+      </span>
+    <% end %>
+  </span>
+<% end %>

@@ -2,7 +2,7 @@
 
 module Operations
   class TrainingCalendarController < Operations::BaseController
-    before_action :set_filters, only: [:index, :drawer, :day_popover, :create_class, :update_class]
+    before_action :set_filters, only: [:index, :drawer, :day_popover, :day_modal, :create_class, :update_class]
     before_action :set_date_range, only: [:index, :create_class, :update_class]
 
     def index
@@ -41,6 +41,30 @@ module Operations
       render partial: "operations/training_calendar/day_popover", layout: false
     end
 
+    def event_modal
+      @training_class = TrainingClass.includes(:attendees).find_by(id: params[:id])
+      unless @training_class
+        render turbo_stream: turbo_stream.replace("tc_event_modal", ""), status: :ok
+        return
+      end
+      render partial: "operations/training_calendar/modals/event_details", locals: { training_class: @training_class }, layout: false
+    end
+
+    def day_modal
+      date = params[:date].present? ? Date.parse(params[:date].to_s) : Date.current
+      range = date..date
+      events = scope_in_range(range).to_a
+      @events = events.sort_by { |e| [e.date, e.start_time || Time.current] }
+      @date = date
+      render partial: "operations/training_calendar/modals/day_events", layout: false
+    end
+
+    def modal_close
+      which = params[:which].presence_in(%w[event day]) || "event"
+      frame_id = which == "day" ? "tc_day_modal" : "tc_event_modal"
+      render partial: "operations/training_calendar/modals/close", locals: { frame_id: frame_id }, layout: false
+    end
+
     def quick_add_form
       date = params[:date].present? ? Date.parse(params[:date].to_s) : Date.current
       time = params[:time].presence
@@ -60,7 +84,7 @@ module Operations
         respond_to do |format|
           format.turbo_stream do
             render turbo_stream: [
-              turbo_stream.replace("tc_drawer", partial: "operations/training_calendar/drawer/form", locals: { training_class: @training_class }),
+              turbo_stream.replace("tc_event_modal", ""),
               turbo_stream.replace("tc_kpis", partial: "operations/training_calendar/kpis", locals: kpis_locals),
               turbo_stream.replace("tc_calendar", partial: calendar_partial, locals: calendar_locals),
               turbo_stream.append("floating-ui-root", partial: "operations/training_calendar/popovers/quick_add_close", locals: {})
@@ -87,7 +111,7 @@ module Operations
         respond_to do |format|
           format.turbo_stream do
             render turbo_stream: [
-              turbo_stream.replace("tc_drawer", partial: "operations/training_calendar/drawer/form", locals: { training_class: @training_class }),
+              turbo_stream.replace("tc_event_modal", ""),
               turbo_stream.replace("tc_kpis", partial: "operations/training_calendar/kpis", locals: kpis_locals),
               turbo_stream.replace("tc_calendar", partial: calendar_partial, locals: calendar_locals)
             ], status: :ok
@@ -96,7 +120,7 @@ module Operations
         end
       else
         respond_to do |format|
-          format.turbo_stream { render turbo_stream: turbo_stream.replace("tc_drawer", partial: "operations/training_calendar/drawer/form", locals: { training_class: @training_class }), status: :unprocessable_entity }
+          format.turbo_stream { render turbo_stream: turbo_stream.replace("tc_event_modal", partial: "operations/training_calendar/modals/event_details", locals: { training_class: @training_class }), status: :unprocessable_entity }
           format.html { redirect_to operations_training_calendar_path, alert: @training_class.errors.full_messages.to_sentence }
         end
       end
@@ -152,9 +176,11 @@ module Operations
       end
       case @filters[:type]
       when "public"
-        scope = scope.where(public_enabled: true)
+        scope = scope.where(class_status: "public")
       when "private"
-        scope = scope.where(public_enabled: false)
+        scope = scope.where(class_status: "private")
+      when "tentative"
+        scope = scope.where(class_status: "tentative")
       end
       scope
     end
@@ -179,7 +205,7 @@ module Operations
         instructor: params[:instructor].presence,
         location: params[:location].presence,
         status: params[:status].presence_in(%w[all upcoming past cancelled]) || "all",
-        type: params[:type].presence_in(%w[all public private]) || "all",
+        type: params[:type].presence_in(%w[all public private tentative]) || "all",
         nearly_full: params[:nearly_full].presence
       }
     end

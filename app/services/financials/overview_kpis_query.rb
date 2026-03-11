@@ -18,6 +18,8 @@ module Financials
     def call
       {
         revenue: revenue,
+        revenue_exclude_vat: revenue_exclude_vat,
+        revenue_vat: revenue_vat,
         revenue_mtd: revenue_in_range(mtd_range),
         revenue_ytd: revenue_in_range(ytd_range),
         collected_mtd: collected_in_range(mtd_range),
@@ -58,6 +60,14 @@ module Financials
 
     def revenue
       @attendees.where(payment_status: "Paid").sum { |a| (a.total_final_price || 0) }
+    end
+
+    def revenue_exclude_vat
+      @attendees.where(payment_status: "Paid").sum { |a| (a.total_price_before_vat || 0) }
+    end
+
+    def revenue_vat
+      @attendees.where(payment_status: "Paid").sum { |a| (a.total_vat_amount || 0) }
     end
 
     def revenue_in_range(range)

@@ -1,0 +1,69 @@
+<% content_for :title, "Monthly Forecast · Staff" %>
+<div class="tc-index-page budget-staff-page">
+  <%= render "components/odt/page_header", title: "Staff", subtitle: "Monthly forecast and planning", icon: "people" do %>
+    <%= link_to new_budget_staff_profile_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
+      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+      <span class="odt-btn__label">Create new Staff</span>
+    <% end %>
+  <% end %>
+
+  <section class="tc-index-kpi-section" aria-label="Key metrics">
+    <%
+      prev_cost = @prev_totals[:total_estimated_cost].to_f
+      curr_cost = @totals[:total_estimated_cost].to_f
+      delta = prev_cost.zero? ? nil : (curr_cost - prev_cost)
+      kpi_cells = [
+        { icon: "people", label: "Staff counted", value: @totals[:staff_count].to_s, sub: "active" },
+        { icon: "calendar-check", label: "Total planned days", value: @totals[:total_planned_days].to_s, sub: "days" },
+        { icon: "currency-exchange", label: "Total estimated cost", value: number_to_thb(@totals[:total_estimated_cost]), sub: "this month" },
+        { icon: "graph-up-arrow", label: "vs last month", value: delta.nil? ? "—" : (delta >= 0 ? "+" : "") + number_to_thb(delta), sub: delta.nil? ? "—" : (delta >= 0 ? "increase" : "decrease"), value_variant: (delta && delta > 0 ? "danger" : nil) }
+      ]
+    %>
+    <%= odt_kpi_strip(cells: kpi_cells, extra_class: "tc-index-kpi-strip tc-index-kpi-strip--cols-4") %>
+  </section>
+
+  <%= render "budget/staff/tabs", tab: "forecast" %>
+
+  <div class="tc-index-filter-wrap">
+    <%= form_with url: budget_staff_forecast_path, method: :get, data: { turbo_frame: "forecast_content" }, class: "tc-index-filter-bar__row", style: "display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem;" do |f| %>
+      <div class="tc-index-filter-bar__field">
+        <label for="forecast_year" class="tc-index-filter-bar__label">Year</label>
+        <select name="year" id="forecast_year" class="form-select form-select-sm" style="width: auto;" data-controller="budget-month-switch" data-action="change->budget-month-switch#submit">
+          <% ((Date.current.year - 2)..(Date.current.year + 1)).each do |y| %>
+            <option value="<%= y %>" <%= "selected" if @year == y %>><%= y %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="tc-index-filter-bar__field">
+        <label for="forecast_month" class="tc-index-filter-bar__label">Month</label>
+        <select name="month" id="forecast_month" class="form-select form-select-sm" style="width: auto;" data-controller="budget-month-switch" data-action="change->budget-month-switch#submit">
+          <% (1..12).each do |m| %>
+            <option value="<%= m %>" <%= "selected" if @month == m %>><%= Date::MONTHNAMES[m] %></option>
+          <% end %>
+        </select>
+      </div>
+      <button type="submit" class="odt-btn odt-btn--primary odt-btn--sm">Apply</button>
+      <div class="ms-auto d-flex flex-wrap align-items-center gap-2" data-controller="staff-forecast">
+        <%= button_to budget_staff_forecast_copy_previous_path(year: @year, month: @month), method: :post, class: "odt-btn odt-btn--secondary odt-btn--sm", data: { turbo_confirm: "Copy planned days from last month for all staff?" } do %>Copy last month<% end %>
+        <%= form_with url: budget_staff_forecast_set_default_days_path, method: :post, class: "d-inline-flex align-items-center gap-2" do |f| %>
+          <%= hidden_field_tag :year, @year %>
+          <%= hidden_field_tag :month, @month %>
+          <%= hidden_field_tag :staff_ids, @forecast_rows.map { |r| r[:staff_profile].id }.join(",") %>
+          <%= number_field_tag :default_days, 20, step: 0.5, min: 0, max: 31, class: "form-control form-control-sm", style: "width: 5rem;" %>
+          <%= f.submit "Set default days", class: "odt-btn odt-btn--secondary odt-btn--sm" %>
+        <% end %>
+        <% unless @month_locked %>
+          <%= button_to budget_staff_forecast_lock_month_path(year: @year, month: @month), method: :patch, class: "odt-btn odt-btn--ghost odt-btn--sm", data: { turbo_confirm: "Lock this month? No further edits to planned days." } do %>Lock month<% end %>
+        <% else %>
+          <span class="badge bg-secondary"><i class="bi bi-lock"></i> Month locked</span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%= turbo_frame_tag "forecast_content" do %>
+    <div class="tc-index-content">
+      <%= render "budget/staff/forecast_table", forecast_rows: @forecast_rows, totals: @totals, year: @year, month: @month, month_locked: @month_locked %>
+    </div>
+  <% end %>
+</div>

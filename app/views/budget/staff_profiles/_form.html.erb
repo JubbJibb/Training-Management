@@ -1,0 +1,90 @@
+<%
+  f = local_assigns[:f]
+  object = f.object
+%>
+<section class="customer-edit-section" aria-labelledby="staff-profile-heading">
+  <div class="customer-edit-section__head">
+    <h2 class="customer-edit-section__title" id="staff-profile-heading"><i class="bi bi-person" aria-hidden="true"></i> Staff profile</h2>
+  </div>
+  <div class="customer-edit-section__body">
+    <% if object.errors.any? %>
+      <div class="customer-edit-errors" role="alert">
+        <strong>พบข้อผิดพลาด:</strong>
+        <ul class="mb-0">
+          <% object.errors.full_messages.each do |m| %>
+            <li><%= m %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :name, "Full name *", class: "customer-edit-label" %>
+        <%= f.text_field :name, class: "customer-edit-input", required: true, autocomplete: "name", placeholder: "Full name", "aria-required": "true" %>
+        <%= inline_error_for(object, :name) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :nickname, "ชื่อเล่น", class: "customer-edit-label" %>
+        <%= f.text_field :nickname, class: "customer-edit-input", maxlength: 50, autocomplete: "nickname", placeholder: "ชื่อเล่น" %>
+        <%= inline_error_for(object, :nickname) %>
+      </div>
+    </div>
+
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :role, class: "customer-edit-label" %>
+        <%= f.text_field :role, class: "customer-edit-input" %>
+        <%= inline_error_for(object, :role) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :department, class: "customer-edit-label" %>
+        <%= f.text_field :department, class: "customer-edit-input" %>
+        <%= inline_error_for(object, :department) %>
+      </div>
+    </div>
+
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :email, "Email", class: "customer-edit-label" %>
+        <%= f.email_field :email, class: "customer-edit-input", autocomplete: "email", placeholder: "name@example.com" %>
+        <%= inline_error_for(object, :email) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :phone, "เบอร์โทร", class: "customer-edit-label" %>
+        <%= f.telephone_field :phone, class: "customer-edit-input", placeholder: "08x-xxx-xxxx", autocomplete: "tel", pattern: "[0-9\\s\\-+]*", title: "Digits, spaces, + and - only" %>
+        <%= inline_error_for(object, :phone) %>
+      </div>
+    </div>
+
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :internal_day_rate, "Rate (฿/day)", class: "customer-edit-label" %>
+        <%= f.number_field :internal_day_rate, step: 0.01, min: 0, value: (object.internal_day_rate if object.internal_day_rate.to_f.nonzero?), class: "customer-edit-input" %>
+        <p class="customer-edit-hint">Internal cost rate per day</p>
+        <%= inline_error_for(object, :internal_day_rate) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :status, class: "customer-edit-label" %>
+        <%= f.select :status, Budget::StaffProfile::STATUSES, {}, class: "customer-edit-select" %>
+        <p class="customer-edit-hint">Active staff will appear in manday logging</p>
+        <%= inline_error_for(object, :status) %>
+      </div>
+    </div>
+
+    <div class="customer-edit-grid customer-edit-grid--2">
+      <div class="customer-edit-field">
+        <%= f.label :effective_from, "Start date", class: "customer-edit-label" %>
+        <%= f.date_field :effective_from, class: "customer-edit-input" %>
+        <p class="customer-edit-hint">When this person started (optional)</p>
+        <%= inline_error_for(object, :effective_from) %>
+      </div>
+      <div class="customer-edit-field">
+        <%= f.label :end_date, "End date", class: "customer-edit-label" %>
+        <%= f.date_field :end_date, class: "customer-edit-input" %>
+        <p class="customer-edit-hint">When this person left (optional)</p>
+        <%= inline_error_for(object, :end_date) %>
+      </div>
+    </div>
+  </div>
+</section>

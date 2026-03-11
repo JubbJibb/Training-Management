@@ -1,0 +1,23 @@
+<%
+  summary_month = local_assigns[:summary_month] || {}
+%>
+<div class="budget-kpi-row odt-kpi-strip" style="margin-bottom: var(--odt-spacing);">
+  <div class="odt-kpi-strip__inner">
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Paid</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(summary_month[:paid].to_f) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Committed</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(summary_month[:committed].to_f) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Planned</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(summary_month[:planned].to_f) %></span>
+    </div>
+    <div class="odt-kpi-strip__cell">
+      <span class="odt-kpi-strip__label">Total</span>
+      <span class="odt-kpi-strip__value"><%= number_to_thb(summary_month[:total].to_f) %></span>
+    </div>
+  </div>
+</div>

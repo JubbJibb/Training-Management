@@ -1,0 +1,71 @@
+<%
+  tc = local_assigns[:training_class]
+  seat_status = tc_seat_status(tc)
+  reg = tc.total_registered_seats
+  cap = tc.max_attendees.to_i
+  time_str = tc.start_time.present? && tc.end_time.present? ? "#{tc.start_time.strftime('%H:%M')}–#{tc.end_time.strftime('%H:%M')}" : "All day"
+          pub = tc_class_status_label(tc)
+  close_url = operations_training_calendar_modal_close_path(which: "event")
+%>
+<%= turbo_frame_tag "tc_event_modal" do %>
+  <div class="tc-modal-backdrop" data-controller="tc-event-modal" data-action="click->tc-event-modal#closeBackdrop keydown@window->tc-event-modal#closeOnEscape" data-tc-event-modal-target="backdrop" role="presentation">
+    <div class="tc-modal tc-modal--event" role="dialog" aria-modal="true" aria-labelledby="tc_event_modal_title" data-tc-event-modal-target="dialog">
+      <div class="tc-modal__inner">
+        <header class="tc-modal__header">
+          <h2 id="tc_event_modal_title" class="tc-modal__title"><%= tc.title %></h2>
+          <%= link_to "×", close_url, class: "tc-modal__close", data: { turbo_frame: "tc_event_modal", aria: { label: "Close" } } %>
+        </header>
+        <div class="tc-modal__body">
+          <dl class="tc-modal__meta">
+            <dt>Date</dt>
+            <dd><%= tc.date.strftime("%a, %b %d, %Y") %></dd>
+            <dt>Time</dt>
+            <dd><%= time_str %></dd>
+            <% if tc.instructor.present? %>
+              <dt>Instructor</dt>
+              <dd><%= tc.instructor %></dd>
+            <% end %>
+            <dt>Location</dt>
+            <dd><%= tc.location %></dd>
+            <% if cap.positive? %>
+              <dt>Seats</dt>
+              <dd><%= reg %> / <%= cap %> (<%= cap - reg %> remaining)</dd>
+            <% end %>
+          </dl>
+          <div class="tc-modal__badges">
+            <span class="tc-modal__pill tc-modal__pill--<%= pub.downcase %>"><%= pub %></span>
+            <% if seat_status == "full" %><span class="tc-modal__pill tc-modal__pill--full">FULL</span><% end %>
+            <% if seat_status == "almost" %><span class="tc-modal__pill tc-modal__pill--almost">ALMOST</span><% end %>
+            <% if seat_status.blank? && cap.positive? %><span class="tc-modal__pill tc-modal__pill--avail">Available</span><% end %>
+            <% if tc.status_label == "Cancelled" %><span class="tc-modal__pill tc-modal__pill--cancelled">Cancelled</span><% end %>
+          </div>
+          <% if tc.description.present? %>
+            <div class="tc-modal__section">
+              <h3 class="tc-modal__section-title">Description</h3>
+              <p class="tc-modal__text"><%= simple_format(tc.description) %></p>
+            </div>
+          <% end %>
+          <div class="tc-modal__section">
+            <h3 class="tc-modal__section-title">Notes & Documents</h3>
+            <p class="tc-modal__muted">
+              <%= link_to "View in class workspace", admin_class_workspace_documents_path(tc), class: "tc-modal__link", data: { turbo_frame: "_top" } %> ·
+              <%= link_to "Edit notes", admin_class_workspace_edit_path(tc), class: "tc-modal__link", data: { turbo_frame: "_top" } %>
+            </p>
+          </div>
+          <div class="tc-modal__section">
+            <h3 class="tc-modal__section-title">Cost</h3>
+            <p class="tc-modal__text">Cost: <%= number_to_currency(tc.cost.to_f) %> · Price: <%= number_to_currency(tc.price.to_f) %></p>
+            <p class="tc-modal__muted"><%= link_to "Cost preview in workspace", admin_class_workspace_finance_path(tc), class: "tc-modal__link", data: { turbo_frame: "_top" } %></p>
+          </div>
+        </div>
+        <footer class="tc-modal__footer">
+          <%= link_to "View full class", admin_class_workspace_path(tc), class: "tc-modal__btn tc-modal__btn--primary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Edit", admin_class_workspace_edit_path(tc), class: "tc-modal__btn tc-modal__btn--secondary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Attendees", admin_class_workspace_attendees_path(tc), class: "tc-modal__btn tc-modal__btn--secondary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Duplicate", new_admin_training_class_path, class: "tc-modal__btn tc-modal__btn--secondary", data: { turbo_frame: "_top" } %>
+          <%= link_to "Close", close_url, class: "tc-modal__btn tc-modal__btn--ghost", data: { turbo_frame: "tc_event_modal" } %>
+        </footer>
+      </div>
+    </div>
+  </div>
+<% end %>

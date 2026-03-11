@@ -1,0 +1,5 @@
+<%
+  status = local_assigns[:status].to_s
+  css = "budget-badge budget-badge--#{status}"
+%>
+<span class="<%= css %>"><%= status.titleize %></span>

@@ -1,0 +1,39 @@
+<% content_for :title, "Staff Directory" %>
+<div class="tc-index-page budget-staff-page">
+  <%= render "components/odt/page_header", title: "Staff", subtitle: "Directory and monthly forecast", icon: "people" do %>
+    <%= link_to new_budget_staff_profile_path, class: "odt-btn odt-btn--primary odt-btn--md" do %>
+      <i class="bi bi-plus-circle odt-btn__icon odt-btn__icon--left" aria-hidden="true"></i>
+      <span class="odt-btn__label">Create new Staff</span>
+    <% end %>
+  <% end %>
+
+  <section class="tc-index-kpi-section" aria-label="Key metrics">
+    <%= odt_kpi_strip(
+      cells: [
+        { icon: "people", label: "Active staff", value: @active_count.to_s, sub: "in directory" },
+        { icon: "person-x", label: "Inactive", value: @inactive_count.to_s, sub: "archived" }
+      ],
+      extra_class: "tc-index-kpi-strip tc-index-kpi-strip--cols-4"
+    ) %>
+  </section>
+
+  <%= render "budget/staff/tabs", tab: "directory" %>
+
+  <div class="tc-index-filter-wrap">
+    <%= render "components/odt/filters_row", form_url: budget_staff_directory_path, form_method: :get, form_options: { data: { turbo_frame: "staff_table" } } do %>
+      <div class="odt-filters-row__field" style="flex: 1; min-width: 200px;">
+        <label for="staff_q" class="odt-filters-row__label">Search</label>
+        <input type="text" name="q" id="staff_q" class="odt-filters-row__input" value="<%= @q %>" placeholder="Search: name, nickname, email, department">
+      </div>
+      <div class="odt-filters-row__actions">
+        <button type="submit" class="odt-filters-row__btn odt-filters-row__btn--primary">Search</button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="tc-index-content">
+    <%= turbo_frame_tag "staff_table", class: "staff-table-frame" do %>
+      <%= render "budget/staff/table", staff_profiles: @staff_profiles %>
+    <% end %>
+  </div>
+</div>

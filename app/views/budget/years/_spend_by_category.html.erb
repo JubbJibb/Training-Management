@@ -1,0 +1,61 @@
+<%
+  by_category = local_assigns[:by_category] || []
+%>
+<div class="insight-card" style="margin-bottom: var(--odt-spacing);">
+  <div class="insight-card__header">
+    <div class="insight-card__accent"></div>
+    <div class="insight-card__head-text">
+      <h2 class="insight-card__title">Spend by category</h2>
+      <p class="insight-card__subtitle">Allocated vs paid / committed / planned</p>
+    </div>
+  </div>
+  <div class="insight-card__body">
+    <% if by_category.any? %>
+      <div class="odt-table-wrap insight-odt-table__scroll">
+        <table class="insight-odt-table odt-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col">Category</th>
+              <th scope="col" class="text-end">Allocated</th>
+              <th scope="col" class="text-end">Paid</th>
+              <th scope="col" class="text-end">Committed</th>
+              <th scope="col" class="text-end">Planned</th>
+              <th scope="col" class="text-end">Remaining</th>
+              <th scope="col">Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% by_category.each do |row| %>
+              <tr class="<%= 'budget-row--over' if row[:over] %>">
+                <td>
+                  <%= row[:category].name %>
+                  <% if row[:over] %><%= render "budget/shared/budget_badge", status: "over" %><% end %>
+                </td>
+                <td class="text-end"><%= number_to_thb(row[:allocated]) %></td>
+                <td class="text-end"><%= number_to_thb(row[:paid]) %></td>
+                <td class="text-end"><%= number_to_thb(row[:committed]) %></td>
+                <td class="text-end"><%= number_to_thb(row[:planned]) %></td>
+                <td class="text-end <%= row[:remaining].to_f < 0 ? 'text-danger' : '' %>"><%= number_to_thb(row[:remaining]) %></td>
+                <td>
+                  <div class="budget-progress">
+                    <div class="budget-progress__bar" style="width: <%= [row[:usage_pct].to_f, 100].min %>%; background: <%= row[:over] ? '#dc2626' : 'var(--odt-blue)' %>;"></div>
+                    <span class="budget-progress__label"><%= row[:usage_pct] %>%</span>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0">No allocations yet. <%= link_to "Set allocations", allocations_budget_year_path(local_assigns[:budget_year]) if local_assigns[:budget_year] %>.</p>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .budget-progress { position: relative; height: 20px; background: #e5e7eb; border-radius: 4px; overflow: hidden; min-width: 80px; }
+  .budget-progress__bar { height: 100%; border-radius: 4px; }
+  .budget-progress__label { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; font-weight: 600; color: #1f2937; }
+  .budget-row--over { background: #fef2f2; }
+</style>
