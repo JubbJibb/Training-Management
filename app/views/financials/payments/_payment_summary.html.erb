@@ -7,14 +7,17 @@
   company_name = "Odd-E (Thailand) Co., Ltd."
   company_address = "2549/41-43 Phahonyothin, Lat Yao, Chatuchak, Bangkok 10900"
   company_tax_id = Rails.application.config.x.company_tax_id.presence || "0-1055-56110-71-8"
-  bank_name = "Krung Thai Bank (ธ.กรุงไทย)"
-  account_holder = "Odd-E (Thailand) Co., Ltd."
-  account_type_number = "Savings / Account number as per company"
+  bank_name = "ธ.กรุงไทย"
+  account_type = "ออมทรัพย์"
+  account_number = "981-7-61590-1"
+  account_holder = "บจ. ออด-อี(ประเทศไทย) จำกัด"
   instruction_text = "After payment, please send your payment slip to ODTTraining@odds.team"
   base = (registration.base_price * (registration.seats || 1)).round(2)
   before_vat = registration.total_price_before_vat.to_f.round(2)
   vat_amount = registration.total_vat_amount.to_f.round(2)
   grand_total = registration.total_final_price.to_f.round(2)
+  advance_paid = registration.respond_to?(:advance_paid_amount) ? registration.advance_paid_amount.to_f.round(2) : 0.0
+  remaining_due = [grand_total - advance_paid, 0].max.round(2)
   promotions = registration.active_promotions.to_a
   total_discount = (registration.total_discount_amount.to_f * (registration.seats || 1)).round(2)
 %>
@@ -100,6 +103,22 @@
         <span class="payment-summary__pricing-label"><%= vat_excluded ? "Total (VAT excluded)" : "Grand total" %></span>
         <span class="payment-summary__pricing-grand">฿<%= number_with_delimiter(grand_total) %></span>
       </div>
+      <% if advance_paid.positive? || registration.payment_status == "Partial" %>
+        <div class="payment-summary__pricing-row">
+          <span class="payment-summary__pricing-label">Advance paid (deposit)</span>
+          <span class="payment-summary__pricing-amount">−฿<%= number_with_delimiter(advance_paid) %></span>
+        </div>
+        <div class="payment-summary__pricing-row payment-summary__pricing-row--total">
+          <span class="payment-summary__pricing-label">Remaining due</span>
+          <span class="payment-summary__pricing-grand">฿<%= number_with_delimiter(remaining_due) %></span>
+        </div>
+        <% if registration.respond_to?(:advance_paid_note) && registration.advance_paid_note.present? %>
+          <div class="payment-summary__pricing-row">
+            <span class="payment-summary__pricing-label">Note</span>
+            <span class="payment-summary__pricing-amount"><%= registration.advance_paid_note.to_s %></span>
+          </div>
+        <% end %>
+      <% end %>
     </div>
   </section>
 
@@ -107,7 +126,8 @@
     <h3 class="payment-summary__section-title">Payment method</h3>
     <div class="payment-summary__bank-rows">
       <div class="payment-summary__row"><span class="payment-summary__label">Bank</span><span class="payment-summary__value"><%= bank_name %></span></div>
-      <div class="payment-summary__row"><span class="payment-summary__label">Account type / Number</span><span class="payment-summary__value"><%= account_type_number %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account type</span><span class="payment-summary__value"><%= account_type %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account number</span><span class="payment-summary__value"><%= account_number %></span></div>
       <div class="payment-summary__row"><span class="payment-summary__label">Account holder</span><span class="payment-summary__value"><%= account_holder %></span></div>
     </div>
     <p class="payment-summary__instruction"><%= instruction_text %></p>

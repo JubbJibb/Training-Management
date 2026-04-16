@@ -1,0 +1,5 @@
+<% if local_assigns[:message].present? %>
+  <div class="attendance-flash attendance-flash--<%= type == :notice ? 'success' : 'error' %>" role="alert">
+    <%= message %>
+  </div>
+<% end %>

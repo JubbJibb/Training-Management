@@ -1,0 +1,30 @@
+<%
+  summary = local_assigns[:summary] || @summary || {}
+  current_status = params[:workflow_status]
+  completed_today = params[:completed_today] == "1"
+  base_params = params.permit(:period, :date_from, :date_to, :client_type, :class_id, :instructor, :overdue_only, :has_slip).to_h
+  all_count = summary[:all_count] || 0
+  cells = [
+    { icon: "list-ul", label: "All", value: all_count, path: financials_payments_path(base_params), active: current_status.blank? && !completed_today },
+    { icon: "clock-history", label: "Pending", value: summary.dig(:pending, :count) || 0, path: financials_payments_path(base_params.merge(workflow_status: "pending")), active: current_status == "pending" },
+    { icon: "patch-check", label: "Awaiting verification", value: summary.dig(:awaiting_verification, :count) || 0, path: financials_payments_path(base_params.merge(workflow_status: "awaiting_verification")), active: current_status == "awaiting_verification" },
+    { icon: "exclamation-triangle", label: "Overdue", value: summary.dig(:overdue, :count) || 0, path: financials_payments_path(base_params.merge(workflow_status: "overdue")), active: current_status == "overdue" },
+    { icon: "send", label: "Ready to send", value: summary.dig(:ready_send, :count) || 0, path: financials_payments_path(base_params.merge(workflow_status: "ready_send")), active: current_status == "ready_send" },
+    { icon: "check-circle", label: "Completed today", value: summary[:completed_today] || 0, path: financials_payments_path(base_params.merge(completed_today: "1")), active: completed_today }
+  ]
+%>
+<section class="insights-kpi-section pt-kpi-section" aria-label="Payment status KPIs">
+  <div class="odt-kpi-strip insights-kpi-strip business-insights-kpi pt-kpi-strip">
+    <div class="odt-kpi-strip__inner">
+      <% cells.each do |cell| %>
+        <%= link_to cell[:path], class: "odt-kpi-strip__cell odt-kpi-strip__cell--link #{'odt-kpi-strip__cell--active' if cell[:active]}", data: { turbo_frame: "financials_payments_workspace" }, aria: { label: "Filter: #{cell[:label]}" } do %>
+          <div class="odt-kpi-strip__head">
+            <span class="odt-kpi-strip__icon" aria-hidden="true"><i class="bi bi-<%= cell[:icon] %>"></i></span>
+            <span class="odt-kpi-strip__label"><%= cell[:label] %></span>
+          </div>
+          <span class="odt-kpi-strip__value"><%= cell[:value] %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</section>

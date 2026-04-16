@@ -7,11 +7,24 @@
     <div class="attendee-edit-fields attendee-edit-fields--grid">
       <div class="attendee-edit-field">
         <%= f.label :payment_status, "Payment status", class: "attendee-edit-field__label" %>
-        <%= f.select :payment_status, [["Pending", "Pending"], ["Paid", "Paid"]], { selected: @attendee.payment_status || "Pending" }, { class: "form-select form-control-odt" } %>
+        <%= f.select :payment_status,
+          options_for_select(attendee_ledger_payment_statuses.map { |s| [s, s] }, (@attendee.payment_status || "Pending")),
+          {},
+          { class: "form-select form-control-odt" } %>
+        <p class="attendee-edit-field__hint mt-1 mb-0">ถ้าเป็น Partial ให้กรอกยอดมัดจำ/จ่ายล่วงหน้าด้านล่างเพื่อให้ Payment Summary แสดงยอดที่จ่ายมาแล้ว</p>
       </div>
       <div class="attendee-edit-field">
         <%= f.label :document_status, "Document status", class: "attendee-edit-field__label" %>
         <%= f.select :document_status, [["", ""], ["QT", "QT"], ["INV", "INV"], ["Receipt", "Receipt"]], { selected: @attendee.document_status }, { class: "form-select form-control-odt" } %>
+      </div>
+      <div class="attendee-edit-field">
+        <%= f.label :advance_paid_amount, "Advance paid (deposit)", class: "attendee-edit-field__label" %>
+        <%= f.number_field :advance_paid_amount, class: "form-control form-control-odt", step: "0.01", min: 0, placeholder: "e.g. 3000" %>
+        <p class="attendee-edit-field__hint mt-1 mb-0">ยอดที่จ่ายมาก่อนหน้านี้ (มัดจำ/จ่ายล่วงหน้า)</p>
+      </div>
+      <div class="attendee-edit-field">
+        <%= f.label :advance_paid_note, "Advance paid note", class: "attendee-edit-field__label" %>
+        <%= f.text_area :advance_paid_note, class: "form-control form-control-odt", rows: 2, placeholder: "เช่น จ่ายมัดจำ 3,000 วันที่ 10/03/2026 (โอน) / อ้างอิงสลิป #..." %>
       </div>
       <div class="attendee-edit-field">
         <%= f.label :due_date, "Due date", class: "attendee-edit-field__label" %>

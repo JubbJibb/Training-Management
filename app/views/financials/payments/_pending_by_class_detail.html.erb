@@ -1,0 +1,40 @@
+<%
+  group = local_assigns[:group]
+  tc = group[:training_class]
+  unpaid_path = local_assigns[:unpaid_path]
+  amt = ->(a) { (a.total_amount.to_f).positive? ? a.total_amount : (a.total_final_price || 0).to_f }
+  last_reminder = last_reminder_sent_at(group[:attendees].map(&:id))
+%>
+<div class="pt-pfc-detail">
+  <div class="pt-pfc-detail__grid">
+    <div class="pt-pfc-detail__block">
+      <h4 class="pt-pfc-detail__heading">Unpaid list</h4>
+      <ul class="pt-pfc-detail__list">
+        <% group[:attendees].each do |a| %>
+          <li class="pt-pfc-detail__list-item">
+            <%= link_to financials_payment_path(a), class: "pt-pfc-detail__link", data: { turbo_frame: "_top" } do %>
+              <span class="pt-pfc-detail__name" title="<%= (a.billing_name.presence || a.name) %>"><%= (a.billing_name.presence || a.name).to_s.truncate(40) %></span>
+              <span class="pt-pfc-detail__amt"><%= number_to_thb(amt.call(a)) %></span>
+            <% end %>
+            <%= link_to "View", financials_payment_path(a), class: "pt-pfc-detail__view", data: { turbo_frame: "_top" } %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="pt-pfc-detail__block">
+      <h4 class="pt-pfc-detail__heading">Follow-up</h4>
+      <dl class="pt-pfc-detail__meta">
+        <dt>Last reminder</dt>
+        <dd><%= last_reminder ? last_reminder.strftime("%d %b %Y %H:%M") : "—" %></dd>
+        <dt>Status</dt>
+        <dd>Pending</dd>
+        <dt>Note</dt>
+        <dd class="pt-pfc-detail__note">—</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="pt-pfc-detail__actions">
+    <%= link_to "Send reminder", unpaid_path, class: "pt-pfc-detail__btn pt-pfc-detail__btn--primary", data: { turbo_frame: "financials_payments_workspace" } %>
+    <%= link_to "Open class details", admin_class_workspace_path(tc), class: "pt-pfc-detail__btn pt-pfc-detail__btn--secondary", data: { turbo_frame: "_top" } %>
+  </div>
+</div>

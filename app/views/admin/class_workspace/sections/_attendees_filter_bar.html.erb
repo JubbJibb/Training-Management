@@ -5,35 +5,39 @@
   current_source = params[:source].presence
   current_q = params[:q].to_s
   base_path = admin_class_workspace_attendees_path(training_class)
+  source_filter_opts = attendee_source_channel_options
 %>
-<div class="reg-filter-bar" id="attendees-filter-bar">
+<div class="reg-filter-bar reg-filter-bar--attendees" id="attendees-filter-bar">
   <%= form_with url: base_path, method: :get, local: true, class: "reg-filter-bar__form", data: { turbo_frame: "_top" } do |f| %>
-    <div class="reg-filter-bar__row">
+    <div class="reg-filter-bar__row reg-filter-bar__row--tabs">
       <div class="reg-filter-bar__tabs" role="tablist">
-        <%= link_to "All", admin_class_workspace_attendees_path(training_class, **{ payment: current_payment, source: current_source, q: current_q.presence }.compact), class: "reg-filter-bar__tab #{current_tab == 'all' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" %>
-        <%= link_to admin_class_workspace_attendees_path(training_class, tab: "corporate", payment: current_payment, source: current_source, q: current_q), class: "reg-filter-bar__tab #{current_tab == 'corporate' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" do %>Corporate<% end %>
-        <%= link_to admin_class_workspace_attendees_path(training_class, tab: "individual", payment: current_payment, source: current_source, q: current_q), class: "reg-filter-bar__tab #{current_tab == 'individual' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" do %>Individual<% end %>
+        <%= link_to "All", admin_class_workspace_attendees_path(training_class, **{ payment: current_payment, source: current_source, q: current_q.presence, sort: params[:sort], direction: params[:direction] }.compact), class: "reg-filter-bar__tab #{current_tab == 'all' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" %>
+        <%= link_to admin_class_workspace_attendees_path(training_class, tab: "corporate", payment: current_payment, source: current_source, q: current_q.presence, sort: params[:sort], direction: params[:direction]), class: "reg-filter-bar__tab #{current_tab == 'corporate' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" do %>Corporate<% end %>
+        <%= link_to admin_class_workspace_attendees_path(training_class, tab: "individual", payment: current_payment, source: current_source, q: current_q.presence, sort: params[:sort], direction: params[:direction]), class: "reg-filter-bar__tab #{current_tab == 'individual' ? 'reg-filter-bar__tab--active' : ''}", role: "tab" do %>Individual<% end %>
       </div>
-      <div class="reg-filter-bar__filters">
-        <%= f.hidden_field :tab, value: current_tab if current_tab != "all" %>
-        <%= f.hidden_field :q, value: current_q if current_q.present? %>
+    </div>
+    <div class="reg-filter-bar__row reg-filter-bar__row--controls">
+      <%= f.hidden_field :tab, value: current_tab if current_tab != "all" %>
+      <%= f.hidden_field :sort, value: params[:sort] if params[:sort].present? %>
+      <%= f.hidden_field :direction, value: params[:direction] if params[:direction].present? %>
+      <div class="reg-filter-bar__filters reg-filter-bar__filters--tight">
         <select name="payment" class="reg-filter-bar__select form-select form-select-sm" data-reg-filter-submit aria-label="Payment status">
           <option value="">Payment: All</option>
           <option value="paid" <%= current_payment == 'paid' ? 'selected' : '' %>>Paid</option>
-          <option value="pending" <%= current_payment == 'pending' ? 'selected' : '' %>>Pending</option>
+          <option value="pending" <%= current_payment == 'pending' ? 'selected' : '' %>>Pending (not paid)</option>
+          <option value="partial" <%= current_payment == 'partial' ? 'selected' : '' %>>Partial</option>
+          <option value="complimentary" <%= current_payment == 'complimentary' ? 'selected' : '' %>>Complimentary</option>
           <option value="overdue" <%= current_payment == 'overdue' ? 'selected' : '' %>>Overdue</option>
           <option value="refunded" <%= current_payment == 'refunded' ? 'selected' : '' %>>Refunded</option>
         </select>
         <select name="source" class="reg-filter-bar__select form-select form-select-sm" data-reg-filter-submit aria-label="Source">
           <option value="">Source: All</option>
-          <option value="Web" <%= current_source == 'Web' ? 'selected' : '' %>>Web</option>
-          <option value="LINE" <%= current_source == 'LINE' ? 'selected' : '' %>>LINE</option>
-          <option value="Facebook" <%= current_source == 'Facebook' ? 'selected' : '' %>>Facebook</option>
-          <option value="Referral" <%= current_source == 'Referral' ? 'selected' : '' %>>Referral</option>
-          <option value="Internal" <%= current_source == 'Internal' ? 'selected' : '' %>>Internal</option>
+          <% source_filter_opts.each do |opt| %>
+            <option value="<%= opt %>" <%= current_source == opt ? 'selected' : '' %>><%= opt %></option>
+          <% end %>
         </select>
-        <div class="reg-filter-bar__search-wrap">
-          <%= f.search_field :q, value: current_q, class: "form-control form-control-sm reg-filter-bar__input", placeholder: "Name or company", "aria-label": "Name or company" %>
+        <div class="reg-filter-bar__search-wrap reg-filter-bar__search-wrap--grow">
+          <%= f.search_field :q, value: current_q, class: "form-control form-control-sm reg-filter-bar__input reg-filter-bar__input--wide", placeholder: "Search name, email, or company", "aria-label": "Search name, email, or company" %>
           <button type="submit" class="odt-btn odt-btn--secondary odt-btn--sm reg-filter-bar__search-btn"><i class="bi bi-search"></i></button>
         </div>
       </div>

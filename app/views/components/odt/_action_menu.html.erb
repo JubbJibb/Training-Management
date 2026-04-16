@@ -8,7 +8,7 @@
       <li>
         <% if item[:url].present? %>
           <% method = (item[:method] || :get).to_s.downcase %>
-          <% if method == "delete" || method == "patch" %>
+          <% if method == "delete" || method == "patch" || method == "post" %>
             <% dd_class = "dropdown-item" %>
             <% dd_class += " text-danger" if method == "delete" || item[:danger] %>
             <%= link_to item[:url], class: dd_class, data: (item[:data] || {}).merge(turbo_method: method.to_sym, turbo_confirm: item[:confirm]) do %>

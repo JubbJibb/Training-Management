@@ -1,0 +1,42 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  records = local_assigns[:records] || []
+  focus_date = local_assigns[:focus_date]
+  record = local_assigns[:record] || records.first
+  total_attendees = training_class.attendees.attendees.count
+%>
+<div class="hist-detail-panel">
+  <div class="hist-detail-panel__header">
+    <h3 class="hist-detail-panel__title">สรุปรายวัน — <%= record.attendance_date.strftime("%d/%m/%Y") %></h3>
+    <%= link_to "ปิด", admin_class_workspace_attendance_path(training_class, tab: "history", history_view: "monthly", month: params[:month]), class: "hist-detail-panel__close", data: { turbo_frame: "_top" } %>
+  </div>
+  <div class="hist-detail-panel__body">
+    <% records.each do |rec| %>
+      <%
+        present = rec.present_count
+        absent = rec.absent_count
+        rate = rec.attendance_rate_percent
+      %>
+      <div class="hist-detail-panel__block">
+        <dl class="hist-detail-panel__meta">
+          <dt>ชั่วโมงเรียน</dt>
+          <dd><%= rec.learning_hour %></dd>
+          <dt>สถานะ</dt>
+          <dd><%= render "admin/attendance/attendance_history_status_badge", record: rec %></dd>
+          <dt>บันทึกโดย</dt>
+          <dd><%= rec.recorded_by&.email || "—" %></dd>
+          <dt>อัปเดตล่าสุด</dt>
+          <dd><%= l(rec.updated_at, format: :short) %></dd>
+          <dt>มาเรียน / ขาด</dt>
+          <dd><%= present %> / <%= absent %></dd>
+          <dt>อัตราการมา</dt>
+          <dd><%= rate.present? ? "#{rate}%" : "—" %></dd>
+        </dl>
+        <div class="hist-detail-panel__actions">
+          <%= link_to "ดูรายละเอียด", admin_class_workspace_attendance_record_path(training_class, rec), class: "hist-detail-panel__btn btn btn-outline-secondary btn-sm", data: { turbo_frame: "attendance_history_detail" } %>
+          <%= link_to "แก้ไขรายการนี้", admin_class_workspace_attendance_path(training_class, attendance_date: rec.attendance_date.strftime("%Y-%m-%d"), learning_hour: rec.learning_hour, edit_record_id: rec.id, tab: "check"), class: "hist-detail-panel__btn btn btn-primary btn-sm", data: { turbo_frame: "_top" } %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

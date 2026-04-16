@@ -3,11 +3,13 @@
   attendees = local_assigns[:attendees] || @attendees || []
   sort_column = local_assigns[:sort_column].presence || @sort_column.presence || "name"
   sort_direction = local_assigns[:sort_direction].presence || @sort_direction.presence || "asc"
-  sort_params = request.query_parameters.slice("tab", "payment", "source", "q").compact
+  sort_params = request.query_parameters.slice("tab", "payment", "source", "q", "sort", "direction").compact
+  return_to_url = request.original_url
+  bulk_source_opts = attendee_source_channel_options
 %>
-<div class="workspace-section workspace-section--attendees attendees-ledger">
+<div class="workspace-section workspace-section--attendees attendees-ledger attendees-ledger--actionable">
   <div class="attendees-ledger__toolbar">
-    <%= link_to new_admin_training_class_attendee_path(training_class, return_to: request.original_url), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
+    <%= link_to new_admin_training_class_attendee_path(training_class, return_to: return_to_url), class: "odt-btn odt-btn--primary odt-btn--sm" do %>
       <i class="bi bi-person-plus" aria-hidden="true"></i> Add attendee
     <% end %>
     <div class="attendees-ledger__toolbar-actions">
@@ -18,16 +20,46 @@
 
   <%= render "admin/class_workspace/sections/attendees_filter_bar", training_class: training_class %>
 
+  <%= form_with url: bulk_update_admin_training_class_attendees_path(training_class), method: :post, local: true, html: { id: "ledger-bulk-form" } do %>
+    <%= hidden_field_tag :return_to, request.original_fullpath, id: "ledger-bulk-return" %>
+    <%= hidden_field_tag :bulk_action, "", id: "ledger-bulk-action" %>
+    <%= hidden_field_tag :bulk_source, "", id: "ledger-bulk-source" %>
+  <% end %>
+
+  <div class="attendees-ledger__bulk-bar" id="ledger-bulk-bar" hidden>
+    <span class="attendees-ledger__bulk-bar-text"><strong id="ledger-bulk-count">0</strong> selected</span>
+    <div class="attendees-ledger__bulk-bar-actions">
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-bulk="mark_paid">Mark paid</button>
+      <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" data-bulk="send_reminder">Send reminder</button>
+      <div class="attendees-ledger__bulk-source">
+        <label class="visually-hidden" for="ledger-bulk-source-pick">Source for bulk update</label>
+        <select id="ledger-bulk-source-pick" class="form-select form-select-sm attendees-ledger__bulk-source-select" aria-label="Bulk source">
+          <option value="">Source…</option>
+          <% bulk_source_opts.each do |opt| %>
+            <option value="<%= opt %>"><%= opt %></option>
+          <% end %>
+        </select>
+        <button type="button" class="odt-btn odt-btn--primary odt-btn--sm" data-bulk="change_source">Set source</button>
+      </div>
+    </div>
+  </div>
+
   <% if attendees.any? %>
     <div class="attendees-ledger__table-wrap">
       <table class="attendees-ledger__table" role="table" aria-label="Attendees">
         <thead>
           <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--check">
+              <input type="checkbox" class="form-check-input" id="ledger-select-all" aria-label="Select all rows in this list">
+            </th>
             <th scope="col" class="attendees-ledger__th attendees-ledger__th--no">#No</th>
             <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">
               <%= link_to admin_class_workspace_attendees_path(training_class, **sort_params.merge(sort: "name", direction: (sort_column == "name" && sort_direction == "asc" ? "desc" : "asc"))), class: "attendees-ledger__sort-link #{sort_column == "name" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
-                Name <%= sort_column == "name" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
+                Name / Email <%= sort_column == "name" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--company">
+              Company
             </th>
             <th scope="col" class="attendees-ledger__th attendees-ledger__th--type">
               <%= link_to admin_class_workspace_attendees_path(training_class, **sort_params.merge(sort: "participant_type", direction: (sort_column == "participant_type" && sort_direction == "asc" ? "desc" : "asc"))), class: "attendees-ledger__sort-link #{sort_column == "participant_type" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
@@ -49,54 +81,22 @@
                 Payment <%= sort_column == "payment_status" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="attendees-ledger__th attendees-ledger__th--payment-date">
-              <%= link_to admin_class_workspace_attendees_path(training_class, **sort_params.merge(sort: "payment_date", direction: (sort_column == "payment_date" && sort_direction == "asc" ? "desc" : "asc"))), class: "attendees-ledger__sort-link #{sort_column == "payment_date" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
-                Payment Date <%= sort_column == "payment_date" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
-              <% end %>
-            </th>
             <th scope="col" class="attendees-ledger__th attendees-ledger__th--amount">
               <%= link_to admin_class_workspace_attendees_path(training_class, **sort_params.merge(sort: "amount", direction: (sort_column == "amount" && sort_direction == "asc" ? "desc" : "asc"))), class: "attendees-ledger__sort-link #{sort_column == "amount" ? "attendees-ledger__sort-link--active" : ""}", data: { turbo_frame: "_top" } do %>
                 Amount <%= sort_column == "amount" ? (sort_direction == "asc" ? "↑" : "↓") : "" %>
               <% end %>
             </th>
-            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions">Actions</th>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--actions"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           <% attendees.each_with_index do |a, idx| %>
-            <tr class="attendees-ledger__row" data-attendee-id="<%= a.id %>" id="ledger-row-<%= a.id %>">
-              <td class="attendees-ledger__td attendees-ledger__td--no"><%= idx + 1 %></td>
-              <td class="attendees-ledger__td attendees-ledger__td--name">
-                <%= link_to edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url), class: "attendees-ledger__name-link" do %>
-                  <span class="attendees-ledger__name"><%= a.name %></span>
-                  <% if a.email.present? %><span class="attendees-ledger__email"><%= a.email %></span><% end %>
-                <% end %>
-              </td>
-              <td class="attendees-ledger__td attendees-ledger__td--type">
-                <%= odt_badge(a.participant_type.presence || "—", variant: a.participant_type == "Corp" ? :info : :neutral, size: :sm) %>
-              </td>
-              <td class="attendees-ledger__td attendees-ledger__td--seats"><%= a.seats %></td>
-              <td class="attendees-ledger__td attendees-ledger__td--source">
-                <%= odt_badge(a.source_channel.presence || "—", variant: :neutral, size: :sm) %>
-              </td>
-              <td class="attendees-ledger__td attendees-ledger__td--payment">
-                <% pay_status = a.payment_status == "Paid" ? :paid : (a.respond_to?(:due_date) && a.due_date.present? && a.due_date < Date.current ? :overdue : :pending); pay_label = pay_status == :paid ? "Paid" : (pay_status == :overdue ? "Overdue" : "Pending") %>
-                <%= odt_badge(pay_label, status: pay_status, size: :sm) %>
-              </td>
-              <td class="attendees-ledger__td attendees-ledger__td--payment-date"><%= a.respond_to?(:display_payment_date) && a.display_payment_date.present? ? a.display_payment_date.to_date.strftime("%b %d, %Y") : "—" %></td>
-              <td class="attendees-ledger__td attendees-ledger__td--amount"><%= a.respond_to?(:total_final_price) ? number_to_thb(a.total_final_price) : "—" %></td>
-              <td class="attendees-ledger__td attendees-ledger__td--actions">
-                <div class="attendees-ledger__actions-cell">
-                  <%= odt_split_button(
-                    primary: { url: edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url, mode: "edit"), icon: "pencil", title: "Edit registration", label: "Edit" },
-                    dropdown_items: [
-                      { label: "View payment summary", icon: "receipt", url: summary_financials_payment_path(a), data: { turbo_frame: "_top" } },
-                      { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(training_class, a, return_to: request.original_url), method: :delete, confirm: "Remove this attendee from the class?" }
-                    ]
-                  ) %>
-                </div>
-              </td>
-            </tr>
+            <%= render "admin/class_workspace/sections/ledger_attendee_row",
+                training_class: training_class,
+                attendee: a,
+                row_index: idx + 1,
+                sort_params: sort_params,
+                return_to: return_to_url %>
           <% end %>
         </tbody>
       </table>
@@ -107,16 +107,72 @@
         title: "No attendees match",
         message: "Try changing filters or add an attendee.",
         action_label: "Add attendee",
-        action_url: new_admin_training_class_attendee_path(training_class, return_to: request.original_url) %>
+        action_url: new_admin_training_class_attendee_path(training_class, return_to: return_to_url) %>
   <% end %>
 </div>
 
 <script>
 (function() {
   var form = document.querySelector('#attendees-filter-bar .reg-filter-bar__form');
-  if (!form) return;
-  form.querySelectorAll('select[data-reg-filter-submit]').forEach(function(sel) {
-    sel.addEventListener('change', function() { form.submit(); });
+  if (form) {
+    form.querySelectorAll('select[data-reg-filter-submit]').forEach(function(sel) {
+      sel.addEventListener('change', function() { form.submit(); });
+    });
+  }
+
+  var bar = document.getElementById('ledger-bulk-bar');
+  var countEl = document.getElementById('ledger-bulk-count');
+  var bulkForm = document.getElementById('ledger-bulk-form');
+  var actionEl = document.getElementById('ledger-bulk-action');
+  var sourceHidden = document.getElementById('ledger-bulk-source');
+  var selectAll = document.getElementById('ledger-select-all');
+  var sourcePick = document.getElementById('ledger-bulk-source-pick');
+  if (!bar || !bulkForm || !actionEl) return;
+
+  function allChecks() {
+    return Array.prototype.slice.call(document.querySelectorAll('.ledger-row-check'));
+  }
+
+  function updateBulkBar() {
+    var n = allChecks().filter(function(c) { return c.checked; }).length;
+    countEl.textContent = String(n);
+    bar.hidden = n === 0;
+    if (selectAll) {
+      var total = allChecks().length;
+      selectAll.checked = total > 0 && n === total;
+      selectAll.indeterminate = n > 0 && n < total;
+    }
+  }
+
+  allChecks().forEach(function(c) {
+    c.addEventListener('change', updateBulkBar);
+  });
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      allChecks().forEach(function(c) { c.checked = selectAll.checked; });
+      updateBulkBar();
+    });
+  }
+
+  document.querySelectorAll('[data-bulk]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var n = allChecks().filter(function(c) { return c.checked; }).length;
+      if (!n) return;
+      var act = btn.getAttribute('data-bulk');
+      actionEl.value = act;
+      sourceHidden.value = '';
+      if (act === 'change_source') {
+        var src = sourcePick ? sourcePick.value : '';
+        if (!src) {
+          if (typeof window.showToast === 'function') window.showToast('Select a source first', 'warning');
+          else alert('Select a source first');
+          return;
+        }
+        sourceHidden.value = src;
+      }
+      bulkForm.submit();
+    });
   });
 })();
 </script>

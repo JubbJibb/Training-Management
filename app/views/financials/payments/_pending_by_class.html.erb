@@ -1,0 +1,93 @@
+<%
+  pending_by_class = local_assigns[:pending_by_class] || @pending_by_class || []
+  base_params = params.permit(:period, :date_from, :date_to, :client_type, :class_id, :instructor, :overdue_only, :has_slip, :pfc_sort, :pfc_dir).to_h
+%>
+<% if pending_by_class.any? %>
+  <section class="pt-pfc-section pt-pfc-table-section" aria-labelledby="pt-pfc-section-title">
+    <h2 id="pt-pfc-section-title" class="pt-pfc-section__title">Pending by class</h2>
+    <p class="pt-pfc-section__subtitle">ลงทะเบียนแล้วยังไม่ชำระเงิน — คลิกแถวเพื่อดูรายละเอียด</p>
+
+    <div class="attendees-ledger__table-wrap pt-table-wrap pt-pfc-table-wrap">
+      <table class="attendees-ledger__table pt-pfc-table" role="table" aria-label="Pending payments by class">
+        <thead>
+          <tr>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--class">
+              <%= link_to financials_payments_sort_path("class", base_params), class: "attendees-ledger__sort-link pt-pfc-th__link", data: { turbo_frame: "financials_payments_workspace" } do %>
+                Class<%= financials_payments_sort_indicator("class") %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--date">
+              <%= link_to financials_payments_sort_path("date", base_params), class: "attendees-ledger__sort-link pt-pfc-th__link", data: { turbo_frame: "financials_payments_workspace" } do %>
+                Date<%= financials_payments_sort_indicator("date") %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--outstanding">
+              <%= link_to financials_payments_sort_path("outstanding", base_params), class: "attendees-ledger__sort-link pt-pfc-th__link", data: { turbo_frame: "financials_payments_workspace" } do %>
+                Outstanding<%= financials_payments_sort_indicator("outstanding") %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--unpaid">
+              <%= link_to financials_payments_sort_path("unpaid", base_params), class: "attendees-ledger__sort-link pt-pfc-th__link", data: { turbo_frame: "financials_payments_workspace" } do %>
+                Unpaid<%= financials_payments_sort_indicator("unpaid") %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--payer">Top Payer</th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--status">
+              <%= link_to financials_payments_sort_path("priority", base_params), class: "attendees-ledger__sort-link pt-pfc-th__link", data: { turbo_frame: "financials_payments_workspace" } do %>
+                Status<%= financials_payments_sort_indicator("priority") %>
+              <% end %>
+            </th>
+            <th scope="col" class="attendees-ledger__th pt-pfc-th pt-pfc-th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="pt-pfc-tbody">
+          <% pending_by_class.each do |group| %>
+            <%
+              tc = group[:training_class]
+              priority = payment_priority_level(group)
+              due_label = payment_due_label(group)
+              unpaid_path = financials_payments_path(base_params.merge(class_id: tc.id))
+              first_payer = group[:attendees].first
+              more_count = group[:count] - 1
+              row_id = "pt-pfc-row-#{tc.id}"
+            %>
+            <tr class="attendees-ledger__row pt-pfc-tr <%= 'pt-pfc-tr--urgent' if priority == :high || priority == :medium %>" id="<%= row_id %>" data-pt-pfc-row data-priority="<%= priority %>" tabindex="0" role="button">
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--class">
+                <span class="pt-pfc-cell-class" title="<%= group[:class_title] %>"><%= group[:class_title].to_s.truncate(40) %></span>
+              </td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--date"><%= group[:class_date]&.strftime("%Y-%m-%d") %></td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--outstanding">
+                <span class="pt-pfc-cell-amount <%= 'pt-pfc-cell-amount--muted' if priority == :none %>"><%= number_to_thb(group[:total_amount].to_f) %></span>
+              </td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--unpaid"><%= group[:count] %></td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--payer">
+                <% if first_payer %>
+                  <span class="pt-pfc-cell-payer-line" title="<%= (first_payer.billing_name.presence || first_payer.name) %><%= more_count.positive? ? " +#{more_count} more" : "" %>"><%= (first_payer.billing_name.presence || first_payer.name).to_s.truncate(20) %><% if more_count.positive? %><span class="pt-pfc-cell-more"> +<%= more_count %> more</span><% end %></span>
+                <% else %>
+                  <span class="pt-pfc-cell-payer-line">—</span>
+                <% end %>
+              </td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--status">
+                <span class="pt-pfc-status pt-pfc-status--<%= priority %>"><%= due_label %></span>
+              </td>
+              <td class="attendees-ledger__td pt-pfc-td pt-pfc-td--actions" onclick="event.stopPropagation()">
+                <span class="pt-pfc-actions">
+                  <%= link_to "Open", admin_class_workspace_path(tc), class: "pt-pfc-action-link", data: { turbo_frame: "_top" }, title: "Open class" %>
+                  <span class="pt-pfc-action-sep">|</span>
+                  <%= link_to "List", unpaid_path, class: "pt-pfc-action-link", data: { turbo_frame: "financials_payments_workspace" }, title: "Unpaid list" %>
+                  <span class="pt-pfc-action-sep">|</span>
+                  <button type="button" class="pt-pfc-action-expand" data-pt-pfc-toggle aria-label="Expand row"><i class="bi bi-chevron-down" aria-hidden="true"></i></button>
+                </span>
+              </td>
+            </tr>
+            <tr class="pt-pfc-detail-row" data-pt-pfc-detail-for="<%= row_id %>" hidden>
+              <td colspan="7" class="pt-pfc-detail-cell">
+                <%= render "financials/payments/pending_by_class_detail", group: group, base_params: base_params, unpaid_path: unpaid_path %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% end %>

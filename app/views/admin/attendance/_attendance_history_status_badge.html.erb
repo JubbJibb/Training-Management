@@ -1,0 +1,7 @@
+<%
+  record = local_assigns[:record]
+  edited = record.respond_to?(:edited?) && record.edited?
+  label = edited ? "แก้ไขแล้ว" : "บันทึกแล้ว"
+  css = edited ? "hist-badge hist-badge--edited" : "hist-badge hist-badge--saved"
+%>
+<span class="<%= css %>"><%= label %></span>

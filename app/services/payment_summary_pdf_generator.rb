@@ -76,6 +76,8 @@ class PaymentSummaryPdfGenerator
       before_vat = @attendee.total_price_before_vat.to_f.round(2)
       vat = @attendee.total_vat_amount.to_f.round(2)
       total = @attendee.total_final_price.to_f.round(2)
+      advance_paid = @attendee.respond_to?(:advance_paid_amount) ? @attendee.advance_paid_amount.to_f.round(2) : 0.0
+      remaining_due = [total - advance_paid, 0].max.round(2)
 
       pricing_data = [["Base price", "฿#{number_with_delimiter(base)}"]]
       promotions.each do |promo|
@@ -89,6 +91,13 @@ class PaymentSummaryPdfGenerator
       pricing_data << ["Subtotal (before VAT)", "฿#{number_with_delimiter(before_vat)}"]
       pricing_data << ["VAT (7%)", "฿#{number_with_delimiter(vat)}"]
       pricing_data << ["Grand total", "฿#{number_with_delimiter(total)}"]
+      if advance_paid.positive? || @attendee.payment_status == "Partial"
+        pricing_data << ["Advance paid (deposit)", "-฿#{number_with_delimiter(advance_paid)}"]
+        pricing_data << ["Remaining due", "฿#{number_with_delimiter(remaining_due)}"]
+        if @attendee.respond_to?(:advance_paid_note) && @attendee.advance_paid_note.present?
+          pricing_data << ["Note", @attendee.advance_paid_note.to_s[0, 120]]
+        end
+      end
 
       pdf.table(pricing_data, width: pdf.bounds.width, cell_style: { size: 10 })
       pdf.move_down 16
@@ -97,8 +106,9 @@ class PaymentSummaryPdfGenerator
       pdf.text "Payment method", size: 12, style: :bold
       pdf.move_down 4
       bank_data = [
-        ["Bank", "Krung Thai Bank (ธ.กรุงไทย)"],
-        ["Account type / Number", "Savings / Account number as per company"],
+        ["Bank", "ธ.กรุงไทย"],
+        ["Account type", "ออมทรัพย์"],
+        ["Account number", "981-7-61590-1"],
         ["Account holder", account_holder]
       ]
       pdf.table(bank_data, width: pdf.bounds.width, cell_style: { size: 10 })
@@ -134,7 +144,7 @@ class PaymentSummaryPdfGenerator
   end
 
   def account_holder
-    "Odd-E (Thailand) Co., Ltd."
+    "บจ. ออด-อี(ประเทศไทย) จำกัด"
   end
 
   def number_with_delimiter(n)

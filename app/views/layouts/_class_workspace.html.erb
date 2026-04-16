@@ -64,6 +64,7 @@
       <nav class="class-workspace__nav" aria-label="Class sections">
         <%= link_to admin_class_workspace_overview_path(@training_class), class: "class-workspace__nav-item #{section == 'overview' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-info-circle"></i> Overview<% end %>
         <%= link_to admin_class_workspace_attendees_path(@training_class), class: "class-workspace__nav-item #{section == 'attendees' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-people-fill"></i> Attendees<% end %>
+        <%= link_to admin_class_workspace_attendance_path(@training_class), class: "class-workspace__nav-item #{section == 'attendance' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-clipboard-check"></i> Attendance<% end %>
         <%= link_to admin_class_workspace_leads_path(@training_class), class: "class-workspace__nav-item #{section == 'leads' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-person-plus"></i> Potential Customers<% end %>
         <%= link_to admin_class_workspace_documents_path(@training_class), class: "class-workspace__nav-item #{section == 'documents' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-file-earmark-text"></i> Financial Documents<% end %>
         <%= link_to admin_class_workspace_finance_path(@training_class), class: "class-workspace__nav-item #{section == 'finance' ? 'class-workspace__nav-item--active' : ''}" do %><i class="bi bi-cash-coin"></i> Financial Dashboard<% end %>

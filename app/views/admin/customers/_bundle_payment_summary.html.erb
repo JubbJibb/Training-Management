@@ -1,0 +1,100 @@
+<%
+  customer = local_assigns[:customer]
+  rows = local_assigns[:rows] || []
+  grand_base = local_assigns[:grand_base].to_f.round(2)
+  grand_discount = local_assigns[:grand_discount].to_f.round(2)
+  grand_before_vat = local_assigns[:grand_before_vat].to_f.round(2)
+  grand_vat = local_assigns[:grand_vat].to_f.round(2)
+  grand_total = local_assigns[:grand_total].to_f.round(2)
+  discount_type = local_assigns[:discount_type].to_s.presence || "none"
+  discount_value = local_assigns[:discount_value].to_s.strip.to_f
+  num_classes = rows.size
+  company_name = "Odd-E (Thailand) Co., Ltd."
+  company_address = "2549/41-43 Phahonyothin, Lat Yao, Chatuchak, Bangkok 10900"
+  company_tax_id = Rails.application.config.x.company_tax_id.presence || "0-1055-56110-71-8"
+  bank_name = "ธ.กรุงไทย"
+  account_type = "ออมทรัพย์"
+  account_number = "981-7-61590-1"
+  account_holder = "บจ. ออด-อี(ประเทศไทย) จำกัด"
+  instruction_text = "After payment, please send your payment slip to ODTTraining@odds.team"
+%>
+<div class="payment-summary" id="payment-summary-content">
+  <div class="payment-summary__badges">
+    <span class="payment-summary__badge payment-summary__badge--pending">Bundle Deal · Pending</span>
+  </div>
+
+  <header class="payment-summary__header">
+    <div class="payment-summary__logo">
+      <%= image_tag "odt_logo.svg", alt: "ODT", class: "payment-summary__logo-img" %>
+    </div>
+    <div class="payment-summary__company">
+      <div class="payment-summary__company-name"><%= company_name %></div>
+      <div class="payment-summary__company-address"><%= company_address %></div>
+      <div class="payment-summary__company-tax">Tax ID: <%= company_tax_id %></div>
+    </div>
+  </header>
+
+  <section class="payment-summary__section">
+    <h3 class="payment-summary__section-title">Training details (Bundle)</h3>
+    <% rows.each do |row| %>
+      <% tc = row[:training_class] %>
+      <% before_vat_full = row[:base].to_f.round(2) %>
+      <div class="payment-summary__row">
+        <span class="payment-summary__label"><%= tc.title %></span>
+        <span class="payment-summary__value"><%= tc.date&.strftime("%d/%m/%Y") || "—" %> · ก่อน VAT ฿<%= number_with_delimiter(before_vat_full) %></span>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="payment-summary__section">
+    <h3 class="payment-summary__section-title">Registrant details</h3>
+    <div class="payment-summary__row"><span class="payment-summary__label">Name</span><span class="payment-summary__value"><%= customer.name.presence || "—" %></span></div>
+    <div class="payment-summary__row"><span class="payment-summary__label">Email</span><span class="payment-summary__value"><%= customer.email.presence || "—" %></span></div>
+    <% if customer.company.present? %>
+      <div class="payment-summary__row"><span class="payment-summary__label">Company</span><span class="payment-summary__value"><%= customer.company %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Tax ID</span><span class="payment-summary__value"><%= customer.tax_id.presence || "—" %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Billing address</span><span class="payment-summary__value"><%= customer.billing_address.presence || customer.address.to_s.gsub("\n", " ").presence || "—" %></span></div>
+    <% end %>
+  </section>
+
+  <section class="payment-summary__section payment-summary__pricing">
+    <h3 class="payment-summary__section-title">Payment breakdown (Bundle)</h3>
+    <div class="payment-summary__pricing-table">
+      <div class="payment-summary__pricing-row">
+        <span class="payment-summary__pricing-label">Base price</span>
+        <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(grand_base) %></span>
+      </div>
+      <% if grand_discount.positive? %>
+        <div class="payment-summary__pricing-row payment-summary__pricing-row--discount">
+          <span class="payment-summary__pricing-label">Bundle discount</span>
+          <span class="payment-summary__pricing-amount">−฿<%= number_with_delimiter(grand_discount) %></span>
+        </div>
+      <% end %>
+      <% if grand_vat.positive? %>
+        <div class="payment-summary__pricing-row">
+          <span class="payment-summary__pricing-label">Subtotal (before VAT)</span>
+          <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(grand_before_vat) %></span>
+        </div>
+        <div class="payment-summary__pricing-row">
+          <span class="payment-summary__pricing-label">VAT (7%)</span>
+          <span class="payment-summary__pricing-amount">฿<%= number_with_delimiter(grand_vat) %></span>
+        </div>
+      <% end %>
+      <div class="payment-summary__pricing-row payment-summary__pricing-row--total">
+        <span class="payment-summary__pricing-label">Grand total</span>
+        <span class="payment-summary__pricing-grand">฿<%= number_with_delimiter(grand_total) %></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="payment-summary__section payment-summary__bank">
+    <h3 class="payment-summary__section-title">Payment method</h3>
+    <div class="payment-summary__bank-rows">
+      <div class="payment-summary__row"><span class="payment-summary__label">Bank</span><span class="payment-summary__value"><%= bank_name %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account type</span><span class="payment-summary__value"><%= account_type %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account number</span><span class="payment-summary__value"><%= account_number %></span></div>
+      <div class="payment-summary__row"><span class="payment-summary__label">Account holder</span><span class="payment-summary__value"><%= account_holder %></span></div>
+    </div>
+    <p class="payment-summary__instruction"><%= instruction_text %></p>
+  </section>
+</div>

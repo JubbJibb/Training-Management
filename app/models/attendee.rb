@@ -3,6 +3,7 @@ class Attendee < ApplicationRecord
   belongs_to :customer, optional: true
   
   has_many :attendee_promotions, dependent: :destroy
+  has_many :attendance_record_attendees, dependent: :destroy
   has_many :promotions, through: :attendee_promotions
   
   has_many_attached :payment_slips
@@ -12,7 +13,7 @@ class Attendee < ApplicationRecord
   validates :email, uniqueness: { scope: :training_class_id, message: "has already been registered for this class" }
   validates :participant_type, inclusion: { in: %w[Indi Corp] }
   validates :seats, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
-  validates :payment_status, inclusion: { in: %w[Pending Paid] }, allow_nil: true
+  validates :payment_status, inclusion: { in: %w[Pending Paid Partial Complimentary Refunded Overdue] }, allow_nil: true
   validates :document_status, inclusion: { in: %w[QT INV Receipt] }, allow_blank: true
   validates :attendance_status, inclusion: { in: %w[มาเรียน No-show] }, allow_nil: true
   validates :status, inclusion: { in: %w[attendee potential] }, allow_nil: true
@@ -39,8 +40,13 @@ class Attendee < ApplicationRecord
   end
 
   def base_price
-    # ใช้ราคาจาก TrainingClass (ราคาตั้งต้นต่อหัว) เป็นค่าเริ่มต้นเสมอ
-    training_class.price.to_f || 0
+    # Per-seat override when set; otherwise class default (ราคาตั้งต้นต่อหัว)
+    stored = read_attribute(:price)
+    if stored.present? && stored.to_f.positive?
+      stored.to_f
+    else
+      training_class.price.to_f || 0
+    end
   end
 
   # Use loaded promotions when present to avoid N+1 (e.g. Finance dashboard)
@@ -65,12 +71,17 @@ class Attendee < ApplicationRecord
   
   def calculate_price_before_vat
     base = base_price
-    return base.round(2) if active_promotions.empty?
-    
     final_price = base
     active_promotions.each do |promotion|
       discount = promotion.calculate_discount(base)
       final_price -= discount
+    end
+    # ส่วนลด Bundle Deal (ร้อยละ หรือเป็นเงิน)
+    if respond_to?(:bundle_discount_percent) && bundle_discount_percent.to_f.positive?
+      final_price -= (base * (bundle_discount_percent.to_f / 100)).round(2)
+    end
+    if respond_to?(:bundle_discount_fixed) && bundle_discount_fixed.to_f.nonzero?
+      final_price -= bundle_discount_fixed.to_f.round(2)
     end
     [final_price, 0].max.round(2) # ไม่ให้ราคาติดลบ และปัดเป็นทศนิยม 2 ตำแหน่ง
   end
@@ -82,9 +93,14 @@ class Attendee < ApplicationRecord
   
   def total_discount_amount
     base = base_price
-    return 0.0 if active_promotions.empty?
-    
-    active_promotions.sum { |promotion| promotion.calculate_discount(base) }.round(2)
+    total = active_promotions.sum { |promotion| promotion.calculate_discount(base) }.round(2)
+    if respond_to?(:bundle_discount_percent) && bundle_discount_percent.to_f.positive?
+      total += (base * (bundle_discount_percent.to_f / 100)).round(2)
+    end
+    if respond_to?(:bundle_discount_fixed) && bundle_discount_fixed.to_f.nonzero?
+      total += bundle_discount_fixed.to_f.round(2)
+    end
+    total.round(2)
   end
 
   # For QT/INV/Receipt: prefer stored billing_name, else company/name_thai/name

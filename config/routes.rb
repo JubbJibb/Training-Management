@@ -53,10 +53,8 @@ Rails.application.routes.draw do
   get "training_classes", to: redirect("/admin/training_classes")
   scope "operations", module: "operations", as: "operations" do
     get "calendar", to: redirect("/operations/training_calendar"), as: :calendar
-    get "calendar/event/:id", to: "calendar#event", as: :calendar_event
     # Ops-focused training calendar: drawer, quick add, filters
     get "training_calendar", to: "training_calendar#index", as: :training_calendar
-    get "calendar_demo", to: "calendar_demo#index", as: :calendar_demo
     get "training_calendar/event_modal/:id", to: "training_calendar#event_modal", as: :training_calendar_event_modal, constraints: { id: /\d+/ }
     get "training_calendar/day_modal", to: "training_calendar#day_modal", as: :training_calendar_day_modal
     get "training_calendar/modal/close", to: "training_calendar#modal_close", as: :training_calendar_modal_close
@@ -90,7 +88,6 @@ Rails.application.routes.draw do
   # ========== Admin namespace ==========
   namespace :admin do
     root "dashboard#index"
-    get "components", to: "components#index", as: :components
 
     resources :dashboard, only: [:index]
     resources :finance, only: [:index]
@@ -126,6 +123,9 @@ Rails.application.routes.draw do
         get :edit_billing_tax
         patch :update_billing_tax
         get :register_for_class
+        get :bundle_deal_summary
+        post :bundle_deal_register
+        get :attendee_info
       end
     end
     # Classes: list + single entry for "view class" (workspace). Edit/delete stay under training_classes.
@@ -136,6 +136,9 @@ Rails.application.routes.draw do
     get "classes/:id/leads", to: "class_workspace#leads", as: :class_workspace_leads
     get "classes/:id/documents", to: "class_workspace#documents", as: :class_workspace_documents
     get "classes/:id/finance", to: "class_workspace#finance", as: :class_workspace_finance
+    get "classes/:id/attendance", to: "attendance#index", as: :class_workspace_attendance
+    get "classes/:id/attendance/records/:record_id", to: "attendance#history_detail", as: :class_workspace_attendance_record
+    post "classes/:id/attendance/save", to: "attendance#save", as: :class_workspace_attendance_save
     get "classes/:id/edit", to: "class_workspace#edit", as: :class_workspace_edit
     patch "classes/:id/checklist", to: "class_workspace#update_checklist", as: :class_workspace_checklist
     patch "classes/:id/public", to: "class_workspace#update_public", as: :class_workspace_public
@@ -155,6 +158,7 @@ Rails.application.routes.draw do
         collection do
           get :export
           get :export_documents
+          post :bulk_update
         end
         member do
           get :move_to_potential
@@ -163,6 +167,7 @@ Rails.application.routes.draw do
           patch :move_to_attendee
           post :send_email
           post :sync_tax_from_customer
+          patch :quick_update
         end
       end
       resources :class_expenses, except: [:show, :index]

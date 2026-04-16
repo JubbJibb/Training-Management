@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_09_033140) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_31_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -47,6 +47,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_033140) do
     t.index ["email"], name: "index_admin_users_on_email", unique: true
   end
 
+  create_table "attendance_record_attendees", force: :cascade do |t|
+    t.integer "attendance_record_id", null: false
+    t.integer "attendee_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "present", default: false, null: false
+    t.datetime "updated_at", null: false
+    t.index ["attendance_record_id", "attendee_id"], name: "index_ara_on_record_and_attendee", unique: true
+    t.index ["attendance_record_id"], name: "index_attendance_record_attendees_on_attendance_record_id"
+    t.index ["attendee_id"], name: "index_attendance_record_attendees_on_attendee_id"
+  end
+
+  create_table "attendance_records", force: :cascade do |t|
+    t.date "attendance_date", null: false
+    t.datetime "created_at", null: false
+    t.string "learning_hour", null: false
+    t.integer "recorded_by_id"
+    t.integer "training_class_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recorded_by_id"], name: "index_attendance_records_on_recorded_by_id"
+    t.index ["training_class_id", "attendance_date", "learning_hour"], name: "index_attendance_records_on_class_date_hour", unique: true
+    t.index ["training_class_id"], name: "index_attendance_records_on_training_class_id"
+  end
+
   create_table "attendee_promotions", force: :cascade do |t|
     t.integer "attendee_id", null: false
     t.datetime "created_at", null: false
@@ -58,9 +81,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_033140) do
 
   create_table "attendees", force: :cascade do |t|
     t.text "address"
+    t.decimal "advance_paid_amount", precision: 12, scale: 2
+    t.text "advance_paid_note"
     t.string "attendance_status", default: "No-show"
     t.text "billing_address"
     t.string "billing_name"
+    t.decimal "bundle_discount_fixed", precision: 10, scale: 2
+    t.decimal "bundle_discount_percent", precision: 5, scale: 2
     t.string "company"
     t.datetime "created_at", null: false
     t.integer "customer_id"
@@ -370,6 +397,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_033140) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "attendance_record_attendees", "attendance_records"
+  add_foreign_key "attendance_record_attendees", "attendees"
+  add_foreign_key "attendance_records", "admin_users", column: "recorded_by_id"
+  add_foreign_key "attendance_records", "training_classes"
   add_foreign_key "attendee_promotions", "attendees"
   add_foreign_key "attendee_promotions", "promotions"
   add_foreign_key "attendees", "customers"

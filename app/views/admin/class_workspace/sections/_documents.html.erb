@@ -104,7 +104,13 @@
                     <% end %>
                   <% else %>
                     <span class="doc-status doc-status--missing" title="ยังไม่มีสลิป" aria-label="ไม่ครบ"><i class="bi bi-x-circle-fill doc-status-icon" aria-hidden="true"></i></span>
-                    <%= link_to edit_admin_training_class_attendee_path(training_class, a, return_to: request.original_url), class: "doc-slip-link doc-slip-link--icon", title: "Upload payment slip", aria: { label: "Upload slip" } do %><i class="bi bi-upload" aria-hidden="true"></i><% end %>
+                  <% end %>
+                  <%= form_with url: admin_training_class_attendee_path(training_class, a), method: :patch, local: true, data: { turbo: false }, html: { multipart: true, class: "d-inline-block doc-slip-quick-upload-form", id: "doc-slip-upload-form-#{a.id}" } do %>
+                    <%= hidden_field_tag :return_to, request.original_url %>
+                    <%= file_field_tag "attendee[payment_slips][]", accept: "image/*,.pdf", multiple: true, class: "visually-hidden doc-slip-quick-upload-input", id: "doc-slip-upload-#{a.id}" %>
+                    <label for="doc-slip-upload-<%= a.id %>" class="doc-slip-link doc-slip-link--icon mb-0" title="<%= slip_attached ? "เพิ่มสลิป" : "อัปโหลดสลิป" %>" aria-label="<%= slip_attached ? "Add payment slip" : "Upload payment slip" %>">
+                      <i class="bi bi-upload" aria-hidden="true"></i>
+                    </label>
                   <% end %>
                 </td>
                 <td class="attendees-ledger__td attendees-ledger__td--actions">
@@ -197,6 +203,19 @@
       });
     });
   });
+})();
+
+(function() {
+  function bindDocSlipQuickUpload() {
+    document.querySelectorAll('.workspace-documents-table .doc-slip-quick-upload-input:not([data-slip-upload-bound])').forEach(function(input) {
+      input.setAttribute('data-slip-upload-bound', '1');
+      input.addEventListener('change', function() {
+        if (this.files && this.files.length) this.closest('form').requestSubmit();
+      });
+    });
+  }
+  bindDocSlipQuickUpload();
+  document.addEventListener('turbo:load', bindDocSlipQuickUpload);
 })();
 
 (function() {

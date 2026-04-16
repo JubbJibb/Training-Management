@@ -27,7 +27,11 @@ module Financials
     private
 
     def base_scope
-      scope = Attendee.joins(:training_class).includes(:training_class, :customer)
+      # รายการค้างชำระ: สถานะ Attendee + Payment = Pending, ทุก Class
+      scope = Attendee.attendees
+        .joins(:training_class)
+        .where(attendees: { payment_status: "Pending" })
+        .includes(:training_class, :customer)
       scope = apply_period(scope)
       scope = scope.where(attendees: { participant_type: @params[:client_type] }) if @params[:client_type].in?(%w[Indi Corp])
       scope = scope.where(training_classes: { id: @params[:class_id] }) if @params[:class_id].present?
@@ -38,6 +42,8 @@ module Financials
     end
 
     def apply_period(scope)
+      # ไม่กรองตามช่วงวันที่ = แสดงทั้งหมดทุก Class
+      return scope if @params[:period].blank? && @params[:date_from].blank? && @params[:date_to].blank?
       params = @params.merge(period: @params[:period].presence || "mtd")
       resolver = Financials::DateRangeResolver.new(params)
       scope.where(training_classes: { date: resolver.start_date..resolver.end_date })

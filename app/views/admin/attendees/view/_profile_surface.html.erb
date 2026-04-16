@@ -22,12 +22,10 @@
         <span class="attendee-view-label">Type</span>
         <span class="attendee-view-value"><%= attendee.participant_type == "Corp" ? "Corporate" : "Individual" %></span>
       </div>
-      <% if attendee.participant_type == "Corp" && attendee.company.present? %>
-        <div class="attendee-view-row">
-          <span class="attendee-view-label">Company</span>
-          <span class="attendee-view-value"><%= attendee.company %></span>
-        </div>
-      <% end %>
+      <div class="attendee-view-row">
+        <span class="attendee-view-label">Company</span>
+        <span class="attendee-view-value"><%= attendee.company.presence || "—" %></span>
+      </div>
     </div>
   </div>
 </div>

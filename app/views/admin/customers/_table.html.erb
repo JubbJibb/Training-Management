@@ -11,6 +11,11 @@
       <table class="attendees-ledger__table" role="table" aria-label="Customers">
         <thead>
           <tr>
+            <th scope="col" class="attendees-ledger__th attendees-ledger__th--check" style="width: 2.5rem;">
+              <label class="attendees-ledger__check-label">
+                <input type="checkbox" data-customer-email-select-target="selectAll" data-action="change->customer-email-select#toggleAll" aria-label="เลือกทั้งหมด">
+              </label>
+            </th>
             <th scope="col" class="attendees-ledger__th attendees-ledger__th--name">
               <%= link_to admin_customers_path(base_params.merge(sort: "customer", direction: (sort == "customer" && direction == "asc" ? "desc" : "asc"))), data: { turbo_frame: "customers_table" }, class: "attendees-ledger__sort-link #{sort == "customer" ? "attendees-ledger__sort-link--active" : ""}" do %>
                 Customer <%= sort == "customer" ? (direction == "asc" ? "↑" : "↓") : "" %>

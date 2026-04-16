@@ -10,6 +10,10 @@
     <span class="pt-summary-pills__num"><%= all_count %></span>
     <span class="pt-summary-pills__label">All</span>
   <% end %>
+  <%= link_to financials_payments_path(base_params.merge(workflow_status: "pending")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-pills__pill #{current_status == 'pending' ? 'pt-summary-pills__pill--active' : ''}" do %>
+    <span class="pt-summary-pills__num"><%= summary.dig(:pending, :count) || 0 %></span>
+    <span class="pt-summary-pills__label">Pending</span>
+  <% end %>
   <%= link_to financials_payments_path(base_params.merge(workflow_status: "awaiting_verification")), data: { turbo_frame: "financials_payments_workspace" }, class: "pt-summary-pills__pill #{current_status == 'awaiting_verification' ? 'pt-summary-pills__pill--active' : ''}" do %>
     <span class="pt-summary-pills__num"><%= summary.dig(:awaiting_verification, :count) || 0 %></span>
     <span class="pt-summary-pills__label">Awaiting verification</span>

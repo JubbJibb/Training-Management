@@ -1,0 +1,61 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  attendees = local_assigns[:matrix_attendees] || @matrix_attendees || []
+  dates = local_assigns[:matrix_dates] || @matrix_dates || []
+  record_by_key = local_assigns[:matrix_record_by_key] || @matrix_record_by_key || {}
+  total_sessions = record_by_key.size
+%>
+<div class="hist-matrix">
+  <% if attendees.empty? || dates.empty? %>
+    <div class="hist-matrix__empty">
+      <p>ไม่มีข้อมูลนักเรียนหรือรายการเช็กชื่อ</p>
+    </div>
+  <% else %>
+    <div class="hist-matrix__scroll">
+      <table class="hist-matrix__table" role="table">
+        <thead class="hist-matrix__thead">
+          <tr>
+            <th scope="col" class="hist-matrix__th hist-matrix__th--name">ชื่อนักเรียน</th>
+            <% dates.each do |d| %>
+              <th scope="col" class="hist-matrix__th hist-matrix__th--day"><%= d.strftime("%d/%m") %></th>
+            <% end %>
+            <th scope="col" class="hist-matrix__th hist-matrix__th--pct">% เข้าเรียนรวม</th>
+          </tr>
+        </thead>
+        <tbody class="hist-matrix__tbody">
+          <% attendees.each do |attendee| %>
+            <%
+              present_sessions = 0
+              record_by_key.each do |_key, rec|
+                present_sessions += 1 if rec.attendance_record_attendees.exists?(attendee_id: attendee.id, present: true)
+              end
+              pct = total_sessions.positive? ? ((present_sessions.to_f / total_sessions) * 100).round(0) : 0
+            %>
+            <tr class="hist-matrix__row">
+              <td class="hist-matrix__td hist-matrix__td--name"><%= (attendee.billing_name.presence || attendee.name).to_s.truncate(24) %></td>
+              <% dates.each do |d| %>
+                <%
+                  keys_for_date = record_by_key.keys.select { |(dt, _)| dt == d }
+                  status = "unchecked"
+                  keys_for_date.each do |key|
+                    rec = record_by_key[key]
+                    next unless rec
+                    ara = rec.attendance_record_attendees.find_by(attendee_id: attendee.id)
+                    if ara
+                      status = ara.present? ? "present" : "absent"
+                      break
+                    end
+                  end
+                %>
+                <td class="hist-matrix__td hist-matrix__td--cell hist-matrix__td--<%= status %>">
+                  <% if status == "present" %>มา<% elsif status == "absent" %>ขาด<% else %>—<% end %>
+                </td>
+              <% end %>
+              <td class="hist-matrix__td hist-matrix__td--pct"><%= pct %>%</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

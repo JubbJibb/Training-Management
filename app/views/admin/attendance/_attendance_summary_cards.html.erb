@@ -1,0 +1,21 @@
+<%
+  summary = local_assigns[:summary] || { total: 0, present: 0, absent: 0, unchecked: 0 }
+%>
+<div class="attendance-summary-cards">
+  <div class="attendance-summary-cards__item">
+    <span class="attendance-summary-cards__value"><%= summary[:total] %></span>
+    <span class="attendance-summary-cards__label">นักเรียนทั้งหมด</span>
+  </div>
+  <div class="attendance-summary-cards__item attendance-summary-cards__item--present">
+    <span class="attendance-summary-cards__value"><%= summary[:present] %></span>
+    <span class="attendance-summary-cards__label">มาเรียน</span>
+  </div>
+  <div class="attendance-summary-cards__item attendance-summary-cards__item--absent">
+    <span class="attendance-summary-cards__value"><%= summary[:absent] %></span>
+    <span class="attendance-summary-cards__label">ขาดเรียน</span>
+  </div>
+  <div class="attendance-summary-cards__item attendance-summary-cards__item--unchecked">
+    <span class="attendance-summary-cards__value"><%= summary[:unchecked] %></span>
+    <span class="attendance-summary-cards__label">ยังไม่เช็ก</span>
+  </div>
+</div>

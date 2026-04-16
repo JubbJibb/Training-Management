@@ -4,6 +4,7 @@ class TrainingClass < ApplicationRecord
   CLASS_STATUSES = %w[public private tentative].freeze
 
   has_many :attendees, dependent: :destroy
+  has_many :attendance_records, dependent: :destroy
   has_many :class_expenses, dependent: :destroy
   belongs_to :internal_notes_updated_by, class_name: "AdminUser", optional: true
 
@@ -111,6 +112,21 @@ class TrainingClass < ApplicationRecord
 
   def checklist_total_count
     checklist_items.size
+  end
+
+  # Stored `price` is per-seat amount before VAT when VAT applies (see Attendee#calculate_final_price).
+  def seat_price_ex_vat
+    price.to_f.round(2)
+  end
+
+  def seat_vat_amount
+    return 0.0 if vat_excluded?
+    (seat_price_ex_vat * 0.07).round(2)
+  end
+
+  def seat_price_inc_vat
+    return seat_price_ex_vat if vat_excluded?
+    (seat_price_ex_vat * 1.07).round(2)
   end
 
   private

@@ -1,0 +1,16 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  query_params = local_assigns[:query_params] || { tab: "history" }
+  base_path = admin_class_workspace_attendance_path(training_class)
+%>
+<div class="hist-filters">
+  <%= form_with url: base_path, method: :get, local: true, class: "hist-filters__form", data: { turbo_frame: "_top" } do |f| %>
+    <%= hidden_field_tag :tab, "history" %>
+    <%= hidden_field_tag :history_view, params[:history_view].presence || "list" %>
+    <input type="month" name="month" value="<%= params[:month] %>" class="hist-filters__input form-control form-control-sm" placeholder="เดือน" aria-label="เดือน">
+    <input type="date" name="date" value="<%= params[:date] %>" class="hist-filters__input form-control form-control-sm" placeholder="วันที่" aria-label="วันที่">
+    <%= select_tag :learning_hour, options_for_select(AttendanceRecord.learning_hour_options.map { |l, v| [l, v] }, params[:learning_hour]), { include_blank: "ทุกช่วงเวลา", class: "form-select form-select-sm hist-filters__select" } %>
+    <input type="search" name="q" value="<%= params[:q] %>" class="hist-filters__search form-control form-control-sm" placeholder="ค้นหาชื่อ / เลขบัตร" aria-label="ค้นหา">
+    <button type="submit" class="hist-filters__btn btn btn-primary btn-sm">ค้นหา</button>
+  <% end %>
+</div>

@@ -31,9 +31,23 @@
       <span class="insight-progress-row__label">Capacity</span>
       <span class="insight-progress-row__value"><%= capacity.positive? ? "#{capacity} seats" : "—" %></span>
     </div>
-    <div class="insight-progress-row">
+    <div class="insight-progress-row insight-progress-row--pricing">
       <span class="insight-progress-row__label">Price / seat</span>
-      <span class="insight-progress-row__value"><%= tc.price.present? ? number_to_thb(tc.price) : "—" %></span>
+      <div class="insight-progress-row__value insight-seat-price-breakdown">
+        <% if tc.price.blank? || tc.price.to_f.zero? %>
+          <span>—</span>
+        <% elsif tc.vat_excluded? %>
+          <span><%= number_to_thb(tc.seat_price_ex_vat) %></span>
+          <span class="insight-seat-price-breakdown__note text-muted small">ไม่คิด VAT 7%</span>
+        <% else %>
+          <div class="insight-seat-price-breakdown__inc"><%= number_to_thb(tc.seat_price_inc_vat) %> <span class="text-muted small fw-normal">รวม VAT</span></div>
+          <div class="insight-seat-price-breakdown__lines small">
+            <div class="insight-seat-price-breakdown__line d-flex justify-content-between gap-2"><span class="text-muted">ก่อน VAT</span><span><%= number_to_thb(tc.seat_price_ex_vat) %></span></div>
+            <div class="insight-seat-price-breakdown__line d-flex justify-content-between gap-2"><span class="text-muted">VAT 7%</span><span><%= number_to_thb(tc.seat_vat_amount) %></span></div>
+            <div class="insight-seat-price-breakdown__line insight-seat-price-breakdown__line--total d-flex justify-content-between gap-2 pt-1 mt-1 border-top"><span class="fw-semibold">รวม VAT</span><span class="fw-semibold"><%= number_to_thb(tc.seat_price_inc_vat) %></span></div>
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <div class="insight-class-details__desc<%= ' is-expanded' unless needs_toggle %>"<%= raw(' data-controller="description-toggle" data-description-toggle-expanded-value="false"') if desc.present? && needs_toggle %>>

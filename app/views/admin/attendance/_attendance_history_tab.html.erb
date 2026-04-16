@@ -1,0 +1,43 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  records = local_assigns[:records] || []
+  history_overview = local_assigns[:history_overview] || @history_overview || {}
+  history_view = local_assigns[:history_view] || @history_view || "list"
+  base_path = admin_class_workspace_attendance_path(training_class)
+  query_params = { tab: "history" }
+  query_params[:month] = params[:month] if params[:month].present?
+  query_params[:date] = params[:date] if params[:date].present?
+  query_params[:learning_hour] = params[:learning_hour] if params[:learning_hour].present?
+  query_params[:q] = params[:q] if params[:q].present?
+%>
+<div class="hist" id="attendance_history_tab">
+  <header class="hist__header">
+    <h2 class="hist__title">ประวัติการเช็กชื่อ</h2>
+    <p class="hist__subtitle">ดูภาพรวมการเช็กชื่อของคลาส และย้อนดูหรือแก้ไขรายการย้อนหลัง</p>
+  </header>
+
+  <%= render "admin/attendance/attendance_history_overview_cards", overview: history_overview %>
+
+  <%= render "admin/attendance/attendance_history_filters", training_class: training_class, query_params: query_params %>
+
+  <%= render "admin/attendance/attendance_history_view_toggle", training_class: training_class, current_view: history_view, query_params: query_params %>
+
+  <div class="hist__content" id="attendance_history_content">
+    <% if history_view == "monthly" %>
+      <%= turbo_frame_tag "attendance_history_content_frame" do %>
+        <%= render "admin/attendance/attendance_history_monthly_overview", training_class: training_class %>
+      <% end %>
+    <% elsif history_view == "student" %>
+      <%= turbo_frame_tag "attendance_history_content_frame" do %>
+        <%= render "admin/attendance/attendance_history_student_matrix", training_class: training_class %>
+      <% end %>
+    <% else %>
+      <%= turbo_frame_tag "attendance_history_content_frame" do %>
+        <%= render "admin/attendance/attendance_history_list", training_class: training_class, records: records %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= turbo_frame_tag "attendance_history_detail" %>
+</div>
+<%= render "admin/attendance/attendance_history_styles" %>

@@ -21,6 +21,26 @@
 
   <%= form_with model: [:admin, @training_class, @attendee], local: true, multipart: true, class: "attendee-edit-form", id: "attendee-new-form" do |f| %>
     <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+    <%= f.hidden_field :customer_id, value: @attendee.customer_id, id: "attendee_customer_id" %>
+
+    <%# เลือกจากลูกค้าที่มีอยู่ แล้วเติมข้อมูลให้อัตโนมัติ %>
+    <div class="card mb-4 border-primary">
+      <div class="card-body py-3">
+        <label class="form-label small mb-1 fw-semibold"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> เลือกจากลูกค้าที่มีอยู่</label>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <select id="select-customer-prefill" class="form-select form-select-sm" style="max-width: 360px;" aria-label="เลือกลูกค้า">
+            <option value="">— เลือกลูกค้า (เติมข้อมูลให้อัตโนมัติ) —</option>
+            <% (@customers_for_select || []).each do |id, name, email| %>
+              <option value="<%= id %>" <%= 'selected' if @attendee.customer_id.to_i == id %>><%= "#{name} (#{email})" %></option>
+            <% end %>
+          </select>
+          <button type="button" class="odt-btn odt-btn--secondary odt-btn--sm" id="btn-clear-customer-prefill" style="<%= 'display: none;' unless @attendee.customer_id.present? %>">
+            <i class="bi bi-x-circle" aria-hidden="true"></i> ล้างการเลือก
+          </button>
+        </div>
+      </div>
+    </div>
+
     <% if @attendee.errors.any? %>
       <div class="alert alert-danger mb-4" role="alert">
         <h5>Please fix the following errors:</h5>
@@ -93,8 +113,67 @@
 <%= content_for :footer_scripts do %>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  var selectCustomer = document.getElementById('select-customer-prefill');
+  var hiddenCustomerId = document.getElementById('attendee_customer_id');
+  var btnClearCustomer = document.getElementById('btn-clear-customer-prefill');
+  var attendeeInfoBasePath = '<%= admin_customers_path %>';
+
+  function setField(name, value) {
+    var el = document.querySelector('[name="attendee[' + name + ']"]');
+    if (el) {
+      if (el.type === 'checkbox') el.checked = !!value;
+      else el.value = value == null ? '' : value;
+    }
+  }
+
+  function prefillFromCustomer(data) {
+    setField('name', data.name);
+    setField('email', data.email);
+    setField('phone', data.phone);
+    setField('participant_type', data.participant_type);
+    setField('company', data.company);
+    setField('tax_id', data.tax_id);
+    setField('name_thai', data.name_thai);
+    setField('billing_name', data.billing_name);
+    setField('address', data.address);
+    setField('billing_address', data.billing_address);
+    if (hiddenCustomerId) hiddenCustomerId.value = data.id || '';
+    if (btnClearCustomer) btnClearCustomer.style.display = '';
+    var seatsIndiHint = document.getElementById('seats-indi-hint');
+    if (data.participant_type === 'Corp') {
+      if (seatsIndiHint) seatsIndiHint.style.display = 'none';
+    } else {
+      if (seatsIndiHint) seatsIndiHint.style.display = 'block';
+    }
+    var participantSelect = document.getElementById('participant_type_select');
+    if (participantSelect) participantSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    if (typeof calculatePrice === 'function') calculatePrice();
+  }
+
+  if (selectCustomer) {
+    selectCustomer.addEventListener('change', function() {
+      var id = this.value;
+      if (!id) {
+        if (hiddenCustomerId) hiddenCustomerId.value = '';
+        if (btnClearCustomer) btnClearCustomer.style.display = 'none';
+        return;
+      }
+      var url = attendeeInfoBasePath + '/' + id + '/attendee_info.json';
+      fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(prefillFromCustomer)
+        .catch(function() {});
+    });
+  }
+  if (btnClearCustomer) {
+    btnClearCustomer.addEventListener('click', function() {
+      if (selectCustomer) selectCustomer.value = '';
+      if (hiddenCustomerId) hiddenCustomerId.value = '';
+      btnClearCustomer.style.display = 'none';
+    });
+  }
+
   var participantTypeSelect = document.getElementById('participant_type_select');
-  var companyField = document.getElementById('company-field');
   var seatsField = document.getElementById('seats-field');
   var seatsIndiHint = document.getElementById('seats-indi-hint');
   var seatsInput = document.querySelector('input[name="attendee[seats]"]');
@@ -104,12 +183,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (participantTypeSelect) {
     participantTypeSelect.addEventListener('change', function() {
       if (this.value === 'Corp') {
-        if (companyField) companyField.style.display = 'block';
         if (seatsField) seatsField.style.display = 'block';
         if (seatsIndiHint) seatsIndiHint.style.display = 'none';
         if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
       } else {
-        if (companyField) companyField.style.display = 'none';
         if (seatsField) seatsField.style.display = 'none';
         if (seatsIndiHint) seatsIndiHint.style.display = 'block';
         if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }

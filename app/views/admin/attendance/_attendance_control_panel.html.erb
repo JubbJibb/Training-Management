@@ -1,0 +1,45 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  existing_record = local_assigns[:existing_record]
+  summary = local_assigns[:summary] || { total: 0, present: 0, absent: 0, unchecked: 0 }
+  current_date = local_assigns[:attendance_date] || @attendance_date
+  current_hour = local_assigns[:learning_hour] || @learning_hour
+  current_date_str = current_date.respond_to?(:strftime) ? current_date.strftime("%Y-%m-%d") : (current_date.to_s.presence || "")
+  mode_label = existing_record && params[:edit_record_id].present? ? "แก้ไขย้อนหลัง" : "เช็กชื่อใหม่"
+  status_label = if existing_record.nil?
+    "ยังไม่บันทึก"
+  elsif params[:edit_record_id].present?
+    "กำลังแก้ไขย้อนหลัง"
+  else
+    "บันทึกแล้ว"
+  end
+%>
+<div class="attendance-panel card">
+  <div class="attendance-panel__body">
+    <div class="attendance-panel__section">
+      <label class="attendance-panel__label">วันที่เช็กชื่อ</label>
+      <%= text_field_tag :attendance_date, current_date_str, type: "date", class: "attendance-panel__input form-control form-control-sm", form: "attendance_form", id: "attendance_date_field" %>
+    </div>
+    <div class="attendance-panel__section">
+      <label class="attendance-panel__label">ชั่วโมงเรียน</label>
+      <%= select_tag :learning_hour, options_for_select(AttendanceRecord.learning_hour_options, current_hour), { include_blank: "— เลือก —", disabled: current_date_str.blank?, class: "attendance-panel__select form-select form-select-sm", form: "attendance_form", id: "learning_hour_field" } %>
+    </div>
+    <div class="attendance-panel__section">
+      <span class="attendance-panel__label">โหมด</span>
+      <span class="attendance-panel__badge attendance-panel__badge--mode"><%= mode_label %></span>
+    </div>
+    <div class="attendance-panel__section">
+      <span class="attendance-panel__label">สถานะรายการ</span>
+      <span class="attendance-panel__badge attendance-panel__badge--<%= status_label == "บันทึกแล้ว" ? "saved" : (status_label == "กำลังแก้ไขย้อนหลัง" ? "editing" : "unsaved") %>"><%= status_label %></span>
+      <% if existing_record&.updated_at %>
+        <p class="attendance-panel__meta">บันทึกล่าสุด: <%= l(existing_record.updated_at, format: :short) %></p>
+        <% if existing_record.recorded_by %>
+          <p class="attendance-panel__meta">โดย: <%= existing_record.recorded_by.email %></p>
+        <% end %>
+      <% end %>
+    </div>
+    <div id="attendance_summary_cards" class="attendance-panel__summary">
+      <%= render "admin/attendance/attendance_summary_cards", summary: summary %>
+    </div>
+  </div>
+</div>

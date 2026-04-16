@@ -1,0 +1,64 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  monthly_days = local_assigns[:monthly_days] || @monthly_days || []
+  monthly_start = local_assigns[:monthly_start] || @monthly_start
+  monthly_end = local_assigns[:monthly_end] || @monthly_end
+  focus_date = params[:date].presence
+  focus_day_data = monthly_days.find { |d| d[:date].to_s == focus_date } if focus_date
+%>
+<div class="hist-monthly">
+  <div class="hist-monthly__grid-wrap">
+    <div class="hist-monthly__grid" role="grid" aria-label="ปฏิทินรายเดือน">
+      <% if monthly_start && monthly_end %>
+        <div class="hist-monthly__weekday-headers">
+          <% %w[อา จ อ พ พฤ ศ ส].each do |w| %>
+            <span class="hist-monthly__weekday"><%= w %></span>
+          <% end %>
+        </div>
+        <% first_wday = monthly_start.wday %>
+        <% (0...first_wday).each do %>
+          <div class="hist-monthly__cell hist-monthly__cell--empty"></div>
+        <% end %>
+        <% monthly_days.each do |day| %>
+          <%
+            d = day[:date]
+            in_range = day[:in_class_range]
+            has_record = day[:has_record]
+            has_edited = day[:has_edited]
+            records = day[:records] || []
+            cell_class = "hist-monthly__cell"
+            cell_class += " hist-monthly__cell--noclass" unless in_range
+            cell_class += " hist-monthly__cell--recorded" if has_record && !has_edited
+            cell_class += " hist-monthly__cell--edited" if has_edited
+            cell_class += " hist-monthly__cell--missing" if in_range && !has_record
+            cell_class += " hist-monthly__cell--focus" if focus_date && d.to_s == focus_date
+          %>
+          <% if in_range && records.any? %>
+            <%= link_to admin_class_workspace_attendance_path(training_class, tab: "history", history_view: "monthly", month: params[:month], date: d.strftime("%Y-%m-%d")), class: cell_class, data: { turbo_frame: "_top" } do %>
+              <span class="hist-monthly__day-num"><%= d.day %></span>
+              <% if has_edited %>
+                <span class="hist-monthly__dot hist-monthly__dot--edited" title="แก้ไขแล้ว"></span>
+              <% elsif has_record %>
+                <span class="hist-monthly__dot hist-monthly__dot--recorded" title="เช็กชื่อแล้ว"></span>
+              <% end %>
+            <% end %>
+          <% else %>
+            <div class="<%= cell_class %>">
+              <span class="hist-monthly__day-num"><%= d.day %></span>
+              <% if in_range && !has_record %>
+                <span class="hist-monthly__dot hist-monthly__dot--missing" title="ยังไม่เช็ก"></span>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      <% else %>
+        <p class="hist-monthly__empty">ไม่มีข้อมูลเดือนนี้</p>
+      <% end %>
+    </div>
+  </div>
+  <% if focus_day_data && focus_day_data[:records].any? %>
+    <div class="hist-monthly__detail" id="hist_daily_detail">
+      <%= render "admin/attendance/attendance_history_detail_panel", training_class: training_class, records: focus_day_data[:records], focus_date: focus_date %>
+    </div>
+  <% end %>
+</div>

@@ -22,12 +22,27 @@
     <button type="button" class="nav-link nav-link--dropdown nav-dropdown__toggle" id="navInsights" data-nav-dropdown aria-expanded="false" aria-controls="navInsightsMenu" title="Executive overview and cross-module priorities">
       <%= flowbite_icon("chart-outline") %> Insights
     </button>
-    <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu" id="navInsightsMenu" aria-labelledby="navInsights" role="menu">
+    <ul class="dropdown-menu dropdown-menu-end nav-dropdown__menu insights-menu" id="navInsightsMenu" aria-labelledby="navInsights" role="menu">
       <li role="none">
-        <%= link_to insights_business_path, class: "dropdown-item #{insights_nav_item_active?(insights_business_path)}", role: "menuitem" do %><%= flowbite_icon("chart-line-outline", class: "dropdown-item-icon") %> Business Insights<% end %>
+        <%= link_to insights_business_path, class: "insights-menu__item #{insights_nav_item_active?(insights_business_path)}", role: "menuitem" do %>
+          <%= flowbite_icon("chart-line-outline", class: "insights-menu__icon") %>
+          <span class="insights-menu__content">
+            <span class="insights-menu__title">Business Insights</span>
+            <span class="insights-menu__support">KPIs, trends, and cohort retention</span>
+          </span>
+        <% end %>
       </li>
       <li role="none">
-        <%= link_to insights_actions_path, class: "dropdown-item #{insights_nav_item_active?(insights_actions_path)}", role: "menuitem" do %><%= flowbite_icon("clipboard-document-list-outline", class: "dropdown-item-icon") %> Action Center<% end %>
+        <%= link_to insights_actions_path, class: "insights-menu__item #{insights_nav_item_active?(insights_actions_path)}", role: "menuitem" do %>
+          <%= flowbite_icon("clipboard-document-list-outline", class: "insights-menu__icon") %>
+          <span class="insights-menu__content">
+            <span class="insights-menu__title">Action Center</span>
+            <span class="insights-menu__support">Cross-module priorities and follow-ups</span>
+          </span>
+          <% if insights_action_center_pending_count.to_i.positive? %>
+            <span class="insights-menu__badge"><%= insights_action_center_pending_count %></span>
+          <% end %>
+        <% end %>
       </li>
     </ul>
   </div>

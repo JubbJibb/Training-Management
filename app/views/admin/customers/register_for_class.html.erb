@@ -6,7 +6,7 @@
   <% end %>
 <% end %>
 
-<div class="card">
+<div class="card mb-4">
   <div class="card-body">
     <% if @upcoming_classes.any? %>
       <p class="text-muted mb-3">เลือกคลาสด้านล่าง เพื่อไปหน้าลงทะเบียนผู้เข้าร่วม (ข้อมูลลูกค้าจะถูกนำไปใส่ในฟอร์ม)</p>
@@ -32,3 +32,49 @@
     <% end %>
   </div>
 </div>
+
+<% if @upcoming_classes.any? %>
+  <div class="card border-primary">
+    <div class="card-header bg-primary text-white">
+      <i class="bi bi-box-seam" aria-hidden="true"></i> Bundle Deal – สมัครหลายคลาส
+    </div>
+    <div class="card-body">
+      <p class="text-muted mb-3">เลือกได้มากกว่า 1 คลาส แล้วดูสรุปการชำระเงินตามคลาสก่อนยืนยันสมัคร</p>
+      <%= form_with url: bundle_deal_summary_admin_customer_path(@customer), method: :get, local: true, class: "bundle-deal-form" do |f| %>
+        <ul class="list-group list-group-flush mb-3">
+          <% @upcoming_classes.each do |tc| %>
+            <li class="list-group-item d-flex align-items-center">
+              <%= check_box_tag "class_ids[]", tc.id, false, id: "bundle_class_#{tc.id}", class: "form-check-input me-2" %>
+              <label for="bundle_class_<%= tc.id %>" class="form-check-label flex-grow-1 mb-0">
+                <strong><%= tc.title %></strong>
+                <span class="text-muted ms-2"><%= tc.date.strftime("%d %b %Y") %></span>
+                <span class="text-muted"> · ฿<%= number_with_delimiter(tc.price.to_f) %></span>
+              </label>
+            </li>
+          <% end %>
+        </ul>
+        <button type="submit" class="odt-btn odt-btn--primary">
+          <i class="bi bi-receipt" aria-hidden="true"></i> ดูสรุปการชำระเงิน (Bundle)
+        </button>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<%= content_for :footer_scripts do %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.querySelector('.bundle-deal-form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      var checked = form.querySelectorAll('input[name="class_ids[]"]:checked');
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('กรุณาเลือกอย่างน้อย 1 คลาส');
+        return false;
+      }
+    });
+  }
+});
+</script>
+<% end %>

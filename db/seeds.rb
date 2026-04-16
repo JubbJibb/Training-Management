@@ -33,6 +33,14 @@ Promotion.find_or_create_by!(name: "Friend get friends") do |p|
   p.base_price = 0
 end
 
+Promotion.find_or_create_by!(name: "ส่วนลดศิษย์เก่า") do |p|
+  p.discount_type = "percentage"
+  p.discount_value = 10
+  p.description = "ส่วนลดสำหรับศิษย์เก่าที่เคยเรียนกับเรา"
+  p.active = true
+  p.base_price = 0
+end
+
 puts "Default promotions created!"
 
 # Create sample training classes

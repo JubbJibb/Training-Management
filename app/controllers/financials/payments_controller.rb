@@ -6,6 +6,7 @@ module Financials
 
     def index
       @summary = Financials::PaymentTrackingSummaryQuery.call(filter_params)
+      @pending_by_class = sort_pending_by_class(Financials::PendingByClassQuery.call(filter_params))
       @payments = filtered_payments
       @payment = Attendee.find_by(id: params[:panel_id]) if params[:panel_id].present?
       @training_class = @payment&.training_class
@@ -174,37 +175,53 @@ module Financials
     end
 
     def filter_params
-      params.permit(:period, :date_from, :date_to, :client_type, :status, :workflow_status, :class_id, :instructor, :overdue_only, :has_slip, :panel_id, :completed_today).to_h
+      params.permit(:period, :date_from, :date_to, :client_type, :status, :workflow_status, :class_id, :instructor, :overdue_only, :has_slip, :panel_id, :completed_today, :pfc_sort, :pfc_dir).to_h
+    end
+
+    def sort_pending_by_class(list)
+      sort_by = params[:pfc_sort].presence || "priority"
+      dir = params[:pfc_dir].presence == "asc" ? :asc : :desc
+      list.sort do |a, b|
+        cmp = case sort_by
+              when "class" then (a[:class_title].to_s <=> b[:class_title].to_s)
+              when "date" then (a[:class_date].to_s <=> b[:class_date].to_s)
+              when "outstanding" then (a[:total_amount].to_f <=> b[:total_amount].to_f)
+              when "unpaid" then (a[:count] <=> b[:count])
+              else priority_rank_for_sort(a) <=> priority_rank_for_sort(b)
+              end
+        dir == :asc ? cmp : -cmp
+      end
+    end
+
+    def priority_rank_for_sort(g)
+      total = g[:total_amount].to_f
+      return 0 if total.zero?
+      due = g[:earliest_due_date] || g[:class_date]
+      return 3 if due.present? && due < Date.current
+      return 2 if due.present? && due >= Date.current && due <= Date.current + 7
+      1
     end
 
     def filtered_payments
-      scope = Attendee.joins(:training_class).includes(:training_class, :customer).order("training_classes.date DESC", "attendees.id DESC")
-      scope = scope.where(attendees: { participant_type: params[:client_type] }) if params[:client_type].in?(%w[Indi Corp])
-      scope = scope.where(attendees: { payment_status: params[:status] }) if params[:status].in?(%w[Pending Paid])
-      scope = scope.where("training_classes.date >= ?", params[:date_from]) if params[:date_from].present?
-      scope = scope.where("training_classes.date <= ?", params[:date_to]) if params[:date_to].present?
-      scope = scope.where(training_classes: { id: params[:class_id] }) if params[:class_id].present?
-      scope = scope.where(training_classes: { instructor: params[:instructor] }) if params[:instructor].present?
-      scope = scope.where("attendees.due_date < ?", Date.current) if params[:overdue_only] == "1"
-      if params[:has_slip] == "1"
-        scope = scope.where(id: ActiveStorage::Attachment.where(record_type: "Attendee", name: "payment_slips").select(:record_id))
-      end
-      if params[:completed_today] == "1"
-        scope = scope.where(id: FinancialActionLog.where(subject_type: "Attendee", action_type: "send_payment_summary", status: "sent").where("updated_at >= ?", Date.current.beginning_of_day).select(:subject_id))
-      end
-      scope = apply_period_default(scope)
+      # รายการค้างชำระทั้งหมด: สถานะ Attendee + Payment = Pending, ทุก Class (ไม่มี filter วันที่)
+      scope = Attendee.attendees
+        .joins(:training_class)
+        .where(attendees: { payment_status: "Pending" })
+        .includes(:training_class, :customer)
+        .order("training_classes.date DESC", "attendees.id DESC")
       list = scope.to_a
-      if params[:workflow_status].present?
-        list = list.select { |a| PaymentWorkflowStatus.for(a) == params[:workflow_status] }
+      list = list.select { |a| PaymentWorkflowStatus.for(a) == params[:workflow_status] } if params[:workflow_status].present?
+      list = list.select { |a| a.due_date.present? && a.due_date < Date.current } if params[:overdue_only] == "1"
+      list = list.select { |a| a.payment_slips.attached? } if params[:has_slip] == "1"
+      if params[:completed_today] == "1"
+        completed_ids = FinancialActionLog
+          .where(subject_type: "Attendee", action_type: "send_payment_summary", status: "sent")
+          .where("updated_at >= ?", Date.current.beginning_of_day)
+          .distinct
+          .pluck(:subject_id)
+        list = list.select { |a| completed_ids.include?(a.id) }
       end
       list
-    end
-
-    def apply_period_default(scope)
-      return scope if params[:date_from].present? || params[:date_to].present?
-      return scope unless params[:period].blank? || params[:period] == "mtd"
-      resolver = Financials::DateRangeResolver.new(period: "mtd")
-      scope.where(training_classes: { date: resolver.start_date..resolver.end_date })
     end
 
     def log_activity(action_type, message)

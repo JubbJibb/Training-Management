@@ -4,8 +4,18 @@
   sort = local_assigns[:sort].to_s.presence
   direction = local_assigns[:direction].to_s.downcase == "asc" ? "asc" : "desc"
   base_params = local_assigns[:base_params] || {}
+  has_email = customer.email.present?
 %>
 <tr id="<%= dom_id(customer, :row) %>" class="attendees-ledger__row">
+  <td class="attendees-ledger__td attendees-ledger__td--check">
+    <% if has_email %>
+      <label class="attendees-ledger__check-label">
+        <input type="checkbox" class="customer-email-checkbox" data-customer-email-select-target="rowCheckbox" data-email="<%= customer.email %>" aria-label="เลือกสำหรับส่งเมล">
+      </label>
+    <% else %>
+      <span class="attendees-ledger__no-email" title="ไม่มีอีเมล">—</span>
+    <% end %>
+  </td>
   <td class="attendees-ledger__td attendees-ledger__td--name">
     <%= link_to admin_customer_path(customer), class: "attendees-ledger__name-link", data: { turbo_frame: "_top" } do %>
       <span class="attendees-ledger__name"><%= customer.company_name %></span>

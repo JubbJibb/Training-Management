@@ -83,6 +83,29 @@
           <span class="payment-summary-card__pricing-total" id="display_final_price">0.00</span>
         </div>
       </div>
+      <%
+        advance_paid = @attendee.respond_to?(:advance_paid_amount) ? @attendee.advance_paid_amount.to_f.round(2) : 0.0
+        grand_total = @attendee.total_final_price.to_f.round(2)
+        remaining_due = [grand_total - advance_paid, 0].max.round(2)
+      %>
+      <% if advance_paid.positive? || @attendee.payment_status == "Partial" %>
+        <div class="payment-summary-card__pricing-grid mt-3">
+          <div class="payment-summary-card__pricing-row">
+            <span class="payment-summary-card__pricing-label">มัดจำ/จ่ายล่วงหน้า</span>
+            <span class="payment-summary-card__pricing-amount">−฿<%= number_with_delimiter(advance_paid) %></span>
+          </div>
+          <div class="payment-summary-card__pricing-row payment-summary-card__pricing-row--total">
+            <span class="payment-summary-card__pricing-label">คงเหลือชำระ</span>
+            <span class="payment-summary-card__pricing-total">฿<%= number_with_delimiter(remaining_due) %></span>
+          </div>
+          <% if @attendee.respond_to?(:advance_paid_note) && @attendee.advance_paid_note.present? %>
+            <div class="payment-summary-card__pricing-row">
+              <span class="payment-summary-card__pricing-label">หมายเหตุ</span>
+              <span class="payment-summary-card__pricing-amount"><%= @attendee.advance_paid_note.to_s %></span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </div>
 
     <%# Payment information %>
@@ -95,11 +118,15 @@
         </div>
         <div class="payment-summary-card__bank-row">
           <span class="payment-summary-card__bank-label">ประเภทบัญชี</span>
-          <span class="payment-summary-card__bank-value">ออมทรัพย์ 981-7-61590-1</span>
+          <span class="payment-summary-card__bank-value">ออมทรัพย์</span>
+        </div>
+        <div class="payment-summary-card__bank-row">
+          <span class="payment-summary-card__bank-label">เลขที่บัญชี</span>
+          <span class="payment-summary-card__bank-value">981-7-61590-1</span>
         </div>
         <div class="payment-summary-card__bank-row">
           <span class="payment-summary-card__bank-label">ชื่อบัญชี</span>
-          <span class="payment-summary-card__bank-value">บริษัท ออด-อี (ประเทศไทย) จำกัด</span>
+          <span class="payment-summary-card__bank-value">บจ. ออด-อี(ประเทศไทย) จำกัด</span>
         </div>
       </div>
       <p class="payment-summary-card__instruction">

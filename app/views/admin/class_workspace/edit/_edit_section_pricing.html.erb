@@ -1,26 +1,74 @@
-<%# Pricing: price/seat, cost; currency/VAT helper %>
-<div class="odt-edit-card">
+<%# Pricing: hidden price (ex-VAT in DB when VAT applies); inc-VAT input for entry; VAT excluded = direct seat price %>
+<div class="odt-edit-card" data-controller="class-seat-pricing">
   <div class="odt-edit-card__strip"></div>
   <div class="odt-edit-card__body">
     <header class="odt-edit-card__header">
       <span class="odt-edit-card__title"><i class="bi bi-currency-exchange" aria-hidden="true"></i> Pricing</span>
     </header>
     <div class="odt-edit-card__content">
+      <%= f.hidden_field :price, value: (@training_class.price || 0).to_f, data: { class_seat_pricing_target: "priceSubmit" } %>
+
       <div class="odt-edit-fields odt-edit-fields--grid">
-        <div class="odt-edit-field">
-          <%= f.label :price, "Price per seat (THB)", class: "odt-edit-field__label" %>
-          <%= f.number_field :price, class: "odt-edit-field__input", step: 0.01, min: 0, value: @training_class.price || 0, placeholder: "Selling price per person" %>
+        <div class="odt-edit-field <%= "d-none" if @training_class.vat_excluded? %>" data-class-seat-pricing-target="vatableBlock">
+          <label class="odt-edit-field__label">ราคารวม VAT ต่อที่นั่ง (THB)</label>
+          <p class="odt-edit-field__helper" style="margin-top: 0; margin-bottom: 0.35rem;">กรอกยอดที่เรียกเก็บลูกค้า <strong>รวม VAT 7%</strong> — ระบบจะแปลงเป็นราคาก่อน VAT สำหรับเก็บในฐานข้อมูล</p>
+          <%= number_field_tag nil,
+              (@training_class.vat_excluded? ? 0 : (@training_class.price.to_f * 1.07).round(2)),
+              class: "odt-edit-field__input",
+              step: "0.01",
+              min: 0,
+              autocomplete: "off",
+              data: {
+                class_seat_pricing_target: "incField",
+                action: "input->class-seat-pricing#incChanged"
+              } %>
+        </div>
+        <div class="odt-edit-field <%= "d-none" unless @training_class.vat_excluded? %>" data-class-seat-pricing-target="excludedBlock">
+          <%= f.label :price, "ราคาต่อที่นั่ง (THB) — ไม่คิด VAT 7%", class: "odt-edit-field__label" %>
+          <%= number_field_tag nil,
+              (@training_class.price || 0).to_f,
+              class: "odt-edit-field__input",
+              step: "0.01",
+              min: 0,
+              autocomplete: "off",
+              data: {
+                class_seat_pricing_target: "excludedField",
+                action: "input->class-seat-pricing#excludedChanged"
+              } %>
         </div>
         <div class="odt-edit-field">
           <%= f.label :cost, "Cost of class (THB)", class: "odt-edit-field__label" %>
           <%= f.number_field :cost, class: "odt-edit-field__input", step: 0.01, min: 0, value: @training_class.cost || 0, placeholder: "Class cost" %>
         </div>
       </div>
+
+      <div class="class-seat-pricing-breakdown <%= "d-none" if @training_class.vat_excluded? %>" data-class-seat-pricing-target="vatBreakdown" style="margin-top: 0.75rem; padding: 0.65rem 0.75rem; background: var(--odt-surface-subtle, #f3f4f6); border-radius: 8px; font-size: 0.875rem; line-height: 1.5;">
+        <div class="fw-semibold mb-2" style="color: var(--odt-blue, #1e40af);">สรุปราคาต่อที่นั่ง</div>
+        <div class="class-seat-pricing-breakdown__rows d-flex flex-column gap-2">
+          <div class="class-seat-pricing-breakdown__row d-flex justify-content-between align-items-baseline gap-3">
+            <span class="text-muted">ก่อน VAT</span>
+            <span><strong class="text-body" data-class-seat-pricing-target="exDisplay">0.00</strong> THB</span>
+          </div>
+          <div class="class-seat-pricing-breakdown__row d-flex justify-content-between align-items-baseline gap-3">
+            <span class="text-muted">VAT 7%</span>
+            <span><strong class="text-body" data-class-seat-pricing-target="vatDisplay">0.00</strong> THB</span>
+          </div>
+          <div class="class-seat-pricing-breakdown__row class-seat-pricing-breakdown__row--total d-flex justify-content-between align-items-baseline gap-3 pt-1 border-top" style="border-color: rgba(0,0,0,0.08) !important;">
+            <span class="fw-semibold">รวม VAT</span>
+            <span><strong class="text-body" data-class-seat-pricing-target="incDisplay">0.00</strong> THB</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="odt-edit-field__helper <%= "d-none" unless @training_class.vat_excluded? %>" style="margin-top: 0.75rem;" data-class-seat-pricing-target="excludedBreakdown">
+        ยอดเรียกเก็บต่อคน: <strong data-class-seat-pricing-target="exOnlyDisplay">0.00</strong> THB (ไม่บวก VAT 7%)
+      </p>
+
       <div class="odt-edit-field odt-edit-field--checkbox" style="margin-top: 0.75rem;">
-        <%= f.check_box :vat_excluded, class: "odt-edit-field__checkbox" %>
+        <%= f.check_box :vat_excluded, class: "odt-edit-field__checkbox", data: { class_seat_pricing_target: "vatCheckbox" } %>
         <%= f.label :vat_excluded, "VAT excluded for payment", class: "odt-edit-field__label odt-edit-field__label--inline" %>
       </div>
-      <p class="odt-edit-field__helper odt-edit-field__helper--block">Prices in Thai Baht. When "VAT excluded" is checked, the payment amount is the price before VAT (no 7% added).</p>
+      <p class="odt-edit-field__helper odt-edit-field__helper--block">เมื่อไม่ติ๊กช่องนี้ ราคาต่อที่นั่งในระบบเก็บเป็น<strong>ก่อน VAT</strong> โดยอัตโนมัติ (คำนวณจากราคารวม VAT ที่คุณกรอก) เพื่อให้สอดคล้องกับใบกำกับและการคำนวณ attendee</p>
     </div>
   </div>
 </div>

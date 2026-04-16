@@ -1,0 +1,41 @@
+<%
+  record = local_assigns[:record] || @record
+  training_class = record.training_class
+  detail_attendees = local_assigns[:detail_attendees] || @detail_attendees || record.attendance_record_attendees.includes(attendee: :customer).order("attendees.name")
+  present = record.present_count
+  absent = record.absent_count
+  rate = record.attendance_rate_percent
+%>
+<div class="attendance-history-detail card">
+  <div class="attendance-history-detail__header">
+    <h3 class="attendance-history-detail__title">รายละเอียดการเช็กชื่อ</h3>
+    <%= link_to "ปิด", admin_class_workspace_attendance_path(training_class, tab: "history"), class: "attendance-history-detail__close", data: { turbo_frame: "_top" } %>
+  </div>
+  <div class="attendance-history-detail__body">
+    <dl class="attendance-history-detail__meta">
+      <dt>วันที่</dt>
+      <dd><%= record.attendance_date.strftime("%d/%m/%Y") %></dd>
+      <dt>ชั่วโมงเรียน</dt>
+      <dd><%= record.learning_hour %></dd>
+      <dt>สถานะ</dt>
+      <dd><%= render "admin/attendance/attendance_history_status_badge", record: record %></dd>
+      <dt>บันทึกโดย</dt>
+      <dd><%= record.recorded_by&.email || "—" %></dd>
+      <dt>อัปเดตล่าสุด</dt>
+      <dd><%= l(record.updated_at, format: :short) %></dd>
+      <dt>มาเรียน / ขาด</dt>
+      <dd><%= present %> / <%= absent %></dd>
+      <dt>อัตราการมา</dt>
+      <dd><%= rate.present? ? "#{rate}%" : "—" %></dd>
+    </dl>
+    <h4 class="attendance-history-detail__subtitle">รายชื่อนักเรียน</h4>
+    <ul class="attendance-history-detail__list">
+      <% detail_attendees.each do |ara| %>
+        <li class="attendance-history-detail__list-item <%= ara.present? ? 'attendance-history-detail__list-item--present' : 'attendance-history-detail__list-item--absent' %>">
+          <%= ara.attendee.billing_name.presence || ara.attendee.name %> — <%= ara.present? ? "มาเรียน" : "ขาด" %>
+        </li>
+      <% end %>
+    </ul>
+    <%= link_to "แก้ไขรายการนี้", admin_class_workspace_attendance_path(training_class, attendance_date: record.attendance_date.strftime("%Y-%m-%d"), learning_hour: record.learning_hour, edit_record_id: record.id, tab: "check"), class: "btn btn-primary attendance-history-detail__edit", data: { turbo_frame: "_top" } %>
+  </div>
+</div>

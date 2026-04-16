@@ -1,0 +1,160 @@
+<%
+  training_class = local_assigns[:training_class]
+  attendee = local_assigns[:attendee]
+  row_index = local_assigns[:row_index].to_i
+  sort_params = local_assigns[:sort_params] || {}
+  return_to = local_assigns[:return_to].presence || request.original_url
+  inline_errors = local_assigns[:inline_errors]
+  quick_path = quick_update_admin_training_class_attendee_path(training_class, attendee, format: :turbo_stream)
+  primary_line = attendee.name
+  company_read = attendee.company.presence || "—"
+  payment_tip = if attendee.respond_to?(:display_payment_date) && attendee.display_payment_date.present?
+    "Payment date: #{attendee.display_payment_date.to_date.strftime("%b %d, %Y")}"
+  else
+    "Payment date: —"
+  end
+  source_opts = attendee_source_channel_options
+  base_for_edit = attendee_effective_base_price(attendee, training_class)
+  type_label = attendee.participant_type == "Corp" ? "CORP" : "INDI"
+  type_variant = attendee.participant_type == "Corp" ? :info : :neutral
+  source_read = attendee.source_channel.presence || "—"
+  amount_read = attendee.respond_to?(:total_final_price) ? number_to_thb(attendee.total_final_price) : "—"
+%>
+<tr class="attendees-ledger__row attendees-ledger__row--actionable" id="ledger-row-<%= attendee.id %>" data-attendee-id="<%= attendee.id %>">
+  <td class="attendees-ledger__td attendees-ledger__td--check">
+    <input type="checkbox" class="form-check-input ledger-row-check" name="attendee_ids[]" value="<%= attendee.id %>" form="ledger-bulk-form" aria-label="Select <%= primary_line.to_s.truncate(40) %>">
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--no"><%= row_index %></td>
+  <td class="attendees-ledger__td attendees-ledger__td--name">
+    <%= link_to edit_admin_training_class_attendee_path(training_class, attendee, return_to: return_to), class: "attendees-ledger__name-link", title: "Edit details" do %>
+      <span class="attendees-ledger__name attendees-ledger__name--primary"><%= primary_line %></span>
+      <% if attendee.email.present? %>
+        <span class="attendees-ledger__email"><%= attendee.email %></span>
+      <% end %>
+    <% end %>
+    <% if inline_errors.present? %>
+      <span class="attendees-ledger__inline-error" role="alert"><%= inline_errors %></span>
+    <% end %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--company" title="<%= company_read == "—" ? "" : company_read %>">
+    <%= company_read %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--type">
+    <%= odt_badge(type_label, variant: type_variant, size: :sm) %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--seats <%= attendee.participant_type == "Corp" ? "attendees-ledger__td--editable" : "attendees-ledger__td--seats-quiet" %>">
+    <% if attendee.participant_type == "Corp" %>
+      <div class="ledger-cell ledger-cell--editable" data-controller="ledger-cell-edit" data-ledger-cell-edit-input-mode-value="number">
+        <span
+          class="ledger-cell__display"
+          tabindex="0"
+          role="button"
+          aria-label="Edit seats"
+          data-ledger-cell-edit-target="display"
+          data-action="click->ledger-cell-edit#open keydown->ledger-cell-edit#displayKeydown"><%= attendee.seats %></span>
+        <div class="ledger-cell__editor" data-ledger-cell-edit-target="editor" hidden>
+          <%= form_with url: quick_path, method: :patch, data: { turbo: true }, html: { class: "ledger-cell__form", data: { ledger_cell_edit_target: "form" } } do %>
+            <%= tag.input type: "hidden", name: "return_to", value: return_to %>
+            <%= tag.input type: "hidden", name: "row_index", value: row_index %>
+            <%= number_field_tag :seats, attendee.seats, min: 1, max: 999, step: 1,
+                class: "form-control form-control-sm ledger-cell__control ledger-cell__control--num",
+                aria: { label: "Seats" },
+                data: {
+                  ledger_cell_edit_target: "control",
+                  action: "keydown->ledger-cell-edit#onControlKeydown blur->ledger-cell-edit#onControlBlur"
+                } %>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <span class="ledger-cell__display ledger-cell__display--static">1</span>
+    <% end %>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--source attendees-ledger__td--editable">
+    <div class="ledger-cell ledger-cell--editable" data-controller="ledger-cell-edit" data-ledger-cell-edit-input-mode-value="select">
+      <span
+        class="ledger-cell__display ledger-cell__display--source"
+        tabindex="0"
+        role="button"
+        aria-label="Edit source"
+        data-ledger-cell-edit-target="display"
+        data-action="click->ledger-cell-edit#open keydown->ledger-cell-edit#displayKeydown"><%= source_read %></span>
+      <div class="ledger-cell__editor" data-ledger-cell-edit-target="editor" hidden>
+        <%= form_with url: quick_path, method: :patch, data: { turbo: true }, html: { class: "ledger-cell__form", data: { ledger_cell_edit_target: "form" } } do %>
+          <%= tag.input type: "hidden", name: "return_to", value: return_to %>
+          <%= tag.input type: "hidden", name: "row_index", value: row_index %>
+          <%= select_tag :source_channel,
+              options_for_select([["—", ""]] + source_opts.map { |o| [o, o] }, attendee.source_channel.presence),
+              class: "form-select form-select-sm ledger-cell__control ledger-cell__control--select",
+              aria: { label: "Source" },
+              data: {
+                ledger_cell_edit_target: "control",
+                action: "keydown->ledger-cell-edit#onControlKeydown change->ledger-cell-edit#onSelectChange blur->ledger-cell-edit#onControlBlur"
+              } %>
+        <% end %>
+      </div>
+    </div>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--payment attendees-ledger__td--editable" title="<%= payment_tip %>">
+    <div class="ledger-cell ledger-cell--editable" data-controller="ledger-cell-edit" data-ledger-cell-edit-input-mode-value="select">
+      <div
+        class="ledger-cell__display ledger-cell__display--payment"
+        tabindex="0"
+        role="button"
+        aria-label="Edit payment status"
+        data-ledger-cell-edit-target="display"
+        data-action="click->ledger-cell-edit#open keydown->ledger-cell-edit#displayKeydown"><%= ledger_payment_read_badge(attendee) %></div>
+      <div class="ledger-cell__editor" data-ledger-cell-edit-target="editor" hidden>
+        <%= form_with url: quick_path, method: :patch, data: { turbo: true }, html: { class: "ledger-cell__form", data: { ledger_cell_edit_target: "form" } } do %>
+          <%= tag.input type: "hidden", name: "return_to", value: return_to %>
+          <%= tag.input type: "hidden", name: "row_index", value: row_index %>
+          <%= select_tag :payment_status,
+              options_for_select(attendee_ledger_payment_statuses.map { |s| [s, s] }, attendee.payment_status.presence || "Pending"),
+              class: "form-select form-select-sm ledger-cell__control ledger-cell__control--select ledger-cell__control--payment",
+              aria: { label: "Payment status" },
+              data: {
+                ledger_cell_edit_target: "control",
+                action: "keydown->ledger-cell-edit#onControlKeydown change->ledger-cell-edit#onSelectChange blur->ledger-cell-edit#onControlBlur"
+              } %>
+        <% end %>
+      </div>
+    </div>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--amount attendees-ledger__td--editable" title="Per-seat base (THB). Total includes VAT, seats &amp; discounts.">
+    <div class="ledger-cell ledger-cell--editable" data-controller="ledger-cell-edit" data-ledger-cell-edit-input-mode-value="number">
+      <span
+        class="ledger-cell__display ledger-cell__display--amount"
+        tabindex="0"
+        role="button"
+        aria-label="Edit per-seat base amount"
+        data-ledger-cell-edit-target="display"
+        data-action="click->ledger-cell-edit#open keydown->ledger-cell-edit#displayKeydown"><%= amount_read %></span>
+      <div class="ledger-cell__editor" data-ledger-cell-edit-target="editor" hidden>
+        <%= form_with url: quick_path, method: :patch, data: { turbo: true }, html: { class: "ledger-cell__form", data: { ledger_cell_edit_target: "form" } } do %>
+          <%= tag.input type: "hidden", name: "return_to", value: return_to %>
+          <%= tag.input type: "hidden", name: "row_index", value: row_index %>
+          <%= number_field_tag :price, sprintf("%.2f", base_for_edit), min: 0, step: "0.01",
+              class: "form-control form-control-sm ledger-cell__control ledger-cell__control--currency",
+              aria: { label: "Per-seat base THB" },
+              data: {
+                ledger_cell_edit_target: "control",
+                action: "keydown->ledger-cell-edit#onControlKeydown blur->ledger-cell-edit#onControlBlur"
+              } %>
+        <% end %>
+      </div>
+    </div>
+  </td>
+  <td class="attendees-ledger__td attendees-ledger__td--actions">
+    <div class="attendees-ledger__actions-cell attendees-ledger__actions-cell--compact">
+      <%= odt_action_menu(
+        button_title: "Row actions",
+        items: [
+          { label: "Edit details", icon: "pencil", url: edit_admin_training_class_attendee_path(training_class, attendee, return_to: return_to) },
+          { label: "Send reminder", icon: "send", url: send_email_admin_training_class_attendee_path(training_class, attendee, email_type: "reminder"), method: :post, data: { turbo_frame: "_top" }, confirm: "Send reminder email to #{attendee.email}?" },
+          { label: "View history", icon: "clock-history", url: financials_payment_path(attendee), data: { turbo_frame: "_top" } },
+          { label: "Delete", icon: "trash", url: admin_training_class_attendee_path(training_class, attendee, return_to: return_to), method: :delete, confirm: "Remove this attendee from the class?" }
+        ]
+      ) %>
+    </div>
+  </td>
+</tr>

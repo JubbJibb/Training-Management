@@ -184,12 +184,17 @@ module Admin
       list = list.select { |a| a.participant_type != "Corp" } if params[:tab] == "individual"
       list = list.select { |a| a.payment_status == "Paid" } if params[:payment] == "paid"
       list = list.select { |a| a.payment_status != "Paid" } if params[:payment] == "pending"
-      list = list.select { |a| overdue?(a) } if params[:payment] == "overdue"
+      list = list.select { |a| a.payment_status == "Overdue" || overdue?(a) } if params[:payment] == "overdue"
       list = list.select { |a| a.payment_status == "Refunded" } if params[:payment] == "refunded"
+      list = list.select { |a| a.payment_status == "Partial" } if params[:payment] == "partial"
+      list = list.select { |a| a.payment_status == "Complimentary" } if params[:payment] == "complimentary"
       list = list.select { |a| (a.source_channel || "").downcase == (params[:source] || "").downcase } if params[:source].present?
       if params[:q].to_s.strip.present?
         q = params[:q].to_s.strip.downcase
-        list = list.select { |a| (a.name.to_s + " " + a.company.to_s + " " + a.email.to_s).downcase.include?(q) }
+        list = list.select do |a|
+          hay = [a.name, a.company, a.email, a.respond_to?(:billing_name) ? a.billing_name : nil].compact.join(" ").downcase
+          hay.include?(q)
+        end
       end
       list
     end

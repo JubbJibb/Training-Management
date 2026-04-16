@@ -1,0 +1,17 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  current_view = local_assigns[:current_view] || "list"
+  query_params = local_assigns[:query_params] || { tab: "history" }
+  base_path = admin_class_workspace_attendance_path(training_class)
+%>
+<nav class="hist-toggle" aria-label="มุมมองประวัติ">
+  <%= link_to base_path, query_params.merge(history_view: "monthly"), class: "hist-toggle__item #{current_view == 'monthly' ? 'hist-toggle__item--active' : ''}", data: { turbo_frame: "_top" } do %>
+    ภาพรวมรายเดือน
+  <% end %>
+  <%= link_to base_path, query_params.merge(history_view: "list"), class: "hist-toggle__item #{current_view == 'list' ? 'hist-toggle__item--active' : ''}", data: { turbo_frame: "_top" } do %>
+    รายการย้อนหลัง
+  <% end %>
+  <%= link_to base_path, query_params.merge(history_view: "student"), class: "hist-toggle__item #{current_view == 'student' ? 'hist-toggle__item--active' : ''}", data: { turbo_frame: "_top" } do %>
+    ภาพรวมรายนักเรียน
+  <% end %>
+</nav>

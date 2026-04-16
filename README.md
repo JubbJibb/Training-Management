@@ -2,6 +2,8 @@
 
 Internal Training Management System for managing public and corporate training classes, attendees, customers, promotions, finance, and exports. Built with **Ruby on Rails** and **Turbo** for a modern, responsive admin experience. Replaces spreadsheet-based workflows with a unified web UI, design system, and background export jobs.
 
+📄 **Detailed requirements (functional + non-functional, acceptance notes, traceability):** [`docs/REQUIREMENTS_SPEC.md`](docs/REQUIREMENTS_SPEC.md)
+
 ---
 
 ## Table of Contents
@@ -27,14 +29,15 @@ Internal Training Management System for managing public and corporate training c
 
 | Area | Status | Notes |
 |------|--------|--------|
-| **Operations** | ✅ | Training classes CRUD; Training Calendar at `/operations/training_calendar` (month view, drawer, quick add, filters); class workspace (overview, attendees, leads, documents, finance, edit); courses index/show/edit/sync; instructors index. |
-| **Attendees** | ✅ | Per-class attendees; status (attendee/potential); move between statuses; export CSV/documents; send email (per attendee or whole class); sync tax from customer; pricing and document sections. |
+| **Operations** | ✅ | Training classes CRUD; Training Calendar at `/operations/training_calendar` (month/week, drawer, quick add, filters; “today” uses a circular day marker); class workspace (overview, **attendees ledger** with click-to-edit cells, bulk actions, tabs/filters, leads, documents, finance, **attendance**, edit); courses index/show/edit/sync; instructors index. |
+| **Attendees** | ✅ | Per-class attendees; status (attendee/potential); move between statuses; export CSV/documents; send email (per attendee or whole class); sync tax from customer; pricing and document sections; **class workspace attendee table:** inline PATCH `quick_update` (seats/source/payment/price), POST `bulk_update` (mark paid, reminder mailto, change source); Stimulus `ledger-cell-edit`. |
 | **Clients** | ✅ | Customer directory (index, show, new, create, edit, update); Customer 360° (billing/tax, export customer info/billing/template); corporate accounts (`/clients/corporate_accounts`); client analysis (`/clients/analysis`); sync duplicates, merge, register for class. |
 | **Financials** | ✅ | Financial overview at `/financials/overview` (KPIs, charts, trend, action items); accounts receivable; payments (index, show, summary PDF, verify/reject slip, issue receipt, bulk actions); expenses; compliance; export history. Legacy `/finance/*` redirects to `/financials/*`. |
 | **Insights** | ✅ | Business (`/insights/business`), Financial, Strategy, Actions dashboards with queries and UI. |
 | **Strategy** | ✅ | Promotions CRUD under `/admin/settings`; promotion performance (revenue share, drilldown, export). |
 | **Exports** | ✅ | ExportJob + `GenerateExportJob`; PDF (Financial Report, Class Report, Customer Summary) and Excel exports; export history and download. |
-| **Admin** | ✅ | Dashboard; data (financial report, customer info, attendee list, upload); exports; settings; design system components at `/admin/components`. |
+| **Admin** | ✅ | Dashboard; data (financial report, customer info, attendee list, upload); exports; settings. |
+| **Budget** | ✅ | Internal budget module under `/budget/*` (years, overview, staff forecast/worklogs, setup, expenses, events, etc.). See `docs/BUDGET_INTEGRATION.md`. |
 | **Public** | ✅ | Public class landing at `/classes/:public_slug`. |
 | **Auth** | ✅ | Admin authentication via **Devise** (Gemfile); Pundit for authorization (e.g. ExportJob). |
 
@@ -54,7 +57,7 @@ Unit and integration tests cover controllers (insights, financials, clients, adm
 | Ruby | 3.x |
 | Database | SQLite3 |
 | Server | Puma |
-| Assets | Propshaft, CSS (no Tailwind, no Bootstrap) |
+| Assets | Propshaft; **ODT custom CSS** (tokens + `application.css`); **Bootstrap 5** + **Bootstrap Icons** in admin layout for utilities/forms/icons; no Tailwind |
 | Frontend | Turbo (Frames, Streams), Stimulus, Importmap |
 | Auth | Devise (admin) |
 | Authorization | Pundit |
@@ -70,7 +73,7 @@ Unit and integration tests cover controllers (insights, financials, clients, adm
 
 ### Operations
 - **Training Classes** — Create, edit, delete classes (date, end_date, start_time, end_time, location, instructor, max_attendees, price, cost, description). List with filters and KPI strip.
-- **Training Calendar** — Month/week view at `/operations/calendar`; ODT-themed event cards, filters (instructor, location, status, type, nearly full), KPIs (total classes, seats sold, revenue forecast), side panel with class details and quick actions (View, Edit, Duplicate, Cancel). Logo in navbar links to Calendar.
+- **Training Calendar** — Month/week view at `/operations/training_calendar`; ODT-themed event cards, filters (instructor, location, status, type, nearly full), KPIs (total classes, seats sold, revenue forecast), side panel with class details and quick actions (View, Edit, Duplicate, Cancel). Logo in navbar links to Calendar.
 - **Courses** — Course catalog; sync from external source; link to classes.
 - **Instructors** — Index of instructors derived from training classes.
 - **Attendees** — Per-class: add/edit/remove attendees; status Attendee / Potential; move between statuses; export CSV/documents; send email (per attendee or whole class); sync tax from customer.
@@ -89,7 +92,7 @@ Unit and integration tests cover controllers (insights, financials, clients, adm
 ### Financials
 - **Financial Overview** — CFO-style dashboard: Turbo filters, cash flow, AR aging, corporate ledger, documents compliance, revenue composition, expense summary.
 - **Accounts Receivable** — AR list and actions.
-- **Payment Tracking** — Payments list; payment show with PDF download and send summary.
+- **Payment Tracking** — Payments list at `/financials/payments`; payment show with PDF download and send summary.
 - **Expense Control** — Class expenses index.
 - **Compliance** — Compliance placeholder.
 - **Export History** — Audit of export jobs (requested_by, state, download when succeeded).
@@ -111,7 +114,9 @@ Unit and integration tests cover controllers (insights, financials, clients, adm
 
 ## Requirement Spec
 
-Functional requirements by module. These define *what* the system shall do.
+Functional requirements by module (summary). For **full detail** — priorities, acceptance notes, API summary (e.g. attendee `quick_update` / `bulk_update`), NFR breakdown — see **[`docs/REQUIREMENTS_SPEC.md`](docs/REQUIREMENTS_SPEC.md)**.
+
+The tables below define *what* the system shall do at a high level.
 
 ### Operations
 | ID | Requirement | Priority |
@@ -124,7 +129,8 @@ Functional requirements by module. These define *what* the system shall do.
 | OPS-6 | Instructors index derived from training classes | Must |
 | OPS-7 | Per-class attendees: add/edit/remove; status Attendee/Potential; move between statuses | Must |
 | OPS-8 | Export per-class CSV/documents; send email (per attendee or whole class); sync tax from customer | Must |
-| OPS-9 | Class workspace: overview, attendees, leads, documents, finance, edit | Must |
+| OPS-9 | Class workspace: overview, attendees (ledger + inline edit + bulk), leads, documents, finance, attendance, edit | Must |
+| OPS-10 | Attendee ledger: filters/tabs, click-to-edit cells, bulk mark paid / reminder / source | Must |
 
 ### Clients
 | ID | Requirement | Priority |
@@ -146,6 +152,7 @@ Functional requirements by module. These define *what* the system shall do.
 | FIN-5 | Compliance placeholder | Should |
 | FIN-6 | Export history: audit of export jobs (requested_by, state, download when succeeded) | Must |
 | FIN-7 | VAT & pricing: pre-VAT price, VAT 7%, total; price per head for corporate | Must |
+| FIN-8 | Legacy `/finance/*` URLs redirect to `/financials/*` | Must |
 
 ### Insights
 | ID | Requirement | Priority |
@@ -161,13 +168,19 @@ Functional requirements by module. These define *what* the system shall do.
 | STR-1 | Promotions CRUD: percentage, fixed amount, buy-x-get-y; multiple promotions per attendee | Must |
 | STR-2 | Promotion performance: KPIs, revenue share (donut), leaderboard, drilldown, export | Must |
 
+### Budget (internal)
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| BUD-1 | Budget years, overview, staff forecast/worklogs, setup, expenses, events (see `/budget/*`) | Should |
+| BUD-2 | Integration notes in `docs/BUDGET_INTEGRATION.md` | Should |
+
 ### Exports & Admin
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | EXP-1 | Export via ExportJob + background job only (no synchronous heavy PDF/Excel in request) | Must |
 | EXP-2 | PDF: Financial Report, Class Report, Customer Summary; Excel: Financial, Class Attendees, Customer Master, etc. | Must |
 | EXP-3 | Export audit: requested_by_id, state, download when succeeded | Must |
-| ADM-1 | Admin dashboard; data (financial report, customer info, attendee list, upload); settings; design system components | Must |
+| ADM-1 | Admin dashboard; data (financial report, customer info, attendee list, upload); settings | Must |
 | ADM-2 | Public class landing at `/classes/:public_slug` | Must |
 
 ### Auth & Authorization
@@ -192,7 +205,7 @@ Functional requirements by module. These define *what* the system shall do.
 | **Usability** | Responsive layout for main content and tables | Scroll containers for wide tables; grid/flex from design system |
 | **Accessibility** | Focus states and semantic HTML | Design system guidelines; ARIA where needed |
 | **Maintainability** | Design tokens for colors, spacing, typography, radii, shadows | No one-off hex/magic numbers in component CSS; see `design_tokens.css`, `application.css` :root |
-| **Compatibility** | Modern browsers; no Bootstrap/Tailwind | Plain CSS + Propshaft; Turbo, Stimulus, Importmap |
+| **Compatibility** | Modern browsers; no Tailwind | Plain CSS + Propshaft; Bootstrap 5 optional utilities; Turbo, Stimulus, Importmap |
 | **Deployability** | Container-ready deployment | Kamal, Docker; Thruster optional |
 
 ---
@@ -236,19 +249,20 @@ Optional: run a subset, e.g. `rails test test/controllers/admin/exports_controll
 - **Jobs** — `GenerateExportJob` (reads export_type/format, calls matching export service, attaches file to ExportJob, updates state). `SendPaymentSummaryJob` for payment summary emails.
 - **Policies** — Pundit (e.g. `ExportJobPolicy`). `current_user` from Devise; no role column on admin_users (role-based UI deferred).
 - **Helpers** — `ApplicationHelper`, `Admin::CustomersHelper`, `Admin::SettingsHelper`, `Odt::UiHelper` (buttons, badges, KPI strip, page header, table, filters).
-- **Frontend** — Turbo Frames and Turbo Streams for modals, side panels, and partial updates (e.g. calendar event panel, customer sync, export modal). Stimulus for interactive bits. No Bootstrap; ODT design system (CSS only).
+- **Frontend** — Turbo Frames and Turbo Streams for modals, side panels, and partial updates (e.g. calendar event panel, customer sync, export modal). Stimulus for interactive bits (e.g. attendee ledger `ledger-cell-edit`). **ODT design system** is the primary styling; Bootstrap 5 is available for layout/utilities where used.
 
 ### Key routes (summary)
 | Area | Paths |
 |------|--------|
-| **Operations** | `/operations/calendar`, `/operations/calendar/event/:id`; `/admin/training_classes`, `/admin/courses`, `/instructors` |
+| **Operations** | `/operations/training_calendar` (Calendar); `/admin/training_classes`, `/admin/courses`, `/instructors` |
 | **Insights** | `/insights`, `/insights/business`, `/insights/financial`, `/insights/strategy`, `/insights/actions` |
 | **Clients** | `/admin/customers`, `/clients/corporate_accounts`, `/clients/analysis` |
-| **Financials** | `/finance`, `/finance/ar`, `/finance/payments`, `/finance/expenses`, `/finance/compliance`, `/finance/export_jobs`; `/financials/payment_tracking`, `/financials/payments/:id` |
+| **Financials** | `/financials/overview`, `/financials/accounts_receivable`, `/financials/payments`, `/financials/expenses`, `/financials/compliance`, `/financials/export_history` (legacy `/finance/*` redirects) |
+| **Budget** | `/budget`, `/budget/overview`, `/budget/staff/*`, `/budget/years`, etc. |
 | **Strategy** | `/admin/settings` (Promotions, Performance) |
 | **Admin** | `/admin` (dashboard), `/admin/data`, exports, etc. |
 
-Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar`.
+Root redirects to `/admin/training_classes`. Logo links to `/operations/training_calendar`.
 
 ### Export flow
 1. User chooses export type and format in Export modal (e.g. Financial Report PDF).
@@ -271,7 +285,7 @@ Root redirects to `/admin/training_classes`. Logo links to `/operations/calendar
 
 ## Visual Design
 
-The ODT (brand) theme targets a **consulting-premium, enterprise SaaS** look. No Tailwind; no Bootstrap. All UI is built from design tokens and shared components.
+The ODT (brand) theme targets a **consulting-premium, enterprise SaaS** look. **No Tailwind.** Styling is primarily **token-driven ODT CSS**; Bootstrap may be used for select utilities/components. Shared components live under `components/odt` and helpers (`Odt::UiHelper`).
 
 ### Design principles
 
@@ -347,10 +361,10 @@ Training-Management/
 │   │   ├── admin/                    # dashboard, finance, training_classes, attendees,
 │   │   │                             # customers, settings, exports, data, courses, etc.
 │   │   ├── clients/                  # corporate_accounts, analysis
-│   │   ├── financials/               # payment_tracking, payments
+│   │   ├── financials/               # payments, overview, expenses, etc.
 │   │   ├── finance_dashboards_controller.rb
 │   │   ├── insights/                 # business, financial, strategy, actions
-│   │   └── operations/              # calendar (Training Calendar)
+│   │   └── operations/              # training_calendar (Training Calendar)
 │   ├── models/                      # TrainingClass, Attendee, Customer, Promotion,
 │   │                                 # AttendeePromotion, ClassExpense, AdminUser,
 │   │                                 # ExportJob, CustomField*, FinancialActionLog
@@ -367,9 +381,9 @@ Training-Management/
 │   │   ├── shared/                  # main_nav, section_header, empty_state, tabs
 │   │   ├── admin/                   # dashboard, training_classes, attendees, customers,
 │   │   │                             # settings, exports, finance, data
-│   │   ├── operations/calendar/     # index, month/week grid, event_card, event_sidebar
+│   │   ├── operations/training_calendar/  # index, calendar, modals, drawer
 │   │   ├── finance_dashboards/      # CFO dashboard partials
-│   │   ├── financials/              # payment_tracking, payments
+│   │   ├── financials/              # payments, overview, expenses, etc.
 │   │   ├── insights/                # business, financial, strategy, actions
 │   │   ├── clients/                 # corporate_accounts, analysis
 │   │   └── payment_mailer/
@@ -380,7 +394,8 @@ Training-Management/
 ├── db/
 │   ├── schema.rb
 │   └── migrate/
-├── docs/                            # NAVIGATION_IA, INSIGHTS_*, CLIENTS_*, ui-checklist,
+├── docs/                            # REQUIREMENTS_SPEC, NAVIGATION_IA, INSIGHTS_*, CLIENTS_*, ui-checklist,
+│   ├── REQUIREMENTS_SPEC.md         # Full functional + non-functional requirements
 │   ├── NAVIGATION_IA.md             # DATABASE_ER_DIAGRAM, etc.
 │   ├── ui-checklist.md
 │   ├── ui-consistency.md
@@ -395,6 +410,7 @@ Training-Management/
 
 | Document | Purpose |
 |----------|---------|
+| **[`docs/REQUIREMENTS_SPEC.md`](docs/REQUIREMENTS_SPEC.md)** | **Detailed requirements specification** (scope, modules, NFR, acceptance notes, API summary, appendices). |
 | **docs/NAVIGATION_IA.md** | Top-level menu (Operations, Insights, Clients, Financials, Strategy, Settings); route map; manual test checklist. |
 | **docs/ui-checklist.md** | Pre-merge UI checklist: shared components, KPIs, tokens, tables, responsive layout. |
 | **docs/ui-consistency.md** | UI consistency guidelines. |
@@ -405,6 +421,7 @@ Training-Management/
 | **docs/DATABASE_ER_DIAGRAM.md** | Database entity-relationship reference. |
 
 **Conventions**
+- **Requirements** — Detailed spec: [`docs/REQUIREMENTS_SPEC.md`](docs/REQUIREMENTS_SPEC.md); README requirement tables are summaries.
 - **Calendar** — Month default; filters via query params; event cards constrained (no overflow); side panel via Turbo Frame.
 - **Exports** — Always via ExportJob + background job; never synchronous heavy PDF/Excel in request.
 - **Customer sync** — “Sync from latest registration” and sync endpoints use Turbo Streams where appropriate.
@@ -421,7 +438,7 @@ Training-Management/
 | Ruby | 3.x |
 | Database | SQLite3 |
 | Server | Puma |
-| Assets | Propshaft, CSS (no Tailwind, no Bootstrap) |
+| Assets | Propshaft; **ODT custom CSS** (tokens + `application.css`); **Bootstrap 5** + **Bootstrap Icons** in admin layout for utilities/forms/icons; no Tailwind |
 | Frontend | Turbo (Frames, Streams), Stimulus, Importmap |
 | Auth | Devise (admin) |
 | Authorization | Pundit |

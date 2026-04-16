@@ -1,0 +1,50 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  records = local_assigns[:records] || []
+%>
+<div class="hist-list">
+  <% if records.empty? %>
+    <div class="hist-list__empty">
+      <p>ไม่มีรายการบันทึกการเช็กชื่อ</p>
+    </div>
+  <% else %>
+    <div class="hist-list__table-wrap">
+      <table class="hist-list__table" role="table">
+        <thead class="hist-list__thead">
+          <tr>
+            <th scope="col" class="hist-list__th">วันที่</th>
+            <th scope="col" class="hist-list__th">ชั่วโมงเรียน</th>
+            <th scope="col" class="hist-list__th">สรุปการเข้าเรียน</th>
+            <th scope="col" class="hist-list__th">บันทึกโดย</th>
+            <th scope="col" class="hist-list__th">อัปเดตล่าสุด</th>
+            <th scope="col" class="hist-list__th">สถานะ</th>
+            <th scope="col" class="hist-list__th">การดำเนินการ</th>
+          </tr>
+        </thead>
+        <tbody class="hist-list__tbody">
+          <% records.each do |record| %>
+            <%
+              present = record.present_count
+              absent = record.absent_count
+              rate = record.attendance_rate_percent
+              summary_text = "#{present} มา / #{absent} ขาด"
+              summary_text += " (#{rate}%)" if rate.present?
+            %>
+            <tr class="hist-list__row">
+              <td class="hist-list__td"><%= record.attendance_date.strftime("%d/%m/%Y") %></td>
+              <td class="hist-list__td"><%= record.learning_hour %></td>
+              <td class="hist-list__td hist-list__td--summary"><%= summary_text %></td>
+              <td class="hist-list__td"><%= record.recorded_by&.email || "—" %></td>
+              <td class="hist-list__td"><%= l(record.updated_at, format: :short) %></td>
+              <td class="hist-list__td"><%= render "admin/attendance/attendance_history_status_badge", record: record %></td>
+              <td class="hist-list__td hist-list__td--actions">
+                <%= link_to "ดู", admin_class_workspace_attendance_record_path(training_class, record), class: "hist-list__link", data: { turbo_frame: "attendance_history_detail" } %>
+                <%= link_to "แก้ไข", admin_class_workspace_attendance_path(training_class, attendance_date: record.attendance_date.strftime("%Y-%m-%d"), learning_hour: record.learning_hour, edit_record_id: record.id, tab: "check"), class: "hist-list__link", data: { turbo_frame: "_top" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

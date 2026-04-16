@@ -247,19 +247,16 @@ function initViewEdit() {
   }
 
   var participantTypeSelect = document.getElementById('participant_type_select');
-  var companyField = document.getElementById('company-field');
   var seatsField = document.getElementById('seats-field');
   var seatsIndiHint = document.getElementById('seats-indi-hint');
   var seatsInput = document.querySelector('input[name="attendee[seats]"]');
   if (participantTypeSelect) {
     participantTypeSelect.addEventListener('change', function() {
       if (this.value === 'Corp') {
-        if (companyField) companyField.style.display = 'block';
         if (seatsField) seatsField.style.display = 'block';
         if (seatsIndiHint) seatsIndiHint.style.display = 'none';
         if (seatsInput) { seatsInput.value = seatsInput.value || '1'; seatsInput.removeAttribute('readonly'); }
       } else {
-        if (companyField) companyField.style.display = 'none';
         if (seatsField) seatsField.style.display = 'none';
         if (seatsIndiHint) seatsIndiHint.style.display = 'block';
         if (seatsInput) { seatsInput.value = '1'; seatsInput.setAttribute('readonly', 'readonly'); }

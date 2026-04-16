@@ -1,8 +1,8 @@
 module Admin
   class AttendeesController < ApplicationController
     before_action :set_training_class
-    before_action :set_attendee, only: [:show, :edit, :update, :destroy, :move_to_potential, :move_to_attendee, :sync_tax_from_customer]
-    skip_before_action :set_attendee, only: [:index, :new, :create, :export, :export_documents]
+    before_action :set_attendee, only: [:show, :edit, :update, :destroy, :move_to_potential, :move_to_attendee, :sync_tax_from_customer, :quick_update]
+    skip_before_action :set_attendee, only: [:index, :new, :create, :export, :export_documents, :bulk_update]
     skip_before_action :verify_authenticity_token, only: [:update], if: :document_modal_update?
     layout "admin"
     
@@ -24,8 +24,10 @@ module Admin
           @attendee.participant_type = customer.participant_type.presence || "Indi"
           @attendee.company = customer.company
           @attendee.customer_id = customer.id
+          prefill_attendee_from_customer(@attendee, customer)
         end
       end
+      @customers_for_select = Customer.order(:name).limit(500).pluck(:id, :name, :email)
       @promotions = Promotion.active.order(:name)
       set_source_channel_options
     end
@@ -36,6 +38,7 @@ module Admin
       if @attendee.save
         redirect_to attendee_return_to_url, notice: "Attendee added successfully."
       else
+        @customers_for_select = Customer.order(:name).limit(500).pluck(:id, :name, :email)
         @promotions = Promotion.active.order(:name)
         set_source_channel_options
         render :new, status: :unprocessable_entity
@@ -143,7 +146,94 @@ module Admin
       end
     end
 
-    # Export selected attendees to Excel or CSV with selected fields (from Documents tab)
+    # Inline PATCH from class workspace attendee ledger (Turbo Stream row replace).
+    def quick_update
+      attrs = {}
+      attrs[:payment_status] = params[:payment_status] if params.key?(:payment_status)
+      attrs[:source_channel] = params[:source_channel].presence if params.key?(:source_channel)
+      if params.key?(:seats) && @attendee.participant_type == "Corp"
+        s = params[:seats].to_i
+        attrs[:seats] = s if s >= 1
+      end
+      if params.key?(:price)
+        attrs[:price] = params[:price].blank? ? nil : params[:price]
+      end
+
+      if attrs.empty?
+        head :unprocessable_entity
+        return
+      end
+
+      if @attendee.update(attrs)
+        row_index = params[:row_index].to_i
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "ledger-row-#{@attendee.id}",
+              partial: "admin/class_workspace/sections/ledger_attendee_row",
+              locals: {
+                training_class: @training_class,
+                attendee: @attendee.reload,
+                row_index: row_index,
+                sort_params: ledger_sort_params,
+                return_to: params[:return_to].presence || request.referer
+              }
+            )
+          end
+          format.html { redirect_to attendee_return_to_url, notice: "Updated." }
+        end
+      else
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "ledger-row-#{@attendee.id}",
+              partial: "admin/class_workspace/sections/ledger_attendee_row",
+              locals: {
+                training_class: @training_class,
+                attendee: @attendee,
+                row_index: params[:row_index].to_i,
+                sort_params: ledger_sort_params,
+                return_to: params[:return_to].presence || request.referer,
+                inline_errors: @attendee.errors.full_messages.join(", ")
+              }
+            ), status: :unprocessable_entity
+          end
+          format.html { redirect_to attendee_return_to_url, alert: @attendee.errors.full_messages.join(", ") }
+        end
+      end
+    end
+
+    def bulk_update
+      ids = Array(params[:attendee_ids]).reject(&:blank?).map(&:to_i).uniq
+      attendees = @training_class.attendees.attendees.where(id: ids)
+      action = params[:bulk_action].to_s
+
+      case action
+      when "mark_paid"
+        cnt = attendees.count
+        attendees.find_each { |a| a.update(payment_status: "Paid") }
+        notice = "Marked #{cnt} as paid."
+      when "change_source"
+        src = params[:bulk_source].to_s.presence
+        if src.present?
+          cnt = attendees.update_all(source_channel: src)
+          notice = "Updated source for #{cnt} attendee(s)."
+        else
+          redirect_to attendee_return_to_url, alert: "Select a source." and return
+        end
+      when "send_reminder"
+        list = attendees.to_a
+        if list.empty?
+          redirect_to attendee_return_to_url, alert: "No attendees selected." and return
+        end
+        redirect_to mailto_send_reminder_all_attendees(@training_class, list), allow_other_host: true and return
+      else
+        redirect_to attendee_return_to_url, alert: "Unknown action." and return
+      end
+
+      redirect_to attendee_return_to_url, notice: notice
+    end
+
     def export_documents
       ids = Array(params[:attendee_ids]).reject(&:blank?).map(&:to_i)
       ids = @training_class.attendees.pluck(:id) if ids.empty?
@@ -171,6 +261,10 @@ module Admin
     end
 
     private
+
+    def ledger_sort_params
+      request.query_parameters.slice("tab", "payment", "source", "q", "sort", "direction").compact
+    end
 
     DOCUMENT_EXPORT_LABELS = {
       "no" => "#No", "name" => "Name", "email" => "Email", "phone" => "Phone", "company" => "Company",
@@ -303,6 +397,15 @@ module Admin
       @attendee = @training_class.attendees.find(params[:id])
     end
 
+    def prefill_attendee_from_customer(attendee, customer)
+      attendee.name_thai = customer.name_thai if attendee.respond_to?(:name_thai=)
+      attendee.tax_id = customer.tax_id if attendee.respond_to?(:tax_id=)
+      attendee.billing_name = customer.billing_name if attendee.respond_to?(:billing_name=)
+      attendee.address = customer.address if attendee.respond_to?(:address=)
+      attendee.billing_address = customer.billing_address if attendee.respond_to?(:billing_address=)
+      attendee.phone = customer.phone if attendee.phone.blank?
+    end
+
     # Document tab modal submits with redirect_tab=documents; avoid CSRF issues from dynamic form action.
     def document_modal_update?
       params[:redirect_tab] == "documents" && params[:attendee].is_a?(ActionController::Parameters)
@@ -317,10 +420,12 @@ module Admin
     def attendee_params
       p = params.require(:attendee).permit(:name, :email, :phone, :company, :notes,
                                           :participant_type, :seats, :source_channel, :payment_status, :payment_date,
+                                          :advance_paid_amount, :advance_paid_note,
                                           :document_status, :attendance_status, :total_classes, :price,
                                           :quotation_no, :invoice_no, :receipt_no, :due_date, :status,
                                           :name_thai, :tax_id, :address, :billing_name, :billing_address,
-                                          :vat_excluded, :document_modal,
+                                          :vat_excluded, :document_modal, :bundle_discount_percent, :bundle_discount_fixed,
+                                          :customer_id,
                                           promotion_ids: [], payment_slips: [])
       # vat_excluded: "" = ตามคลาส (nil), "0" = รวม VAT (false), "1" = ไม่รวม VAT (true)
       if p.key?(:vat_excluded)

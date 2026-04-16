@@ -74,4 +74,37 @@ module Admin::CustomersHelper
     return nil if list.empty?
     list.map(&:created_at).compact.min
   end
+
+  # Bundle Deal: label for discount value field by type
+  def discount_value_label(discount_type)
+    case discount_type.to_s
+    when "percent" then "ร้อยละ (%)"
+    when "fixed" then "จำนวนเงินส่วนลด (บาท)"
+    when "fixed_total" then "ราคา Final รวม (บาท)"
+    else "จำนวนเงิน (บาท)"
+    end
+  end
+
+  def step_for_discount_type(discount_type)
+    discount_type.to_s == "percent" ? "0.5" : "1"
+  end
+
+  def placeholder_for_discount_type(discount_type)
+    case discount_type.to_s
+    when "percent" then "เช่น 10"
+    when "fixed" then "เช่น 500"
+    when "fixed_total" then "เช่น 21,400"
+    else "เช่น 500"
+    end
+  end
+
+  # mailto: URL with BCC = all customer emails (for "Send Email" / Open in Outlook)
+  # Uses to_a.map to avoid pluck on a relation that has ORDER BY computed columns (last_attended_at).
+  def mailto_bcc_customers_url(customers)
+    list = customers.respond_to?(:to_a) ? customers.to_a : Array(customers)
+    emails = list.map(&:email).compact.uniq
+    return "mailto:?" if emails.empty?
+    bcc = emails.join(";")
+    "mailto:?bcc=#{ERB::Util.url_encode(bcc)}"
+  end
 end

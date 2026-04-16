@@ -1,0 +1,13 @@
+<%
+  tab = local_assigns[:tab] || "check"
+  training_class = local_assigns[:training_class] || @training_class
+  base_path = admin_class_workspace_attendance_path(training_class)
+  query = { tab: tab }.tap do |q|
+    q[:attendance_date] = @attendance_date&.strftime("%Y-%m-%d") if @attendance_date.present?
+    q[:learning_hour] = @learning_hour if @learning_hour.present?
+  end
+%>
+<nav class="attendance-tabs" aria-label="Attendance sections">
+  <%= link_to "เช็กชื่อ", admin_class_workspace_attendance_path(training_class, query.merge(tab: "check")), class: "attendance-tabs__tab #{tab == 'check' ? 'attendance-tabs__tab--active' : ''}", data: { turbo_frame: "_top" } %>
+  <%= link_to "ประวัติการเช็กชื่อ", admin_class_workspace_attendance_path(training_class, query.merge(tab: "history")), class: "attendance-tabs__tab #{tab == 'history' ? 'attendance-tabs__tab--active' : ''}", data: { turbo_frame: "_top" } %>
+</nav>

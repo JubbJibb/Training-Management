@@ -1,0 +1,34 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  attendees_list = local_assigns[:attendees_list] || []
+  existing_record = local_assigns[:existing_record]
+  summary = local_assigns[:summary] || {}
+  date_str = @attendance_date&.strftime("%Y-%m-%d")
+  hour_label = AttendanceRecord.learning_hour_options.find { |_l, v| v == @learning_hour }&.first || @learning_hour
+  status_label = existing_record ? "บันทึกแล้ว" : "ยังไม่บันทึก"
+  mode_label = @edit_mode ? "กำลังแก้ไขย้อนหลัง" : "เช็กชื่อใหม่"
+%>
+<div class="attendance-tab">
+  <div class="attendance-tab__bar">
+    <span class="attendance-tab__bar-item">วันที่: <%= date_str.presence || "—" %></span>
+    <span class="attendance-tab__bar-item">ชั่วโมง: <%= hour_label.presence || "—" %></span>
+    <span class="attendance-tab__badge attendance-tab__badge--<%= status_label == "บันทึกแล้ว" ? "saved" : "unsaved" %>"><%= status_label %></span>
+    <span class="attendance-tab__badge attendance-tab__badge--mode"><%= mode_label %></span>
+  </div>
+  <div class="attendance-tab__actions">
+    <input type="search" class="attendance-tab__search form-control form-control-sm" placeholder="ค้นหาชื่อ / เลขบัตร" id="attendance_search" aria-label="ค้นหานักเรียน">
+    <button type="button" class="attendance-tab__btn btn btn-outline-secondary btn-sm" id="attendance_select_all">เลือกทั้งหมด</button>
+    <button type="button" class="attendance-tab__btn btn btn-outline-secondary btn-sm" id="attendance_clear_all">ล้างการเลือก</button>
+    <button type="button" class="attendance-tab__btn btn btn-outline-primary btn-sm" id="attendance_mark_present">ทำเครื่องหมายว่ามา</button>
+  </div>
+  <%= form_with url: admin_class_workspace_attendance_save_path(training_class), method: :post, id: "attendance_form", class: "attendance-tab__form", data: { turbo: true } do |f| %>
+    <%= hidden_field_tag :attendance_date, date_str, id: "form_attendance_date" %>
+    <%= hidden_field_tag :learning_hour, @learning_hour, id: "form_learning_hour" %>
+    <%= hidden_field_tag :record_id, existing_record&.id if existing_record %>
+    <%= render "admin/attendance/attendance_table", attendees_list: attendees_list, date_str: date_str, hour_selected: @learning_hour.present? %>
+    <div class="attendance-tab__footer">
+      <%= link_to "ยกเลิก", admin_class_workspace_attendance_path(training_class), class: "attendance-tab__btn-secondary btn btn-outline-secondary", data: { turbo_frame: "_top" } %>
+      <%= button_tag "บันทึก", type: "submit", class: "attendance-tab__btn-primary btn btn-primary", disabled: date_str.blank? || @learning_hour.blank? %>
+    </div>
+  <% end %>
+</div>

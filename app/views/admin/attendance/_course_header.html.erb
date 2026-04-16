@@ -1,0 +1,20 @@
+<%
+  training_class = local_assigns[:training_class] || @training_class
+  date_str = training_class.date.strftime("%Y-%m-%d")
+  date_str += " – #{training_class.end_date.strftime("%Y-%m-%d")}" if training_class.end_date.present? && training_class.end_date != training_class.date
+%>
+<header class="attendance-header">
+  <div class="attendance-header__row attendance-header__row--1">
+    <%= link_to admin_classes_path, class: "attendance-header__back" do %>
+      <i class="bi bi-arrow-left" aria-hidden="true"></i> กลับ
+    <% end %>
+    <h1 class="attendance-header__title"><%= training_class.title %></h1>
+  </div>
+  <div class="attendance-header__row attendance-header__row--2">
+    <span class="attendance-header__meta"><strong>รอบเรียน</strong> <%= training_class.date.strftime("%d/%m/%Y") %><%= " – #{training_class.end_date.strftime("%d/%m/%Y")}" if training_class.end_date.present? && training_class.end_date != training_class.date %></span>
+    <span class="attendance-header__meta"><strong>วันเรียน</strong> <%= training_class.date.strftime("%A") %></span>
+    <span class="attendance-header__meta"><strong>เวลาเรียน</strong> <%= training_class.start_time&.strftime("%H:%M") || "—" %> – <%= training_class.end_time&.strftime("%H:%M") || "—" %></span>
+    <span class="attendance-header__meta"><strong>ภาคเรียน</strong> —</span>
+    <span class="attendance-header__meta"><strong>ช่วงวันที่เรียน</strong> <%= date_str %></span>
+  </div>
+</header>

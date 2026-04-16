@@ -253,4 +253,99 @@ module ApplicationHelper
 
     "mailto:?bcc=#{encoded_bcc}&subject=#{encoded_subject}&body=#{encoded_body}"
   end
+
+  # Pending-by-class dashboard: priority level and due label for a group hash
+  # group: { total_amount:, earliest_due_date:, class_date: }
+  def payment_priority_level(group)
+    total = group[:total_amount].to_f
+    return :none if total.zero?
+    due = group[:earliest_due_date] || group[:class_date]
+    return :high if due.present? && due < Date.current
+    return :medium if due.present? && due >= Date.current && due <= Date.current + 7
+    :low
+  end
+
+  def payment_due_label(group)
+    total = group[:total_amount].to_f
+    return "No payment" if total.zero?
+    due = group[:earliest_due_date] || group[:class_date]
+    return "Overdue" if due.present? && due < Date.current
+    if due.present? && due >= Date.current
+      days = (due - Date.current).to_i
+      return "Due today" if days.zero?
+      return "Due in #{days} day".pluralize(days) if days <= 7
+    end
+    "Upcoming"
+  end
+
+  # Group key for pending-by-class sections: :overdue, :due_soon, :upcoming, :none
+  def payment_group_key(group)
+    total = group[:total_amount].to_f
+    return :none if total.zero?
+    due = group[:earliest_due_date] || group[:class_date]
+    return :overdue if due.present? && due < Date.current
+    return :due_soon if due.present? && due >= Date.current && due <= Date.current + 7
+    :upcoming
+  end
+
+  # Latest reminder sent at for a set of attendee ids (FinancialActionLog send_payment_summary, status: sent)
+  def last_reminder_sent_at(attendee_ids)
+    return nil if attendee_ids.blank?
+    FinancialActionLog
+      .where(subject_type: "Attendee", subject_id: attendee_ids, action_type: "send_payment_summary", status: "sent")
+      .maximum(:updated_at)
+  end
+
+  # Sort link for pending-by-class table: returns path with pfc_sort and pfc_dir toggled for column
+  def financials_payments_sort_path(column, base_params = {})
+    current = params[:pfc_sort].presence || "priority"
+    dir = params[:pfc_dir].presence == "asc" ? "asc" : "desc"
+    next_dir = (current == column.to_s && dir == "desc") ? "asc" : "desc"
+    financials_payments_path(base_params.merge(pfc_sort: column, pfc_dir: next_dir))
+  end
+
+  def financials_payments_sort_indicator(column)
+    current = params[:pfc_sort].presence || "priority"
+    return "" unless current == column.to_s
+    dir = params[:pfc_dir].presence == "asc" ? "asc" : "desc"
+    dir == "asc" ? " ↑" : " ↓"
+  end
+
+  # Source dropdown options for attendee ledger / inline edits (aligned with Admin::AttendeesController#set_source_channel_options)
+  def attendee_source_channel_options
+    defaults = %w[Website Facebook Email Line Referral Walk-in Phone Event Direct Internal Web LINE อื่นๆ]
+    existing = Attendee.where.not(source_channel: [nil, ""]).distinct.pluck(:source_channel).sort
+    (defaults + existing).uniq
+  end
+
+  def attendee_ledger_payment_statuses
+    %w[Pending Paid Partial Complimentary Refunded Overdue]
+  end
+
+  # Effective per-seat base for inline price edit (stored override or class default)
+  def attendee_effective_base_price(attendee, training_class)
+    stored = attendee.read_attribute(:price)
+    if stored.present? && stored.to_f.positive?
+      stored.to_f
+    else
+      training_class.price.to_f
+    end
+  end
+
+  # Read-only payment pill for attendee ledger (click-to-edit table).
+  def ledger_payment_read_badge(attendee)
+    s = attendee.payment_status.presence || "Pending"
+    case s
+    when "Paid"
+      odt_badge(s, status: :paid, size: :sm)
+    when "Overdue"
+      odt_badge(s, status: :overdue, size: :sm)
+    when "Pending", "Partial"
+      odt_badge(s, status: :pending, size: :sm)
+    when "Complimentary", "Refunded"
+      odt_badge(s, variant: :neutral, size: :sm)
+    else
+      odt_badge(s, status: :pending, size: :sm)
+    end
+  end
 end

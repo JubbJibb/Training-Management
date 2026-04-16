@@ -224,18 +224,27 @@
   align-items: center;
   box-sizing: border-box;
 }
+/* วันที่วันนี้: วงกลม (เดิม width 14px + สูง ~22px ทำให้เป็นวีรี) */
 .tc-grid--month .tc-month__cell--today .tc-month__day-num {
   background: var(--tc-indigo);
   color: #fff;
-  width: 14px;
+  width: calc(var(--tc-cell-top-offset) - 6px);
   height: calc(var(--tc-cell-top-offset) - 6px);
+  min-width: calc(var(--tc-cell-top-offset) - 6px);
   min-height: calc(var(--tc-cell-top-offset) - 6px);
-  line-height: 14px;
-  padding-bottom: var(--tc-card-gap);
+  max-width: calc(var(--tc-cell-top-offset) - 6px);
+  max-height: calc(var(--tc-cell-top-offset) - 6px);
+  line-height: 1;
+  padding: 0;
+  padding-bottom: 0;
+  margin: 0;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  aspect-ratio: 1;
 }
 .tc-grid--month .tc-month__events {
   display: flex;

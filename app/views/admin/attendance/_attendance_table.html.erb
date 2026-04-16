@@ -1,0 +1,49 @@
+<%
+  attendees_list = local_assigns[:attendees_list] || []
+  date_str = local_assigns[:date_str]
+  hour_selected = local_assigns[:hour_selected]
+  show_hint = date_str.blank? || hour_selected.blank?
+%>
+<div class="attendance-table-wrap">
+  <% if show_hint && attendees_list.any? %>
+    <p class="attendance-table-hint">เลือกวันที่และชั่วโมงเรียนด้านซ้าย แล้วกดบันทึก</p>
+  <% end %>
+  <% if attendees_list.empty? %>
+    <div class="attendance-table-empty">
+      <p class="attendance-table-empty__text">ไม่มีนักเรียนในคลาสนี้</p>
+    </div>
+  <% else %>
+    <table class="attendance-table" role="table">
+      <thead class="attendance-table__head">
+        <tr>
+          <th scope="col" class="attendance-table__th attendance-table__th--check">
+            <input type="checkbox" class="form-check-input attendance-table__check-all" id="attendance_check_all" aria-label="เลือกทั้งหมด">
+          </th>
+          <th scope="col" class="attendance-table__th attendance-table__th--no">#</th>
+          <th scope="col" class="attendance-table__th attendance-table__th--id">เลขบัตร / รหัส</th>
+          <th scope="col" class="attendance-table__th attendance-table__th--name">ชื่อ-นามสกุล</th>
+          <th scope="col" class="attendance-table__th attendance-table__th--phone">เบอร์โทร</th>
+          <th scope="col" class="attendance-table__th attendance-table__th--pct">% การมา</th>
+        </tr>
+      </thead>
+      <tbody class="attendance-table__body">
+        <% attendees_list.each_with_index do |item, idx| %>
+          <%
+            attendee = item[:attendee]
+            present = item[:present]
+          %>
+          <tr class="attendance-table__row" data-attendee-id="<%= attendee.id %>" data-search-name="<%= [attendee.name, attendee.billing_name, attendee.email].join(" ").downcase %>">
+            <td class="attendance-table__td attendance-table__td--check">
+              <input type="checkbox" name="present_ids[]" value="<%= attendee.id %>" class="form-check-input attendance-row-check" <%= "checked" if present %> aria-label="มาเรียน">
+            </td>
+            <td class="attendance-table__td attendance-table__td--no"><%= idx + 1 %></td>
+            <td class="attendance-table__td attendance-table__td--id"><%= attendee.tax_id.presence || "—" %></td>
+            <td class="attendance-table__td attendance-table__td--name"><%= (attendee.billing_name.presence || attendee.name) %></td>
+            <td class="attendance-table__td attendance-table__td--phone"><%= attendee.phone.presence || "—" %></td>
+            <td class="attendance-table__td attendance-table__td--pct">—</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

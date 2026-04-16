@@ -1,0 +1,30 @@
+<%
+  overview = local_assigns[:overview] || {}
+  total_days = overview[:total_days] || 0
+  recorded = overview[:recorded_count] || 0
+  missing = overview[:missing_count] || 0
+  edited = overview[:edited_count] || 0
+  avg_rate = overview[:avg_attendance_rate]
+%>
+<div class="hist-cards">
+  <div class="hist-cards__item">
+    <span class="hist-cards__value"><%= total_days %></span>
+    <span class="hist-cards__label">วันเรียนทั้งหมด</span>
+  </div>
+  <div class="hist-cards__item hist-cards__item--recorded">
+    <span class="hist-cards__value"><%= recorded %></span>
+    <span class="hist-cards__label">เช็กชื่อแล้ว</span>
+  </div>
+  <div class="hist-cards__item hist-cards__item--missing">
+    <span class="hist-cards__value"><%= missing %></span>
+    <span class="hist-cards__label">ยังไม่เช็ก</span>
+  </div>
+  <div class="hist-cards__item hist-cards__item--edited">
+    <span class="hist-cards__value"><%= edited %></span>
+    <span class="hist-cards__label">แก้ไขย้อนหลัง</span>
+  </div>
+  <div class="hist-cards__item hist-cards__item--avg">
+    <span class="hist-cards__value"><%= avg_rate.present? ? "#{avg_rate}%" : "—" %></span>
+    <span class="hist-cards__label">มาเรียนเฉลี่ย</span>
+  </div>
+</div>

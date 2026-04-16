@@ -1,0 +1,26 @@
+<%= render layout: "layouts/class_workspace" do %>
+  <%= render "admin/attendance/course_header", training_class: @training_class %>
+  <div id="attendance_flash" class="attendance-workspace__flash">
+    <%= render "admin/attendance/flash", type: flash[:notice].present? ? :notice : nil, message: flash[:notice].presence || flash[:alert].presence %>
+  </div>
+  <div class="attendance-workspace">
+    <aside class="attendance-workspace__sidebar">
+      <div id="attendance_control_panel">
+        <%= render "admin/attendance/attendance_control_panel", training_class: @training_class, existing_record: @existing_record, summary: @summary %>
+      </div>
+    </aside>
+    <main class="attendance-workspace__main">
+      <%= render "admin/attendance/attendance_tabs", tab: @tab, training_class: @training_class %>
+      <% if @tab == "check" %>
+        <%= turbo_frame_tag "attendance_tab_content" do %>
+          <%= render "admin/attendance/attendance_tab", training_class: @training_class, attendees_list: @attendees_list, existing_record: @existing_record, summary: @summary %>
+        <% end %>
+      <% else %>
+        <%= turbo_frame_tag "attendance_tab_content" do %>
+          <%= render "admin/attendance/attendance_history_tab", training_class: @training_class, records: @records || [] %>
+        <% end %>
+      <% end %>
+    </main>
+  </div>
+  <%= render "admin/attendance/attendance_styles" %>
+<% end %>
